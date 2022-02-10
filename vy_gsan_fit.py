@@ -43,8 +43,8 @@ cata='/Users/amartinez/Desktop/PhD/Libralato_data/CATALOGS/'
 
 #R.A. Dec. X Y μαcosδ σμαcosδ μδ σμδ  time n1 n2 ID
 
-# name='ACSWFC'
-name='WFC3IR'
+name='ACSWFC'
+# name='WFC3IR'
 ra,dec,x_c ,y_c,mua,dmua,mud,dmud, time, n1, n2, idt = np.loadtxt(cata+'GALCEN_%s_PM.cat'%(name),unpack=True)
 # VEGAmag, rmsmag, QFIT, o, RADXS, nf, nu, Localsky, Local-skyrms
 mag, rms, qfit, o, RADXS, nf, nu, Localsky, Local_skyrms= np.loadtxt(cata+'GALCEN_%s_GO12915.cat'%(name),unpack=True )
