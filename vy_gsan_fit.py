@@ -43,25 +43,11 @@ cata='/Users/amartinez/Desktop/PhD/Libralato_data/CATALOGS/'
 
 #R.A. Dec. X Y μαcosδ σμαcosδ μδ σμδ  time n1 n2 ID
 
-name='ACSWFC'
-# name='WFC3IR'
+# name='ACSWFC'
+name='WFC3IR'
 ra,dec,x_c ,y_c,mua,dmua,mud,dmud, time, n1, n2, idt = np.loadtxt(cata+'GALCEN_%s_PM.cat'%(name),unpack=True)
 # VEGAmag, rmsmag, QFIT, o, RADXS, nf, nu, Localsky, Local-skyrms
 mag, rms, qfit, o, RADXS, nf, nu, Localsky, Local_skyrms= np.loadtxt(cata+'GALCEN_%s_GO12915.cat'%(name),unpack=True )
-
-#%%
-good=np.where((dmua<90))
-ra=ra[good]
-dec=dec[good]
-mua=mua[good]
-dmua=dmua[good]
-mud=mud[good]
-dmud=dmud[good]
-time=time[good]
-n1=n1[good]
-n2=n2[good]
-idt=idt[good]
-
 #%%
 # Here where are transforming the coordinates fron equatorial to galactic
 # I am following the paper  https://arxiv.org/pdf/1306.2945.pdf
@@ -77,15 +63,34 @@ cosb=np.sqrt(C1**2+C2**2)
 mul,mub =zip(*[(1/cosb[i])*np.matmul([[C1[i],C2[i]],[-C2[i],C1[i]]],[mua[i],mud[i]]) for i in range(len(ra))])#zip with the* unzips things
 mul=np.array(mul)
 mub=np.array(mub)
-# =============================================================================
-# #Im not sure about if I have to transfr¡orm the uncertainties also in the same way....
-# dmul,dmub =zip(*[cosb[i]*np.matmul([[C1[i],C2[i]],[-C2[i],C1[i]]],[dmua[i],dmud[i]]) for i in range(len(ra))])#zip with the* unzips things
-# dmul=np.array(dmul)
-# dmub=np.array(dmub)
-# =============================================================================
+#Im not sure about if I have to transfr¡orm the uncertainties also in the same way....
+dmul,dmub =zip(*[cosb[i]*np.matmul([[C1[i],C2[i]],[-C2[i],C1[i]]],[dmua[i],dmud[i]]) for i in range(len(ra))])#zip with the* unzips things
+dmul=np.array(dmul)
+dmub=np.array(dmub)
 # for now Ill just leave the like they are
-dmul=dmua
-dmub=dmud
+# =============================================================================
+# dmul=dmua
+# dmub=dmud
+# =============================================================================
+#%%
+good=np.where((dmua<90)&(dmua<5))
+ra=ra[good]
+dec=dec[good]
+
+mua=mua[good]
+dmua=dmua[good]
+mud=mud[good]
+dmud=dmud[good]
+mul=mul[good]
+mub=mub[good]
+dmul=dmul[good]
+dmub=dmub[good]
+
+time=time[good]
+n1=n1[good]
+n2=n2[good]
+idt=idt[good]
+
 #%%
 good=np.where((mul<70) & (mul>-70))
 ra=ra[good]
@@ -179,7 +184,7 @@ def prior_transform(utheta):
     umu1, usigma1, uamp1,  umu2, usigma2, uamp2= utheta
 
 #     mu1 = -1. * umu1-8   # scale and shift to [-10., 10.)
-    mu1 = 1* umu1-0.5  # scale and shift to [-10., 10.)
+    mu1 = 2* umu1-1  # scale and shift to [-10., 10.)
     sigma1 = 5* (usigma1)   
     amp1 = 1 * uamp1 
 
