@@ -50,19 +50,6 @@ ra,dec,x_c ,y_c,mua,dmua,mud,dmud, time, n1, n2, idt = np.loadtxt(cata+'GALCEN_%
 mag, rms, qfit, o, RADXS, nf, nu, Localsky, Local_skyrms= np.loadtxt(cata+'GALCEN_%s_GO12915.cat'%(name),unpack=True )
 
 #%%
-good=np.where((dmua<90)&(dmua<5))
-ra=ra[good]
-dec=dec[good]
-mua=mua[good]
-dmua=dmua[good]
-mud=mud[good]
-dmud=dmud[good]
-time=time[good]
-n1=n1[good]
-n2=n2[good]
-idt=idt[good]
-
-#%%
 # Here where are transforming the coordinates fron equatorial to galactic
 # I am following the paper  https://arxiv.org/pdf/1306.2945.pdf
 #  alpha_G = 192.85948,  delta_G = 27.12825, lNGP = 122.93192, according to Perryman & ESA 1997
@@ -87,6 +74,26 @@ dmub=np.array(dmub)
 # dmul=dmua
 # dmub=dmud
 # =============================================================================
+
+#%%
+good=np.where((dmua<90)&(dmua<5))
+ra=ra[good]
+dec=dec[good]
+
+mua=mua[good]
+dmua=dmua[good]
+mud=mud[good]
+dmud=dmud[good]
+mul=mul[good]
+mub=mub[good]
+dmul=dmul[good]
+dmub=dmub[good]
+
+time=time[good]
+n1=n1[good]
+n2=n2[good]
+idt=idt[good]
+
 #%%
 v_lim=70
 # good=np.where((mul<v_lim) & (mul>-v_lim))
