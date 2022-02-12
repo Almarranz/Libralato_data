@@ -47,7 +47,7 @@ cata='/Users/amartinez/Desktop/PhD/Libralato_data/CATALOGS/'
 name='WFC3IR'
 ra,dec,x_c ,y_c,mua,dmua,mud,dmud, time, n1, n2, idt = np.loadtxt(cata+'GALCEN_%s_PM.cat'%(name),unpack=True)
 # VEGAmag, rmsmag, QFIT, o, RADXS, nf, nu, Localsky, Local-skyrms
-mag, rms, qfit, o, RADXS, nf, nu, Localsky, Local_skyrms= np.loadtxt(cata+'GALCEN_%s_GO12915.cat'%(name),unpack=True )
+# mag, rms, qfit, o, RADXS, nf, nu, Localsky, Local_skyrms= np.loadtxt(cata+'GALCEN_%s_GO12915.cat'%(name),unpack=True )
 #%%
 # Here where are transforming the coordinates fron equatorial to galactic
 # I am following the paper  https://arxiv.org/pdf/1306.2945.pdf
@@ -64,16 +64,16 @@ mul,mub =zip(*[(1/cosb[i])*np.matmul([[C1[i],C2[i]],[-C2[i],C1[i]]],[mua[i],mud[
 mul=np.array(mul)
 mub=np.array(mub)
 #Im not sure about if I have to transfr¡orm the uncertainties also in the same way....
-dmul,dmub =zip(*[cosb[i]*np.matmul([[C1[i],C2[i]],[-C2[i],C1[i]]],[dmua[i],dmud[i]]) for i in range(len(ra))])#zip with the* unzips things
-dmul=np.array(dmul)
-dmub=np.array(dmub)
+# =============================================================================
+# dmul,dmub =zip(*[(1/cosb[i])*np.matmul([[C1[i],C2[i]],[-C2[i],C1[i]]],[dmua[i],dmud[i]]) for i in range(len(ra))])#zip with the* unzips things
+# dmul=np.array(dmul)
+# dmub=np.array(dmub)
+# =============================================================================
 # for now Ill just leave the like they are
-# =============================================================================
-# dmul=dmua
-# dmub=dmud
-# =============================================================================
+dmul=dmua
+dmub=dmud
 #%%
-good=np.where((dmua<90)&(dmua<5))
+good=np.where((dmua<90)&(dmul<5))
 ra=ra[good]
 dec=dec[good]
 
@@ -104,7 +104,7 @@ n1=n1[good]
 n2=n2[good]
 idt=idt[good]
 #%%
-perc_dmul= np.percentile(dmul,50)
+perc_dmul= np.percentile(dmul,85)
 print(perc_dmul,'yomama')
 # lim_dmul=perc_dmul
 lim_dmul=1

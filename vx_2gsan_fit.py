@@ -43,25 +43,11 @@ cata='/Users/amartinez/Desktop/PhD/Libralato_data/CATALOGS/'
 
 #R.A. Dec. X Y μαcosδ σμαcosδ μδ σμδ  time n1 n2 ID
 
-name='ACSWFC'
-# name='WFC3IR'
+# name='ACSWFC'
+name='WFC3IR'
 ra,dec,x_c ,y_c,mua,dmua,mud,dmud, time, n1, n2, idt = np.loadtxt(cata+'GALCEN_%s_PM.cat'%(name),unpack=True)
 # VEGAmag, rmsmag, QFIT, o, RADXS, nf, nu, Localsky, Local-skyrms
 mag, rms, qfit, o, RADXS, nf, nu, Localsky, Local_skyrms= np.loadtxt(cata+'GALCEN_%s_GO12915.cat'%(name),unpack=True )
-
-#%%
-good=np.where((dmua<90))
-ra=ra[good]
-dec=dec[good]
-mua=mua[good]
-dmua=dmua[good]
-mud=mud[good]
-dmud=dmud[good]
-time=time[good]
-n1=n1[good]
-n2=n2[good]
-idt=idt[good]
-
 #%%
 # Here where are transforming the coordinates fron equatorial to galactic
 # I am following the paper  https://arxiv.org/pdf/1306.2945.pdf
@@ -79,32 +65,41 @@ mul=np.array(mul)
 mub=np.array(mub)
 # -----------------------------
 #Im not sure about if I have to transfr¡orm the uncertainties also in the same way....
-dmul,dmub =zip(*[(1/cosb[i])*np.matmul([[C1[i],C2[i]],[-C2[i],C1[i]]],[dmua[i],dmud[i]]) for i in range(len(ra))])#zip with the* unzips things
-dmul=np.array(dmul)
-dmub=np.array(dmub)
+# =============================================================================
+# dmul,dmub =zip(*[(1/cosb[i])*np.matmul([[C1[i],C2[i]],[-C2[i],C1[i]]],[dmua[i],dmud[i]]) for i in range(len(ra))])#zip with the* unzips things
+# dmul=np.array(dmul)
+# dmub=np.array(dmub)
+# =============================================================================
 # for now Ill just leave the like they are
-# =============================================================================
-# dmul=dmua
-# dmub=dmud
-# =============================================================================
+dmul=dmua
+dmub=dmud
 #%%
-v_lim=70
-good=np.where((mul<v_lim) & (mul>-v_lim))
+v_lim=15
+good=np.where((dmua<90)&(dmua<5)&(dmub<5)&(mul<v_lim) & (mul>-v_lim))
 ra=ra[good]
 dec=dec[good]
+
+mua=mua[good]
+dmua=dmua[good]
+mud=mud[good]
+dmud=dmud[good]
 mul=mul[good]
-dmul=dmul[good]
 mub=mub[good]
+dmul=dmul[good]
 dmub=dmub[good]
+
 time=time[good]
 n1=n1[good]
 n2=n2[good]
 idt=idt[good]
+
+
+#
 #%%
 perc_dmul= np.percentile(dmul,85)#this is the way they do it in the paper(i thing), but the uncertainty is too high
 print(perc_dmul,'yomama')
 # lim_dmul=perc_dmul
-lim_dmul=2
+lim_dmul=0.5
 accu=np.where((abs(dmul)<lim_dmul) & (abs(dmub)<lim_dmul))
 #%%
 mul=mul[accu]
@@ -115,7 +110,7 @@ time=time[accu]
 #%%
 print(min(mul),max(mul))
 
-auto='no'
+auto='auto'
 if auto !='auto':
     auto=np.arange(min(mul),max(mul),0.25)#also works if running each bing width one by one, for some reason...
     # print(auto)

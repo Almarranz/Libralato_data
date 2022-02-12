@@ -66,17 +66,16 @@ mul=np.array(mul)
 mub=np.array(mub)
 # -----------------------------
 #Im not sure about if I have to transfr¡orm the uncertainties also in the same way....
-dmul,dmub =zip(*[(1/cosb[i])*np.matmul([[C1[i],C2[i]],[-C2[i],C1[i]]],[dmua[i],dmud[i]]) for i in range(len(ra))])#zip with the* unzips things
-dmul=np.array(dmul)
-dmub=np.array(dmub)
+# dmul,dmub =zip(*[(1/cosb[i])*np.matmul([[C1[i],C2[i]],[-C2[i],C1[i]]],[dmua[i],dmud[i]]) for i in range(len(ra))])#zip with the* unzips things
+# dmul=np.array(dmul)
+# dmub=np.array(dmub)
 # for now Ill just leave the like they are
-# =============================================================================
-# dmul=dmua
-# dmub=dmud
-# =============================================================================
+dmul=dmua
+dmub=dmud
 
 #%%
-good=np.where((dmua<90)&(dmua<5))
+v_lim=15
+good=np.where((dmua<90)&(dmua<5)&(dmub<5)&(mul<v_lim) & (mul>-v_lim))
 ra=ra[good]
 dec=dec[good]
 
@@ -94,31 +93,14 @@ n1=n1[good]
 n2=n2[good]
 idt=idt[good]
 
-#%%
-v_lim=70
-# good=np.where((mul<v_lim) & (mul>-v_lim))
-good=np.where((mua<v_lim) & (mua>-v_lim))
-ra=ra[good]
-dec=dec[good]
-mua=mua[good]
-mud=mud[good]
-dmua=dmua[good]
-dmud=dmud[good]
-mul=mul[good]
-dmul=dmul[good]
-mub=mub[good]
-dmub=dmub[good]
-time=time[good]
-n1=n1[good]
-n2=n2[good]
-idt=idt[good]
+
 #%%
 perc_dmul= np.percentile(dmua,85)#this is the way they do it in the paper(i thing), but the uncertainty is too high
 print(perc_dmul,'yomama')
-lim_dmul=perc_dmul
-# lim_dmul=0.7
+# lim_dmul=perc_dmul
+lim_dmul=0.3
 # accu=np.where((abs(dmul)<lim_dmul) & (abs(dmub)<lim_dmul))#Are they in the paper selecting by the error of the galactic or equatorial coordintes???
-accu=np.where((abs(dmua)<lim_dmul) & (abs(dmud)<lim_dmul))
+accu=np.where((dmua<lim_dmul) & (dmud<lim_dmul))
 #%%
 mul=mul[accu]
 mub=mub[accu]
@@ -198,8 +180,8 @@ def prior_transform(utheta):
     umu1, usigma1, uamp1,  umu2, usigma2, uamp2, umu3, usigma3, uamp3= utheta
      
 #%     mu1 = -1. * umu1-8   # scale and shift to [-10., 10.)
-    mu1 = -3+ (5*umu1-5/2)  # yellow
-    sigma1 = 2* (usigma1)   
+    mu1 = -1 + (2*umu1-2/2)  # yellow
+    sigma1 = 3* (usigma1)   
     amp1 = 1 * uamp1 
    
     mu2 = -5+ (6*umu2-6/2) # red
@@ -207,7 +189,7 @@ def prior_transform(utheta):
     amp2 = 1* uamp2   
 
     mu3 = -7+ (4*umu3-4/2) # black
-    sigma3 = 3*(usigma3)
+    sigma3 = 4*(usigma3)
     amp3 = 1*uamp3
         
     return mu1, sigma1, amp1, mu2, sigma2, amp2, mu3, sigma3, amp3
