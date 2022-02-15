@@ -43,8 +43,8 @@ cata='/Users/amartinez/Desktop/PhD/Libralato_data/CATALOGS/'
 
 #R.A. Dec. X Y μαcosδ σμαcosδ μδ σμδ  time n1 n2 ID
 
-# name='ACSWFC'
-name='WFC3IR'
+name='ACSWFC'
+# name='WFC3IR'
 ra,dec,x_c ,y_c,mua,dmua,mud,dmud, time, n1, n2, idt = np.loadtxt(cata+'GALCEN_%s_PM.cat'%(name),unpack=True)
 # VEGAmag, rmsmag, QFIT, o, RADXS, nf, nu, Localsky, Local-skyrms
 mag, rms, qfit, o, RADXS, nf, nu, Localsky, Local_skyrms= np.loadtxt(cata+'GALCEN_%s_GO12915.cat'%(name),unpack=True )
@@ -74,7 +74,10 @@ dmul=dmua
 dmub=dmud
 
 #%%
-v_lim=15
+v_lim=70
+dv_lim=70
+
+
 good=np.where((dmua<90)&(dmua<5)&(dmub<5)&(mul<v_lim) & (mul>-v_lim))
 ra=ra[good]
 dec=dec[good]
@@ -98,7 +101,7 @@ idt=idt[good]
 perc_dmul= np.percentile(dmua,85)#this is the way they do it in the paper(i thing), but the uncertainty is too high
 print(perc_dmul,'yomama')
 # lim_dmul=perc_dmul
-lim_dmul=0.3
+lim_dmul=0.5
 # accu=np.where((abs(dmul)<lim_dmul) & (abs(dmub)<lim_dmul))#Are they in the paper selecting by the error of the galactic or equatorial coordintes???
 accu=np.where((dmua<lim_dmul) & (dmud<lim_dmul))
 #%%
@@ -156,8 +159,8 @@ yerr=[]
 y=np.where(y==0,0.001,y)
 y1=h1[0]
 y1=np.where(y1==0,0.001,y1)
-yerr = y*np.sqrt(1/y1+1/len(mul))
-# yerr = y*np.sqrt(1/y1)
+# yerr = y*np.sqrt(1/y1+1/len(mul))
+yerr = y*np.sqrt(1/y1)
 # 
 
 #%   
@@ -180,9 +183,11 @@ def prior_transform(utheta):
     umu1, usigma1, uamp1,  umu2, usigma2, uamp2, umu3, usigma3, uamp3= utheta
      
 #%     mu1 = -1. * umu1-8   # scale and shift to [-10., 10.)
-    mu1 = -1 + (2*umu1-2/2)  # yellow
+    # mu1 = -1.5 + (2*umu1-2/2)  # yellow
+    mu1 = -4*umu1 # yellow
+
     sigma1 = 3* (usigma1)   
-    amp1 = 1 * uamp1 
+    amp1 = 1.5 * uamp1 
    
     mu2 = -5+ (6*umu2-6/2) # red
     sigma2 = 2 * (2*usigma2-1)   

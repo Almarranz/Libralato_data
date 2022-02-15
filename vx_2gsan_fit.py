@@ -74,7 +74,7 @@ mub=np.array(mub)
 dmul=dmua
 dmub=dmud
 #%%
-v_lim=15
+v_lim=70
 good=np.where((dmua<90)&(dmua<5)&(dmub<5)&(mul<v_lim) & (mul>-v_lim))
 ra=ra[good]
 dec=dec[good]
@@ -180,15 +180,23 @@ def prior_transform(utheta):
     umu1, usigma1, uamp1,  umu2, usigma2, uamp2= utheta
      
 #%     mu1 = -1. * umu1-8   # scale and shift to [-10., 10.)
-    mu1 = -4+ (1*umu1-1/2)  # yellow
+    mu1 = -3+ (1*umu1-1/2)  # yellow
     sigma1 = 2.5+ (1*umu1-1/2)   
     amp1 = 1 * uamp1 
    
-    mu2 = -5+ (1*umu2-1/2) # red
-    sigma2 =  3.5+ (1*umu2-1/2)  
+    mu2 = -6.5+ (1*umu2-1/2) # red
+    sigma2 =  3+ (1*umu2-1/2)  
     amp2 = 1* uamp2   
-
-   
+# =============================================================================
+#     mu1 = -5+ (6*umu1-6/2) # yellow
+#     sigma1 = 2 * (2*usigma1-1)   
+#     amp1 = 1* uamp1  
+# 
+#     mu2 = -7+ (4*umu2-4/2) # red
+#     sigma2 = 4*(usigma2)
+#     amp2 = 1*uamp2
+#    
+# =============================================================================
         
     return mu1, sigma1, amp1, mu2, sigma2, amp2
     
