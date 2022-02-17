@@ -15,6 +15,8 @@ import scipy.integrate as integrate
 from astropy.stats import sigma_clip
 from astropy.stats import sigma_clipped_stats
 from matplotlib.ticker import FormatStrFormatter
+from io import StringIO
+import pandas as pd
 
 from matplotlib import rcParams
 rcParams.update({'xtick.major.pad': '7.0'})
@@ -39,16 +41,31 @@ plt.rcParams["mathtext.fontset"] = 'dejavuserif'
 from matplotlib import rc
 rc('font',**{'family':'serif','serif':['Palatino']})
 cata='/Users/amartinez/Desktop/PhD/Libralato_data/CATALOGS/'
-
+pruebas='/Users/amartinez/Desktop/PhD/Libralato_data/pruebas/'
 
 #R.A. Dec. X Y μαcosδ σμαcosδ μδ σμδ  time n1 n2 ID
 
 # name='ACSWFC'
 name='WFC3IR'
-ra,dec,x_c ,y_c,mua,dmua,mud,dmud, time, n1, n2, idt = np.loadtxt(cata+'GALCEN_%s_PM.cat'%(name),unpack=True)
-# VEGAmag, rmsmag, QFIT, o, RADXS, nf, nu, Localsky, Local-skyrms
-# mag, rms, qfit, o, RADXS, nf, nu, Localsky, Local_skyrms= np.loadtxt(cata+'GALCEN_%s_GO12915.cat'%(name),unpack=True )
-#%%
+
+df = pd.read_csv(pruebas+'match_GNS_and_%s_refined.txt'%(name),sep=',',names=['RA_gns','DE_gns','Jmag','Hmag','Ksmag','ra','dec','x_c','y_c','mua','dmua','mud','dmud','time','n1','n2','idt','m139','Separation'])
+# %%
+
+df_np=df.to_numpy()
+
+valid=np.where(np.isnan(df_np[:,4])==False)
+df_np=df_np[valid]
+
+center=np.where(df_np[:,17]-df_np[:,4]>3)
+df_np=df_np[center]
+
+ra=df_np[:,5]
+dec=df_np[:,6]
+mua=df_np[:,9]
+mud=df_np[:,11]
+dmua=df_np[:,10]
+dmud=df_np[:,12]
+# %%
 # Here where are transforming the coordinates fron equatorial to galactic
 # I am following the paper  https://arxiv.org/pdf/1306.2945.pdf
 #  alpha_G = 192.85948,  delta_G = 27.12825, lNGP = 122.93192, according to Perryman & ESA 1997
@@ -63,9 +80,9 @@ cosb=np.sqrt(C1**2+C2**2)
 mul,mub =zip(*[(1/cosb[i])*np.matmul([[C1[i],C2[i]],[-C2[i],C1[i]]],[mua[i],mud[i]]) for i in range(len(ra))])#zip with the* unzips things
 mul=np.array(mul)
 mub=np.array(mub)
-#Im not sure about if I have to transfr¡orm the uncertainties also in the same way....
 # =============================================================================
-# dmul,dmub =zip(*[(1/cosb[i])*np.matmul([[C1[i],C2[i]],[-C2[i],C1[i]]],[dmua[i],dmud[i]]) for i in range(len(ra))])#zip with the* unzips things
+# #Im not sure about if I have to transfr¡orm the uncertainties also in the same way....
+# dmul,dmub =zip(*[cosb[i]*np.matmul([[C1[i],C2[i]],[-C2[i],C1[i]]],[dmua[i],dmud[i]]) for i in range(len(ra))])#zip with the* unzips things
 # dmul=np.array(dmul)
 # dmub=np.array(dmub)
 # =============================================================================
@@ -73,40 +90,9 @@ mub=np.array(mub)
 dmul=dmua
 dmub=dmud
 #%%
-good=np.where((dmua<90)&(dmul<5))
-ra=ra[good]
-dec=dec[good]
-
-mua=mua[good]
-dmua=dmua[good]
-mud=mud[good]
-dmud=dmud[good]
-mul=mul[good]
-mub=mub[good]
-dmul=dmul[good]
-dmub=dmub[good]
-
-time=time[good]
-n1=n1[good]
-n2=n2[good]
-idt=idt[good]
 
 #%%
-good=np.where((mul<70) & (mul>-70))
-ra=ra[good]
-dec=dec[good]
-mul=mul[good]
-dmul=dmul[good]
-mub=mub[good]
-dmub=dmub[good]
-time=time[good]
-n1=n1[good]
-n2=n2[good]
-idt=idt[good]
-#%%
-perc_dmul= np.percentile(dmul,85)
-print(perc_dmul,'yomama')
-# lim_dmul=perc_dmul
+
 lim_dmul=1
 accu=np.where((abs(dmul)<lim_dmul) & (abs(dmub)<lim_dmul))
 #%%
@@ -114,11 +100,11 @@ mul=mul[accu]
 mub=mub[accu]
 dmul=dmul[accu]
 dmub=dmub[accu]
-time=time[accu]
+m139=m139[accu]
 #%%
 print(min(mul),max(mul))
 
-auto='auto'
+auto='no'
 if auto !='auto':
     auto=np.arange(min(mul),max(mul),0.25)#also works if running each bing width one by one, for some reason...
     # print(auto)
@@ -184,7 +170,7 @@ def prior_transform(utheta):
     umu1, usigma1, uamp1,  umu2, usigma2, uamp2= utheta
 
 #     mu1 = -1. * umu1-8   # scale and shift to [-10., 10.)
-    mu1 = 2* umu1-1  # scale and shift to [-10., 10.)
+    mu1 = 1* umu1-0.5  # scale and shift to [-10., 10.)
     sigma1 = 5* (usigma1)   
     amp1 = 1 * uamp1 
 
