@@ -93,7 +93,7 @@ dmub=dmud
 #%%
 
 #%%
-lim_dmul=1
+lim_dmul=.5
 accu=np.where((abs(dmul)<lim_dmul) & (abs(dmub)<lim_dmul))#Are they in the paper selecting by the error of the galactic or equatorial coordintes???
 
 #%%
@@ -151,8 +151,8 @@ yerr=[]
 y=np.where(y==0,0.001,y)
 y1=h1[0]
 y1=np.where(y1==0,0.001,y1)
-# yerr = y*np.sqrt(1/y1+1/len(mul))
-yerr = y*np.sqrt(1/y1)
+yerr = y*np.sqrt(1/y1+1/len(mul))
+# yerr = y*np.sqrt(1/y1)
 # 
 
 #%   
@@ -175,15 +175,15 @@ def prior_transform(utheta):
     umu1, usigma1, uamp1,  umu2, usigma2, uamp2, umu3, usigma3, uamp3= utheta
      
 #%     mu1 = -1. * umu1-8   # scale and shift to [-10., 10.)
-    mu1 = -2+ (5*umu1-5/2)  # yellow
+    mu1 = -4*umu1-4/2  # yellow
     sigma1 = 3* (usigma1)   
     amp1 = 1 * uamp1 
    
-    mu2 = -5+ (4*umu2-4/2) # red
-    sigma2 =3.5*usigma2   
-    amp2 = 1* uamp2   
+    mu2 = -5*umu2-5/2 # red
+    sigma2 =4*usigma2   
+    amp2 = .7* uamp2   
 
-    mu3 = -6.5+ (6*umu3-6/2) # black
+    mu3 = -7*umu3-7/2 # black
     sigma3 = 3*(usigma3)
     amp3 = 1*uamp3
         
@@ -242,7 +242,7 @@ plt.plot(xplot, gaussian(xplot, mean[0], mean[1], mean[2]) + gaussian(xplot, mea
 plt.plot(xplot, gaussian(xplot, mean[0], mean[1], mean[2])  , color="yellow", linestyle='dashed', linewidth=3, alpha=0.6)
 plt.plot(xplot, gaussian(xplot, mean[3], mean[4], mean[5])  , color="red", linestyle='dashed', linewidth=3, alpha=0.6)
 plt.plot(xplot, gaussian(xplot, mean[6], mean[7], mean[8]) , color='black', linestyle='dashed', linewidth=3, alpha=0.6)
-plt.xlim(-15,3)
+plt.xlim(-20,10)
 plt.text(-10,max(h[0]-0.01),'logz=%.0f'%(results['logz'][-1]),color='b')
 
 plt.gca().invert_xaxis()

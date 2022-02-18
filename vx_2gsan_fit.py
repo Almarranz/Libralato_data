@@ -92,7 +92,7 @@ dmub=dmud
 
 #%%
 
-lim_dmul=1
+lim_dmul=0.5
 accu=np.where((abs(dmul)<lim_dmul) & (abs(dmub)<lim_dmul))
 #%%
 mul=mul[accu]
@@ -237,7 +237,7 @@ plt.plot(xplot, gaussian(xplot, mean[0], mean[1], mean[2]) + gaussian(xplot, mea
 plt.plot(xplot, gaussian(xplot, mean[0], mean[1], mean[2])  , color="yellow", linestyle='dashed', linewidth=3, alpha=0.6)
 plt.plot(xplot, gaussian(xplot, mean[3], mean[4], mean[5])  , color="red", linestyle='dashed', linewidth=3, alpha=0.6)
 
-plt.xlim(-15,3)
+plt.xlim(-20,10)
 plt.text(-10,max(h[0]-0.01),'logz=%.0f'%(results['logz'][-1]),color='b')
 
 plt.gca().invert_xaxis()
@@ -262,13 +262,15 @@ for i in range(6):
 
 
 
-plt.scatter(mul,mub,color='k',s=0.1)
-plt.xlabel(r'$\mathrm{\mu_{l} (mas\ yr^{-1})}$') 
-plt.ylabel(r'$\mathrm{\mu_{b} (mas\ yr^{-1})}$') 
-plt.xlim(-15,3)
-plt.ylim(-7,7)
-plt.gca().invert_xaxis()
-plt.grid()
+# =============================================================================
+# plt.scatter(mul,mub,color='k',s=0.1)
+# plt.xlabel(r'$\mathrm{\mu_{l} (mas\ yr^{-1})}$') 
+# plt.ylabel(r'$\mathrm{\mu_{b} (mas\ yr^{-1})}$') 
+# plt.xlim(-15,3)
+# plt.ylim(-7,7)
+# plt.gca().invert_xaxis()
+# plt.grid()
+# =============================================================================
 
 
 
