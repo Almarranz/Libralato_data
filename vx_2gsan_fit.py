@@ -103,7 +103,7 @@ dmub=dmub[accu]
 #%%
 print(min(mul),max(mul))
 
-auto='no'
+auto='auto'
 if auto !='auto':
     auto=np.arange(min(mul),max(mul),0.25)#also works if running each bing width one by one, for some reason...
     # print(auto)
@@ -173,12 +173,12 @@ def prior_transform(utheta):
     umu1, usigma1, uamp1,  umu2, usigma2, uamp2= utheta
      
 #%     mu1 = -1. * umu1-8   # scale and shift to [-10., 10.)
-    mu1 = -4+ (1*umu1-1/2)  # yellow
-    sigma1 = 2.5+ (1*umu1-1/2)   
+    mu1 = -4+ (4*umu1-4/2)  # yellow
+    sigma1 = 3*umu1   
     amp1 = 1 * uamp1 
    
-    mu2 = -5+ (1*umu2-1/2) # red
-    sigma2 =  3.5+ (1*umu2-1/2)  
+    mu2 = -8+ (1*umu2-1/2) # red
+    sigma2 =  3*umu2  
     amp2 = 1* uamp2   
 
    
@@ -258,11 +258,17 @@ for i in range(6):
 
 
 
+# %%
 
 
 
-
-
+plt.scatter(mul,mub,color='k',s=0.1)
+plt.xlabel(r'$\mathrm{\mu_{l} (mas\ yr^{-1})}$') 
+plt.ylabel(r'$\mathrm{\mu_{b} (mas\ yr^{-1})}$') 
+plt.xlim(-15,3)
+plt.ylim(-7,7)
+plt.gca().invert_xaxis()
+plt.grid()
 
 
 
