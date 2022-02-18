@@ -175,15 +175,15 @@ def prior_transform(utheta):
     umu1, usigma1, uamp1,  umu2, usigma2, uamp2, umu3, usigma3, uamp3= utheta
      
 #%     mu1 = -1. * umu1-8   # scale and shift to [-10., 10.)
-    mu1 = -3+ (5*umu1-5/2)  # yellow
+    mu1 = -2+ (5*umu1-5/2)  # yellow
     sigma1 = 3* (usigma1)   
     amp1 = 1 * uamp1 
    
-    mu2 = -5+ (6*umu2-6/2) # red
-    sigma2 =3*usigma2   
+    mu2 = -5+ (4*umu2-4/2) # red
+    sigma2 =3.5*usigma2   
     amp2 = 1* uamp2   
 
-    mu3 = -7+ (4*umu3-4/2) # black
+    mu3 = -6.5+ (6*umu3-6/2) # black
     sigma3 = 3*(usigma3)
     amp3 = 1*uamp3
         
