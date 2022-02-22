@@ -7,3 +7,4 @@ Analis of Libralato et al data
 ___
 3. After step 2 you have to go to TopCat and cross match the NSD central region catalog, with the list retrived for step 2. (IN format CVS-non header)
 ___
+4. error_Mc.py. Transform coordinates to galactic and apply a MC method for uncertainties  
