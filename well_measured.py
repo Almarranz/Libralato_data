@@ -24,6 +24,7 @@ name='WFC3IR'
 # ra,dec,x_c ,y_c,mua,dmua,mud,dmud, time, n1, n2, idt = np.loadtxt(cata+'GALCEN_%s_PM.cat'%(name),unpack=True)
 catal=np.loadtxt(cata+'GALCEN_%s_PM.cat'%(name))
 pruebas='/Users/amartinez/Desktop/PhD/Libralato_data/pruebas/'
+results='/Users/amartinez/Desktop/PhD/Libralato_data/results/'
 
 # %%
 
@@ -33,7 +34,7 @@ all_ep1=np.loadtxt(cata+'GALCEN_%s_GO12915.cat'%(name),unpack=False)
 all_ep2=np.loadtxt(cata+'GALCEN_%s_GO13771.cat'%(name),unpack=False )
 
 # %%
-epoch=1
+epoch=2
 if epoch == 1:
     ep1_test = all_ep1
     num=np.arange(0,len(all_ep1),1)
@@ -140,7 +141,7 @@ print(len(ep1_test),'Condition e')
 
 # %%
 # ,fmt='%.4f %.4f %.4f %.4f %.4f %.0f %.0f %.2f %.2f %.0f'
-np.savetxt(pruebas+'foto_well_mesaured_ep%s_%s.txt'%(name,epoch),ep1_test,delimiter='   ',fmt='%.10f %.4f %.4f %.4f %.4f %.0f %.0f %.2f %.2f %.0f',header='index for the stars that fullfil the well_mesaured critreia from Libralato et al. 2021')
+np.savetxt(results+'foto_well_mesaured_ep%s_%s.txt'%(name,epoch),ep1_test,delimiter='   ',fmt='%.10f %.4f %.4f %.4f %.4f %.0f %.0f %.2f %.2f %.0f',header='index for the stars that fullfil the well_mesaured critreia from Libralato et al. 2021')
 
 
 

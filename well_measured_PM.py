@@ -48,6 +48,8 @@ name='WFC3IR'
 # ra,dec,x_c ,y_c,mua,dmua,mud,dmud, time, n1, n2, idt = np.loadtxt(cata+'GALCEN_%s_PM.cat'%(name),unpack=True)
 catal=np.loadtxt(cata+'GALCEN_%s_PM.cat'%(name))
 pruebas='/Users/amartinez/Desktop/PhD/Libralato_data/pruebas/'
+results='/Users/amartinez/Desktop/PhD/Libralato_data/results/'
+
 # mag, rms, qfit, o, RADXS, nf, nu, Localsky, Local_skyrms
 # mag, rms, qfit, o, RADXS, nf, nu, Localsky, Local_skyrms = np.loadtxt(cata+'GALCEN_%s_GO12915.cat'%(name),unpack=True)
 ep1_fix=np.loadtxt(pruebas+'foto_well_mesaured_ep%s_%s.txt'%(name,1))
@@ -115,9 +117,11 @@ ax.scatter(all_eps[:,0],pm_wmp[:,5],s=0.1,color='red',alpha=1)
 ax.set_ylim(0,10)
 ax.set_xlim(12,24)
 pm_wmp=np.c_[pm_wmp,all_eps[:,0]]
-np.savetxt(pruebas+'refined_%s_PM.txt'%(name),pm_wmp,header='ra dec x_c  y_c mua dmua mud dmud  time  n1  n2  idt  mF139')
-np.savetxt(pruebas+'refined_%s_phot.txt'%(name),all_eps)
+# np.savetxt(pruebas+'refined_%s_PM.txt'%(name),pm_wmp,header='ra dec x_c  y_c mua dmua mud dmud  time  n1  n2  idt  mF139')
+# np.savetxt(pruebas+'refined_%s_phot.txt'%(name),all_eps)
 
+np.savetxt(results+'refined_%s_PM.txt'%(name),pm_wmp,header='ra dec x_c  y_c mua dmua mud dmud  time  n1  n2  idt  mF139')
+np.savetxt(results+'refined_%s_phot.txt'%(name),all_eps)
 
 
 
