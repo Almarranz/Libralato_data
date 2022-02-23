@@ -40,21 +40,30 @@ from matplotlib import rc
 rc('font',**{'family':'serif','serif':['Palatino']})
 cata='/Users/amartinez/Desktop/PhD/Libralato_data/CATALOGS/'
 pruebas='/Users/amartinez/Desktop/PhD/Libralato_data/pruebas/'
-
+results='/Users/amartinez/Desktop/PhD/Libralato_data/results/'
 #R.A. Dec. X Y μαcosδ σμαcosδ μδ σμδ  time n1 n2 ID
 
 # name='ACSWFC'
 name='WFC3IR'
 df = pd.read_csv(pruebas+'match_GNS_and_%s_refined.txt'%(name),sep=',',names=['RA_gns','DE_gns','Jmag','Hmag','Ksmag','ra','dec','x_c','y_c','mua','dmua','mud','dmud','time','n1','n2','idt','m139','Separation'])
+#I introduce this list because it has the magnitudes of GNS
+catal_df = pd.read_csv(results+'%s_refined_with GNS_partner_mag_K_H.txt'%(name),sep=',',names=['ra','dec','x_c','y_c','mua','dmua','mud','dmud','time','n1','n2','idt','m139','Separation','Ks','H'])
+
+gal_coor=np.loadtxt(results+'match_GNS_and_WFC3IR_refined_galactic.txt')#mul,mub,dmul,dmub
 # %%
 
 df_np=df.to_numpy()
+catal=catal_df.to_numpy()
 
 valid=np.where(np.isnan(df_np[:,4])==False)
-df_np=df_np[valid]
 
-center=np.where(df_np[:,17]-df_np[:,4]>2.5)
+df_np=df_np[valid]
+gal_coor=gal_coor[valid]
+
+# center=np.where(df_np[:,17]-df_np[:,4]>2.5)
+center=np.where(catal[:,-1]-catal[:,-2]>1.3)
 df_np=df_np[center]
+gal_coor=gal_coor[center]
 
 ra=df_np[:,5]
 dec=df_np[:,6]
@@ -62,55 +71,35 @@ mua=df_np[:,9]
 mud=df_np[:,11]
 dmua=df_np[:,10]
 dmud=df_np[:,12]
-#%%
-# Here where are transforming the coordinates fron equatorial to galactic
-# I am following the paper  https://arxiv.org/pdf/1306.2945.pdf
-#  alpha_G = 192.85948,  delta_G = 27.12825, lNGP = 122.93192, according to Perryman & ESA 1997
-alpha_g=192.85948
-delta_g = 27.12825
-tr=np.deg2rad
 
-C1=np.sin(tr(delta_g))*np.cos(tr(dec))-np.cos(tr(delta_g))*np.sin(tr(dec))*np.cos(tr(ra)-tr(alpha_g))
-C2=np.cos(tr(delta_g))*np.sin(tr(ra)-tr(alpha_g))
-cosb=np.sqrt(C1**2+C2**2)
+mul=gal_coor[:,0]
+mub=gal_coor[:,1]
 
-mul,mub =zip(*[(1/cosb[i])*np.matmul([[C1[i],C2[i]],[-C2[i],C1[i]]],[mua[i],mud[i]]) for i in range(len(ra))])#zip with the* unzips things
-mul=np.array(mul)
-mub=np.array(mub)
-# -----------------------------
-#Im not sure about if I have to transfr¡orm the uncertainties also in the same way....
-# =============================================================================
-# dmul,dmub =zip(*[(1/cosb[i])*np.matmul([[C1[i],C2[i]],[-C2[i],C1[i]]],[dmua[i],dmud[i]]) for i in range(len(ra))])#zip with the* unzips things
-# dmul=np.array(dmul)
-# dmub=np.array(dmub)
-# =============================================================================
-# for now Ill just leave the like they are
-dmul=dmua
-dmub=dmud
+dmul=gal_coor[:,2]
+dmub=gal_coor[:,3]
 
 #%%
 
 #%%
 
-#%%
-lim_dmul=.5
+#%
+lim_dmul=10
 accu=np.where((abs(dmul)<lim_dmul) & (abs(dmub)<lim_dmul))#Are they in the paper selecting by the error of the galactic or equatorial coordintes???
 
-#%%
+#%
 mul=mul[accu]
 mub=mub[accu]
 dmul=dmul[accu]
 dmub=dmub[accu]
 
-#%%
+#%
 print(min(mul),max(mul))
 binwidth=0.25
-auto='auto'
+auto='no'
 if auto !='auto':
     auto=np.arange(min(mul),max(mul)+ binwidth, binwidth)#also works if running each bing width one by one, for some reason...
     # print(auto)
 
-#%%
 
 fig, ax = plt.subplots(1,1, figsize=(10,10))
 
@@ -130,9 +119,9 @@ ax.set_xlabel(r'$\mathrm{\mu_{l} (mas\ yr^{-1})}$')
 ax.invert_xaxis()
 y=h[0]#height for each bin
 
-#%%
+#%
 
-#%%
+
 # This plots mub vs mul  
 # =============================================================================
 # fig, ax =plt.subplots(1,1,figsize=(10,10))
@@ -145,14 +134,14 @@ y=h[0]#height for each bin
 # ax.invert_xaxis()
 # 
 # =============================================================================
-#%%
+#%
 
 yerr=[]
 y=np.where(y==0,0.001,y)
 y1=h1[0]
 y1=np.where(y1==0,0.001,y1)
-yerr = y*np.sqrt(1/y1+1/len(mul))
-# yerr = y*np.sqrt(1/y1)
+# yerr = y*np.sqrt(1/y1+1/len(mul))
+yerr = y*np.sqrt(1/y1)
 # 
 
 #%   
