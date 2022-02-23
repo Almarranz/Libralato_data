@@ -110,7 +110,6 @@ pm_wmp=pm_wmp[error_valid]
 all_eps=all_eps[error_valid]
 print(len(pm_wmp),'Condition b')
 
-# %%
 fig, ax = plt.subplots(1,1, figsize=(10,10))
 ax.scatter(mag,catal[:,5],s=0.1,color='k',alpha=1)
 ax.scatter(all_eps[:,0],pm_wmp[:,5],s=0.1,color='red',alpha=1)
@@ -122,6 +121,9 @@ pm_wmp=np.c_[pm_wmp,all_eps[:,0]]
 
 np.savetxt(results+'refined_%s_PM.txt'%(name),pm_wmp,header='ra dec x_c  y_c mua dmua mud dmud  time  n1  n2  idt  mF139')
 np.savetxt(results+'refined_%s_phot.txt'%(name),all_eps)
+
+# %%
+
 
 
 
