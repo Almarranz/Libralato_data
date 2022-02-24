@@ -87,15 +87,15 @@ dmub=gal_coor[:,3]
 
 #%%
 
-lim_dmul=0.5
+lim_dmul=10
 accu=np.where((abs(dmul)<lim_dmul) & (abs(dmub)<lim_dmul))
-#%%
+#%
 mul=mul[accu]
 mub=mub[accu]
 dmul=dmul[accu]
 dmub=dmub[accu]
 
-#%%
+#%
 print(min(mul),max(mul))
 
 auto='auto'
@@ -103,7 +103,7 @@ if auto !='auto':
     auto=np.arange(min(mul),max(mul),0.25)#also works if running each bing width one by one, for some reason...
     # print(auto)
 
-#%%
+#%
 
 fig, ax = plt.subplots(1,1, figsize=(10,10))
 
@@ -123,9 +123,9 @@ ax.set_xlabel(r'$\mathrm{\mu_{l} (mas\ yr^{-1})}$')
 ax.invert_xaxis()
 y=h[0]#height for each bin
 
-#%%
 
-#%%
+
+#%
 # This plots mub vs mul  
 # =============================================================================
 # fig, ax =plt.subplots(1,1,figsize=(10,10))
@@ -138,7 +138,7 @@ y=h[0]#height for each bin
 # ax.invert_xaxis()
 # 
 # =============================================================================
-#%%
+#%
 
 yerr=[]
 y=np.where(y==0,0.001,y)
@@ -240,7 +240,7 @@ plt.gca().invert_xaxis()
 plt.ylabel('N')
 plt.xlabel(r'$\mathrm{\mu_{l} (mas\ yr^{-1})}$') 
 
-#%%
+#%
 samples, weights = res.samples, np.exp(res.logwt - res.logz[-1])
 mean, cov = dyfunc.mean_and_cov(samples, weights)
 # print(mean)
