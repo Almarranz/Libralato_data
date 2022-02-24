@@ -10,6 +10,7 @@ from sklearn.cluster import DBSCAN
 import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib import rcParams
+from matplotlib.ticker import FormatStrFormatter
 rcParams.update({'xtick.major.pad': '7.0'})
 rcParams.update({'xtick.major.size': '7.5'})
 rcParams.update({'xtick.major.width': '1.5'})
@@ -38,19 +39,19 @@ name='WFC3IR'
 Ms_all=np.loadtxt(pruebas +'pm_of_Ms_in_WFC3IR.txt')
 group_lst=Ms_all[:,-1]
 for g in range(len(group_lst)):
-    print(group_lst[g])
+# for g in range(1):
+    # print(group_lst[g])
     group=int(group_lst[g])
     #ra,dec,x_c,y_c,mua,dmua,mud,dmud,time,n1,n2,idt,m139,Separation,Ks,H,mul,mub
     data=np.loadtxt(pruebas + 'group_%s_%s.txt'%(group,name))
     
     this=np.where(Ms_all[:,-1]==group)
     Ms=Ms_all[this]
-    # %%
-    # Following the tutorial at https://scikit-learn.org/stable/auto_examples/cluster/plot_dbscan.html#sphx-glr-auto-examples-cluster-plot-dbscan-py
-    # X = np.array([[1, 2], [2, 2], [2, 3],[8, 7], [80, 7],[8, 8],[10,15],[2,2.5] ])
+    # %% tutorial at https://scikit-learn.org/stable/auto_examples/cluster/plot_dbscan.html#sphx-glr-auto-examples-cluster-plot-dbscan-py
+    
     X=np.array([data[:,-2],data[:,-1]]).T
-    epsilon=0.3
-    samples=10
+    epsilon=0.5
+    samples=5
     clustering = DBSCAN(eps=epsilon, min_samples=samples).fit(X)
     
     docu=DBSCAN.__doc__
@@ -87,7 +88,7 @@ for g in range(len(group_lst)):
     # %%
     for k in range(len(colors)):
         if list(u_labels)[k] == -1:
-            colors[k]=[0,0,0,0.00001]
+            colors[k]=[0,0,0,0.1]
     # %%       
     colores_index=[]
     
@@ -97,24 +98,46 @@ for g in range(len(group_lst)):
     # %%
     # print(colores_index)
     
-    fig, ax = plt.subplots(1,1,figsize=(8,8))
-    ax.set_title('Group %s. # of Clusters = %s'%(group, n_clusters))
-    for i in range(n_clusters):
+    fig, ax = plt.subplots(1,2,figsize=(20,10))
+    ax[0].set_title('Group %s. # of Clusters = %s'%(group, n_clusters))
+    # for i in range(n_clusters):
+    for i in range(len(set(l))):
         # fig, ax = plt.subplots(1,1,figsize=(10,10))
         # ax.set_title('Cluster #%s'%(i+1))
-        ax.scatter(X[:,0][colores_index[i]],X[:,1][colores_index[i]], color=colors[i],s=10)
-        ax.set_xlim(-15,15)
-        ax.set_ylim(-15,15)
-        ax.set_xlabel(r'$\mathrm{\mu_{l} (mas\ yr^{-1})}$') 
-        ax.set_ylabel(r'$\mathrm{\mu_{b} (mas\ yr^{-1})}$') 
-        ax.scatter(Ms[0,0],Ms[0,1],s=10,color='red')
+        ax[0].scatter(X[:,0][colores_index[i]],X[:,1][colores_index[i]], color=colors[i],s=50)
+        ax[0].set_xlim(-10,10)
+        ax[0].set_ylim(-10,10)
+        ax[0].set_xlabel(r'$\mathrm{\mu_{l} (mas\ yr^{-1})}$') 
+        ax[0].set_ylabel(r'$\mathrm{\mu_{b} (mas\ yr^{-1})}$') 
+        ax[0].scatter(Ms[0,0],Ms[0,1],s=50,color='red',marker='2')
+        
+        ax[1].scatter(data[:,0][colores_index[i]],data[:,1][colores_index[i]], color=colors[i],s=50)
+        ax[1].scatter(Ms[0,4],Ms[0,5],s=100,color='red',marker='2')
+        ax[1].set_xlabel('ra') 
+        ax[1].set_ylabel('dec') 
+        ax[1].yaxis.set_major_formatter(FormatStrFormatter('%.3f'))
+        ax[1].xaxis.set_major_formatter(FormatStrFormatter('%.3f'))
     
-    # %%
-    
-    print(Ms[0,0])
+    # %% Only for velocity space
+# =============================================================================
+#     fig, ax = plt.subplots(1,1,figsize=(20,10))
+#     ax.set_title('Group %s. # of Clusters = %s'%(group, n_clusters))
+#     # for i in range(n_clusters):
+#     for i in range(len(l)):
+#         # fig, ax = plt.subplots(1,1,figsize=(10,10))
+#         # ax.set_title('Cluster #%s'%(i+1))
+#         ax.scatter(X[:,0][colores_index[i]],X[:,1][colores_index[i]], color=colors[i],s=10)
+#         ax.set_xlim(-15,15)
+#         ax.set_ylim(-15,15)
+#         ax.set_xlabel(r'$\mathrm{\mu_{l} (mas\ yr^{-1})}$') 
+#         ax.set_ylabel(r'$\mathrm{\mu_{b} (mas\ yr^{-1})}$') 
+#         ax.scatter(Ms[0,0],Ms[0,1],s=10,color='red')
+# =============================================================================
+        
+   
     
 # %%
-print(group_lst[1])    
+
    
     
     
