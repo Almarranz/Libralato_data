@@ -38,6 +38,12 @@ name='WFC3IR'
 #mul, mub, mua, mud, ra, dec, position in GALCEN_TABLE_D.cat
 Ms_all=np.loadtxt(pruebas +'pm_of_Ms_in_WFC3IR.txt')
 group_lst=Ms_all[:,-1]
+
+pms=[-3.156,-5.585,-6.411,-0.219]#this are the ecu(mua,mud) and galactic(mul,mub) pm of SrgA* (Reid & Brunthaler (2020))
+# pms=[0,0,0,0]
+
+
+
 for g in range(len(group_lst)):
 # for g in range(1):
     # print(group_lst[g])
@@ -113,6 +119,7 @@ for g in range(len(group_lst)):
         
         ax[1].scatter(data[:,0][colores_index[i]],data[:,1][colores_index[i]], color=colors[i],s=50)
         ax[1].scatter(Ms[0,4],Ms[0,5],s=100,color='red',marker='2')
+        ax[1].quiver(data[:,0][colores_index[i]], data[:,1][colores_index[i]], X[:,0][colores_index[i]]-pms[2], X[:,1][colores_index[i]]-pms[3], alpha=0.5, color=colors[i])
         ax[1].set_xlabel('ra') 
         ax[1].set_ylabel('dec') 
         ax[1].yaxis.set_major_formatter(FormatStrFormatter('%.3f'))
