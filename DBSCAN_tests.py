@@ -10,6 +10,8 @@ from sklearn.cluster import DBSCAN
 import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib import rcParams
+from sklearn.neighbors import KDTree
+from kneed import DataGenerator, KneeLocator
 from matplotlib.ticker import FormatStrFormatter
 rcParams.update({'xtick.major.pad': '7.0'})
 rcParams.update({'xtick.major.size': '7.5'})
@@ -44,33 +46,58 @@ pms=[-3.156,-5.585,-6.411,-0.219]#this are the ecu(mua,mud) and galactic(mul,mub
 
 
 
-for g in range(len(group_lst)):
-# for g in range(1):
+# for g in range(len(group_lst)):
+for g in range(1):
     # print(group_lst[g])
+    samples=2
+    
     group=int(group_lst[g])
     #ra,dec,x_c,y_c,mua,dmua,mud,dmud,time,n1,n2,idt,m139,Separation,Ks,H,mul,mub
     data=np.loadtxt(pruebas + 'group_%s_%s.txt'%(group,name))
     
     this=np.where(Ms_all[:,-1]==group)
     Ms=Ms_all[this]
+# %%
+    X=np.array([data[:,-2],data[:,-1]]).T
+    tree=KDTree(X, leaf_size=2) 
+
+    # dist, ind = tree.query(iris[:,0:2], k=5)
+    dist, ind = tree.query(X, k=samples)
+    d_KNN=sorted(dist[:,-1])
+    fig, ax = plt.subplots(1,1,figsize=(15,15))
+    ax.plot(np.arange(0,len(data),1),d_KNN)
+    kneedle = KneeLocator(np.arange(0,len(data),1), d_KNN, curve='convex')
+    print(round(kneedle.knee, 3))
+    print(round(kneedle.elbow, 3))
+    print(round(kneedle.knee_y, 3))
+    print(round(kneedle.elbow_y, 3))
+    ax.axhline(round(kneedle.elbow_y, 3),linestyle='dashed',color='k')
+
+
+
+
+
+
     # %% tutorial at https://scikit-learn.org/stable/auto_examples/cluster/plot_dbscan.html#sphx-glr-auto-examples-cluster-plot-dbscan-py
     
-    X=np.array([data[:,-2],data[:,-1]]).T
-    epsilon=0.5
-    samples=5
+    
+    epsilon=round(kneedle.elbow_y, 3)
+    
     clustering = DBSCAN(eps=epsilon, min_samples=samples).fit(X)
     
     docu=DBSCAN.__doc__
     
     l=clustering.labels_
-    # %%
-    fig, ax = plt.subplots(1,1,figsize=(8,8))
-    ax.scatter(X[:,0],X[:,1],s=10,alpha=0.5)
-    ax.set_xlim(-15,15)
-    ax.set_ylim(-15,15)
-    ax.set_xlabel(r'$\mathrm{\mu_{l} (mas\ yr^{-1})}$') 
-    ax.set_ylabel(r'$\mathrm{\mu_{b} (mas\ yr^{-1})}$') 
-    ax.set_title('Group %s'%(group))
+    # %%Plots the vector poits plots for all the selected stars
+# =============================================================================
+#     fig, ax = plt.subplots(1,1,figsize=(8,8))
+#     ax.scatter(X[:,0],X[:,1],s=10,alpha=0.5)
+#     ax.set_xlim(-15,15)
+#     ax.set_ylim(-15,15)
+#     ax.set_xlabel(r'$\mathrm{\mu_{l} (mas\ yr^{-1})}$') 
+#     ax.set_ylabel(r'$\mathrm{\mu_{b} (mas\ yr^{-1})}$') 
+#     ax.set_title('Group %s'%(group))
+# =============================================================================
     #%%
     
     # %%
@@ -116,6 +143,8 @@ for g in range(len(group_lst)):
         ax[0].set_xlabel(r'$\mathrm{\mu_{l} (mas\ yr^{-1})}$') 
         ax[0].set_ylabel(r'$\mathrm{\mu_{b} (mas\ yr^{-1})}$') 
         ax[0].scatter(Ms[0,0],Ms[0,1],s=50,color='red',marker='2')
+        ax[0].scatter(pms[2],pms[3],s=150, marker='*')
+        ax[0].invert_xaxis()
         
         ax[1].scatter(data[:,0][colores_index[i]],data[:,1][colores_index[i]], color=colors[i],s=50)
         ax[1].scatter(Ms[0,4],Ms[0,5],s=100,color='red',marker='2')
