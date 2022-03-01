@@ -134,7 +134,7 @@ for i in range(len(yso_ra)):
         ax[0].legend(['yso #%s, %s'%(i,tipo[i])],markerscale=1,loc=1,handlelength=1)
         
         
-        np.savetxt(pruebas+'group_%s_%s.txt'%(i,name),catal[group],fmt='%.7f',header=('ra,dec,x_c,y_c,mua,dmua,mud,dmud,time,n1,n2,idt,m139,Separation,Ks,H,mul,mub'))
+        np.savetxt(pruebas+'group_%s_%s.txt'%(i,name),np.c_[catal[group],gal[group][:,0],gal[group][:,1]],fmt='%.7f',header=('ra,dec,x_c,y_c,mua,dmua,mud,dmud,time,n1,n2,idt,m139,Separation,Ks,H,mul,mub,l,b'))
         
         ax[1].scatter([gal_coor[index[0],0]],[gal_coor[index[0],1]],color='red',s=100)
         ax[1].scatter([gal_coor[group[0],0]],[gal_coor[group[0],1]], alpha =0.2)
