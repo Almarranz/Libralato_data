@@ -173,23 +173,6 @@ for i in range(len(yso_ra)):
     
 print('Found %s , missing %s'%(found, missing))
 
-# %%
-
-ra_=catal[group[0],0]
-dec_=catal[group[0],1]
-# Process needed for the trasnformation to galactic coordinates
-c = SkyCoord(ra=ra_*u.degree, dec=dec_*u.degree, frame='fk5')
-gal_c=c.galactic
-
-t_gal= QTable([gal_c], names=["lines coord"])
-
-df_gal=t_gal.to_pandas()
-gal=df_gal.to_numpy()
-
-# %%
-gal_c=np.array(gal_c)
-print(gal_c[0])
-
 
 
 
