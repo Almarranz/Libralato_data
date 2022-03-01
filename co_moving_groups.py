@@ -71,8 +71,8 @@ catal=np.c_[catal,gal_coor[:,0],gal_coor[:,1]]#in here we add the values for the
 radio=0.003
 found=0
 missing=0
-pms=[-3.156,-5.585,-6.411,-0.219]#this are the ecu(mua,mud) and galactic(mul,mub) pm of SrgA* (Reid & Brunthaler (2020))
-# pms=[0,0,0,0]
+# pms=[-3.156,-5.585,-6.411,-0.219]#this are the ecu(mua,mud) and galactic(mul,mub) pm of SrgA* (Reid & Brunthaler (2020))
+pms=[0,0,0,0]
 with open(pruebas+ 'MS_%s_.reg'%(name), 'w') as f:
         f.write('# Region file format: DS9 version 4.1'+"\n"+'global color=green dashlist=8 3 width=1 font="helvetica 10 normal roman" select=1 highlite=1 dash=0 fixed=0 edit=1 move=1 delete=1 include=1 source=1'+"\n"+'fk5'+'\n')
         f.close
