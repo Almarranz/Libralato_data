@@ -10,8 +10,10 @@ import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib.ticker import FormatStrFormatter
 import pandas as pd
-
-
+from astropy import units as u
+from astropy.coordinates import SkyCoord
+import astropy.units as u
+from astropy.table import QTable
 from matplotlib import rcParams
 rcParams.update({'xtick.major.pad': '7.0'})
 rcParams.update({'xtick.major.size': '7.5'})
@@ -64,7 +66,7 @@ no_fg=np.where(catal[:,12]-catal[:,14]>2.5)
 # catal=catal[no_fg]
 # gal_coor=gal_coor[no_fg]
 # =============================================================================
-catal=np.c_[catal,gal_coor[:,0],gal_coor[:,1]]
+catal=np.c_[catal,gal_coor[:,0],gal_coor[:,1]]#in here we add the values for the galactic pm NOT galactic coordinates
 # %%
 radio=0.003
 found=0
@@ -79,7 +81,7 @@ with open(pruebas+ 'pm_of_Ms_in_%s.txt'%(name), 'w') as f:
         f.write('#mul, mub, mua, mud, ra, dec,x_c,y_c position in GALCEN_TABLE_D.cat ')
         f.close
 for i in range(len(yso_ra)):
-# for i in range(1,4):    
+# for i in range(3,4):    
     print(yso_ra[i])
     index=np.where((catal[:,0]==yso_ra[i]) & (catal[:,1]==yso_dec[i]) )
     if len(index[0]>0):
@@ -91,19 +93,46 @@ for i in range(len(yso_ra)):
             f.close
         group=np.where(np.sqrt((catal[:,0]-catal[index[0],0])**2 + (catal[:,1]-catal[index[0],1])**2)< radio)
         print(len(group[0]))
+        ra_=catal[:,0]
+        dec_=catal[:,1]
+        # Process needed for the trasnformation to galactic coordinates
+        c = SkyCoord(ra=ra_*u.degree, dec=dec_*u.degree, frame='fk5')
+        gal_c=c.galactic
+        
+        t_gal= QTable([gal_c], names=["lines coord"])
+        
+        df_gal=t_gal.to_pandas()
+        gal=df_gal.to_numpy()
+        
         fig, ax = plt.subplots(1,2,figsize=(20,10))
-        ax[0].scatter(catal[index[0],0],catal[index[0],1],color='red',s=100)
-        ax[0].scatter(catal[group[0],0],catal[group[0],1])
+        # This will plot the vector and stars in the ecuatorial frame
+# =============================================================================
+#         ax[0].scatter(catal[index[0],0],catal[index[0],1],color='red',s=100)
+#         ax[0].scatter(catal[group[0],0],catal[group[0],1])
+#         # ax.quiver(catal[index[0],0],catal[index[0],1],[catal[index[0],4]],[catal[index[0],6]],alpha=0.2)#this is for the vector on the Ms object in ecuatorial
+#         # ax.quiver(catal[index[0],0],catal[index[0],1],[gal_coor[index[0],0]],[gal_coor[index[0],1]])#this is for the vector on the Ms object in galactic
+#         ax[0].quiver([catal[group[0],0]],[catal[group[0],1]],np.array([catal[group[0],4]])-pms[0],np.array([catal[group[0],6]])-pms[1],alpha=0.2)
+#         ax[0].quiver([catal[group[0],0]],[catal[group[0],1]],np.array([gal_coor[group[0],0]])-pms[2],np.array([gal_coor[group[0],1]])-pms[3])
+#         ax[0].set_xlabel(r'$\mathrm{ra}$') 
+#         ax[0].set_ylabel(r'$\mathrm{dec}$') 
+# 
+# =============================================================================
+        # This will plot the vectors and stars in the galactic frame
+
+        ax[0].scatter(gal[index[0],0],gal[index[0],1],color='red',s=100)
+        ax[0].scatter(gal[group[0],0],gal[group[0],1])
         # ax.quiver(catal[index[0],0],catal[index[0],1],[catal[index[0],4]],[catal[index[0],6]],alpha=0.2)#this is for the vector on the Ms object in ecuatorial
         # ax.quiver(catal[index[0],0],catal[index[0],1],[gal_coor[index[0],0]],[gal_coor[index[0],1]])#this is for the vector on the Ms object in galactic
-        ax[0].quiver([catal[group[0],0]],[catal[group[0],1]],np.array([catal[group[0],4]])-pms[0],np.array([catal[group[0],6]])-pms[1],alpha=0.2)
-        ax[0].quiver([catal[group[0],0]],[catal[group[0],1]],np.array([gal_coor[group[0],0]])-pms[2],np.array([gal_coor[group[0],1]])-pms[3])
+        ax[0].quiver([gal[group[0],0]],[gal[group[0],1]],np.array([catal[group[0],4]])-pms[0],np.array([catal[group[0],6]])-pms[1],alpha=0.2)
+        ax[0].quiver([gal[group[0],0]],[gal[group[0],1]],np.array([gal_coor[group[0],0]])-pms[2],np.array([gal_coor[group[0],1]])-pms[3])
+        ax[0].set_xlabel(r'$\mathrm{l}$') 
+        ax[0].set_ylabel(r'$\mathrm{b}$') 
+
 
         ax[0].yaxis.set_major_formatter(FormatStrFormatter('%.3f'))
         ax[0].xaxis.set_major_formatter(FormatStrFormatter('%.3f'))
         ax[0].legend(['yso #%s, %s'%(i,tipo[i])],markerscale=1,loc=1,handlelength=1)
-        ax[0].set_xlabel(r'$\mathrm{ra}$') 
-        ax[0].set_ylabel(r'$\mathrm{dec}$') 
+        
         
         np.savetxt(pruebas+'group_%s_%s.txt'%(i,name),catal[group],fmt='%.7f',header=('ra,dec,x_c,y_c,mua,dmua,mud,dmud,time,n1,n2,idt,m139,Separation,Ks,H,mul,mub'))
         
@@ -143,4 +172,26 @@ for i in range(len(yso_ra)):
     # plt.ylabel(r'$\mathrm{\mu_{d} (mas\ yr^{-1})}$') 
     
 print('Found %s , missing %s'%(found, missing))
+
+# %%
+
+ra_=catal[group[0],0]
+dec_=catal[group[0],1]
+# Process needed for the trasnformation to galactic coordinates
+c = SkyCoord(ra=ra_*u.degree, dec=dec_*u.degree, frame='fk5')
+gal_c=c.galactic
+
+t_gal= QTable([gal_c], names=["lines coord"])
+
+df_gal=t_gal.to_pandas()
+gal=df_gal.to_numpy()
+
+# %%
+gal_c=np.array(gal_c)
+print(gal_c[0])
+
+
+
+
+
 
