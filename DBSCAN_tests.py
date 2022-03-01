@@ -13,6 +13,7 @@ from matplotlib import rcParams
 from sklearn.neighbors import KDTree
 from kneed import DataGenerator, KneeLocator
 from matplotlib.ticker import FormatStrFormatter
+from sklearn.preprocessing import StandardScaler
 rcParams.update({'xtick.major.pad': '7.0'})
 rcParams.update({'xtick.major.size': '7.5'})
 rcParams.update({'xtick.major.width': '1.5'})
@@ -35,6 +36,10 @@ plt.rcParams["mathtext.fontset"] = 'dejavuserif'
 from matplotlib import rc
 rc('font',**{'family':'serif','serif':['Palatino']})
 # %%
+alpha_g=192.85948
+delta_g = 27.12825
+tr=np.deg2rad
+
 pruebas='/Users/amartinez/Desktop/PhD/Libralato_data/pruebas/'
 name='WFC3IR'
 #mul, mub, mua, mud, ra, dec, position in GALCEN_TABLE_D.cat
@@ -46,10 +51,10 @@ pms=[-3.156,-5.585,-6.411,-0.219]#this are the ecu(mua,mud) and galactic(mul,mub
 
 
 
-# for g in range(len(group_lst)):
-for g in range(1):
+for g in range(len(group_lst)):
+# for g in range(1):
     # print(group_lst[g])
-    samples=2
+    samples=5
     
     group=int(group_lst[g])
     #ra,dec,x_c,y_c,mua,dmua,mud,dmud,time,n1,n2,idt,m139,Separation,Ks,H,mul,mub
@@ -59,6 +64,7 @@ for g in range(1):
     Ms=Ms_all[this]
 # %%
     X=np.array([data[:,-2],data[:,-1]]).T
+    X = StandardScaler().fit_transform(X)
     tree=KDTree(X, leaf_size=2) 
 
     # dist, ind = tree.query(iris[:,0:2], k=5)
@@ -73,7 +79,7 @@ for g in range(1):
     print(round(kneedle.elbow_y, 3))
     ax.axhline(round(kneedle.elbow_y, 3),linestyle='dashed',color='k')
 
-
+   
 
 
 
@@ -82,6 +88,7 @@ for g in range(1):
     
     
     epsilon=round(kneedle.elbow_y, 3)
+    # epsilon=0.5
     
     clustering = DBSCAN(eps=epsilon, min_samples=samples).fit(X)
     
@@ -153,6 +160,8 @@ for g in range(1):
         ax[1].set_ylabel('dec') 
         ax[1].yaxis.set_major_formatter(FormatStrFormatter('%.3f'))
         ax[1].xaxis.set_major_formatter(FormatStrFormatter('%.3f'))
+        
+
     
     # %% Only for velocity space
 # =============================================================================
