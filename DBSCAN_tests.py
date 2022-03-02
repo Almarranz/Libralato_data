@@ -53,7 +53,7 @@ pms=[0,0,0,0]
 
 
 # for g in range(len(group_lst)):
-for g in range(1):
+for g in range(1,3):
     # print(group_lst[g])
     samples=5# number of minimun objects that defined a cluster
     
@@ -69,11 +69,12 @@ for g in range(1):
     elif cluster_by == 'pos':
         X=np.array([data[:,-2],data[:,-1]]).T #Select position (galactic)
         
-    X = StandardScaler().fit_transform(X)
-    tree=KDTree(X, leaf_size=2) 
+    X_stad = StandardScaler().fit_transform(X)
+    print('This are the mean and std of X: %s %s'%(round(np.mean(X_stad),1),round(np.std(X_stad),1)))
+    tree=KDTree(X_stad, leaf_size=2) 
 
     # dist, ind = tree.query(iris[:,0:2], k=5)
-    dist, ind = tree.query(X, k=samples)
+    dist, ind = tree.query(X_stad, k=samples)
     d_KNN=sorted(dist[:,-1])
     fig, ax = plt.subplots(1,1,figsize=(15,15))
     ax.plot(np.arange(0,len(data),1),d_KNN)
@@ -96,7 +97,7 @@ for g in range(1):
     epsilon=rodilla
     # epsilon=0.2
     
-    clustering = DBSCAN(eps=epsilon, min_samples=samples).fit(X)
+    clustering = DBSCAN(eps=epsilon, min_samples=samples).fit(X_stad)
     
     docu=DBSCAN.__doc__
     
@@ -105,8 +106,8 @@ for g in range(1):
     fig, ax = plt.subplots(1,1,figsize=(8,8))
     # ax.scatter(X[:,0],X[:,1],s=10,alpha=0.5)
     ax.scatter(data[:,-4],data[:,-3],s=10,alpha=0.5)
-    ax.set_xlim(-15,15)
-    ax.set_ylim(-15,15)
+    # ax.set_xlim(-15,15)
+    # ax.set_ylim(-15,15)
     ax.set_xlabel(r'$\mathrm{\mu_{l} (mas\ yr^{-1})}$') 
     ax.set_ylabel(r'$\mathrm{\mu_{b} (mas\ yr^{-1})}$') 
     ax.set_title('Group %s'%(group))
@@ -135,54 +136,54 @@ for g in range(1):
     # %%
     # print(colores_index)
     
-# =============================================================================
-#     fig, ax = plt.subplots(1,2,figsize=(20,10))
-#     ax[0].set_title('Group %s. # of Clusters = %s'%(group, n_clusters))
-#     # for i in range(n_clusters):
-#     for i in range(len(set(l))):
-#         # fig, ax = plt.subplots(1,1,figsize=(10,10))
-#         # ax.set_title('Cluster #%s'%(i+1))
-#         ax[0].scatter(X[:,0][colores_index[i]],X[:,1][colores_index[i]], color=colors[i],s=50)
-#         ax[0].set_xlim(-10,10)
-#         ax[0].set_ylim(-10,10)
-#         ax[0].set_xlabel(r'$\mathrm{\mu_{l} (mas\ yr^{-1})}$') 
-#         ax[0].set_ylabel(r'$\mathrm{\mu_{b} (mas\ yr^{-1})}$') 
-#         ax[0].scatter(Ms[0,0],Ms[0,1],s=50,color='red',marker='2')
-#         ax[0].scatter(pms[2],pms[3],s=150, marker='*')
-#         ax[0].invert_xaxis()
-#         
-#         # ax[1].scatter(data[:,0][colores_index[i]],data[:,1][colores_index[i]], color=colors[i],s=50)#plots in ecuatorials
-#         ax[1].scatter(data[:,-2][colores_index[i]],data[:,-1][colores_index[i]], color=colors[i],s=50)#plots in galactic
-# 
-#         ax[1].scatter(Ms[0,8],Ms[0,9],s=100,color='red',marker='2')
-#         # ax[1].quiver(data[:,0][colores_index[i]], data[:,1][colores_index[i]], X[:,0][colores_index[i]]-pms[2], X[:,1][colores_index[i]]-pms[3], alpha=0.5, color=colors[i])#ecuatorial
-#         ax[1].quiver(data[:,-2][colores_index[i]], data[:,-1][colores_index[i]], X[:,0][colores_index[i]]-pms[2], X[:,1][colores_index[i]]-pms[3], alpha=0.5, color=colors[i])#galactic
-# 
-#         # ax[1].set_xlabel('ra') 
-#         # ax[1].set_ylabel('dec') 
-#         
-#         ax[1].set_xlabel('l') 
-#         ax[1].set_ylabel('b') 
-#         
-#         ax[1].yaxis.set_major_formatter(FormatStrFormatter('%.3f'))
-#         ax[1].xaxis.set_major_formatter(FormatStrFormatter('%.3f'))
-#         
-# =============================================================================
+    fig, ax = plt.subplots(1,2,figsize=(20,10))
+    ax[0].set_title('Group %s. # of Clusters = %s'%(group, n_clusters))
+    # for i in range(n_clusters):
+    for i in range(len(set(l))):
+        # fig, ax = plt.subplots(1,1,figsize=(10,10))
+        # ax.set_title('Cluster #%s'%(i+1))
+        ax[0].scatter(X[:,0][colores_index[i]],X[:,1][colores_index[i]], color=colors[i],s=50)
+        ax[0].set_xlim(-10,10)
+        ax[0].set_ylim(-10,10)
+        ax[0].set_xlabel(r'$\mathrm{\mu_{l} (mas\ yr^{-1})}$') 
+        ax[0].set_ylabel(r'$\mathrm{\mu_{b} (mas\ yr^{-1})}$') 
+        ax[0].scatter(Ms[0,0],Ms[0,1],s=50,color='red',marker='2')
+        ax[0].scatter(pms[2],pms[3],s=150, marker='*')
+        ax[0].invert_xaxis()
+        
+        # ax[1].scatter(data[:,0][colores_index[i]],data[:,1][colores_index[i]], color=colors[i],s=50)#plots in ecuatorials
+        ax[1].scatter(data[:,-2][colores_index[i]],data[:,-1][colores_index[i]], color=colors[i],s=50)#plots in galactic
+
+        ax[1].scatter(Ms[0,8],Ms[0,9],s=100,color='red',marker='2')
+        # ax[1].quiver(data[:,0][colores_index[i]], data[:,1][colores_index[i]], X[:,0][colores_index[i]]-pms[2], X[:,1][colores_index[i]]-pms[3], alpha=0.5, color=colors[i])#ecuatorial
+        ax[1].quiver(data[:,-2][colores_index[i]], data[:,-1][colores_index[i]], X[:,0][colores_index[i]]-pms[2], X[:,1][colores_index[i]]-pms[3], alpha=0.5, color=colors[i])#galactic
+
+        # ax[1].set_xlabel('ra') 
+        # ax[1].set_ylabel('dec') 
+        
+        ax[1].set_xlabel('l') 
+        ax[1].set_ylabel('b') 
+        
+        ax[1].yaxis.set_major_formatter(FormatStrFormatter('%.3f'))
+        ax[1].xaxis.set_major_formatter(FormatStrFormatter('%.3f'))
+        
 
     
     # %% Only for velocity space
-    fig, ax = plt.subplots(1,1,figsize=(8,8))
-    ax.set_title('Group %s. # of Clusters = %s'%(group, n_clusters))
-    # for i in range(n_clusters):
-    for i in range(n_clusters+1):#The plus one makes plots the poiny that are not cluster
-        # fig, ax = plt.subplots(1,1,figsize=(10,10))
-        # ax.set_title('Cluster #%s'%(i+1))
-        ax.scatter(X[:,0][colores_index[i]],X[:,1][colores_index[i]], color=colors[i],s=10)
-        ax.set_xlim(-15,15)
-        ax.set_ylim(-15,15)
-        ax.set_xlabel(r'$\mathrm{\mu_{l} (mas\ yr^{-1})}$') 
-        ax.set_ylabel(r'$\mathrm{\mu_{b} (mas\ yr^{-1})}$') 
-        ax.scatter(Ms[0,0],Ms[0,1],s=10,color='red')
+# =============================================================================
+#     fig, ax = plt.subplots(1,1,figsize=(8,8))
+#     ax.set_title('Group %s. # of Clusters = %s'%(group, n_clusters))
+#     # for i in range(n_clusters):
+#     for i in range(n_clusters+1):#The plus one makes plots the poiny that are not cluster
+#         # fig, ax = plt.subplots(1,1,figsize=(10,10))
+#         # ax.set_title('Cluster #%s'%(i+1))
+#         ax.scatter(X[:,0][colores_index[i]],X[:,1][colores_index[i]], color=colors[i],s=10)
+#         # ax.set_xlim(-15,15)
+#         # ax.set_ylim(-15,15)
+#         ax.set_xlabel(r'$\mathrm{\mu_{l} (mas\ yr^{-1})}$') 
+#         ax.set_ylabel(r'$\mathrm{\mu_{b} (mas\ yr^{-1})}$') 
+#         ax.scatter(Ms[0,0],Ms[0,1],s=10,color='red')
+# =============================================================================
         
    
     
