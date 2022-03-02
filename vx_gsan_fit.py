@@ -170,7 +170,7 @@ def prior_transform(utheta):
    
     mu2 = -5*umu2-5/2 # red
     sigma2 =4*usigma2   
-    amp2 = .7* uamp2   
+    amp2 = .33* uamp2   
 
     mu3 = -7*umu3-7/2 # black
     sigma3 = 3*(usigma3)
