@@ -36,7 +36,7 @@ plt.rcParams["mathtext.fontset"] = 'dejavuserif'
 from matplotlib import rc
 rc('font',**{'family':'serif','serif':['Palatino']})
 # %%
-cluster_by='pm'# this varible can be 'pm' or 'pos', indicating if you want cluster by velocities or positions
+cluster_by='all'# this varible can be 'pm' or 'pos', indicating if you want cluster by velocities or positions
 alpha_g=192.85948
 delta_g = 27.12825
 tr=np.deg2rad
@@ -53,9 +53,9 @@ pms=[0,0,0,0]
 
 
 # for g in range(len(group_lst)):
-for g in range(1,3):
+for g in range(0,1):
     # print(group_lst[g])
-    samples=5# number of minimun objects that defined a cluster
+    samples=4# number of minimun objects that defined a cluster
     
     group=int(group_lst[g])
     #ra,dec,x_c,y_c,mua,dmua,mud,dmud,time,n1,n2,idt,m139,Separation,Ks,H,mul,mub,l,b
@@ -68,14 +68,16 @@ for g in range(1,3):
         X=np.array([data[:,-4],data[:,-3]]).T #Select pm (galactic)
     elif cluster_by == 'pos':
         X=np.array([data[:,-2],data[:,-1]]).T #Select position (galactic)
+    elif cluster_by == 'all':
+        X=np.array([data[:,-4]-pms[2],data[:,-3]-pms[3],data[:,-2],data[:,-1]]).T# in Castro-Ginard et al. 2018 they cluster the data in a 5D space: pm,position and paralax    
         
     X_stad = StandardScaler().fit_transform(X)
-    print('This are the mean and std of X: %s %s'%(round(np.mean(X_stad),1),round(np.std(X_stad),1)))
+    print('These are the mean and std of X: %s %s'%(round(np.mean(X_stad),1),round(np.std(X_stad),1)))
     tree=KDTree(X_stad, leaf_size=2) 
 
     # dist, ind = tree.query(iris[:,0:2], k=5)
-    dist, ind = tree.query(X_stad, k=samples)
-    d_KNN=sorted(dist[:,-1])
+    dist, ind = tree.query(X_stad, k=samples) #DistNnce to the 1,2,3...k neighbour
+    d_KNN=sorted(dist[:,-1])#distance to the Kth neighbour
     fig, ax = plt.subplots(1,1,figsize=(15,15))
     ax.plot(np.arange(0,len(data),1),d_KNN)
     kneedle = KneeLocator(np.arange(0,len(data),1), d_KNN, curve='convex')
@@ -94,8 +96,8 @@ for g in range(1,3):
     # %% tutorial at https://scikit-learn.org/stable/auto_examples/cluster/plot_dbscan.html#sphx-glr-auto-examples-cluster-plot-dbscan-py
     
     
-    epsilon=rodilla
-    # epsilon=0.2
+    epsilon=rodilla/3
+    # epsilon=0.8
     
     clustering = DBSCAN(eps=epsilon, min_samples=samples).fit(X_stad)
     
@@ -138,6 +140,7 @@ for g in range(1,3):
     
     fig, ax = plt.subplots(1,2,figsize=(20,10))
     ax[0].set_title('Group %s. # of Clusters = %s'%(group, n_clusters))
+    ax[1].set_title('# of stars = #%s'%(len(l)))
     # for i in range(n_clusters):
     for i in range(len(set(l))):
         # fig, ax = plt.subplots(1,1,figsize=(10,10))
@@ -147,7 +150,7 @@ for g in range(1,3):
         ax[0].set_ylim(-10,10)
         ax[0].set_xlabel(r'$\mathrm{\mu_{l} (mas\ yr^{-1})}$') 
         ax[0].set_ylabel(r'$\mathrm{\mu_{b} (mas\ yr^{-1})}$') 
-        ax[0].scatter(Ms[0,0],Ms[0,1],s=50,color='red',marker='2')
+        ax[0].scatter(Ms[0,0]-pms[2],Ms[0,1]-pms[3],s=50,color='red',marker='2')
         ax[0].scatter(pms[2],pms[3],s=150, marker='*')
         ax[0].invert_xaxis()
         
@@ -185,9 +188,16 @@ for g in range(1,3):
 #         ax.scatter(Ms[0,0],Ms[0,1],s=10,color='red')
 # =============================================================================
         
-   
-    
 # %%
+    #Plots CMD of clusterd stars and the rest
+    #ra,dec,x_c,y_c,mua,dmua,mud,dmud,time,n1,n2,idt,m139,Separation,Ks,H,mul,mub,l,b
+    fig, ax = plt.subplots(1,1,figsize=(8,8))
+    ax.set_title('CMD. Group %s. # of Clusters = %s, #stars=%s'%(group, n_clusters,len(l)))
+    for i in range(len(set(l))):
+        ax.scatter(data[:,15][colores_index[i]]-data[:,14][colores_index[i]],data[:,14][colores_index[i]], color=colors[i],s=50)
+        ax.invert_yaxis()
+        ax.set_xlabel('H$-$Ks') 
+        ax.set_ylabel('Ks') 
 
    
     
