@@ -60,15 +60,13 @@ catal=catal_df.to_numpy()
 valid=np.where(np.isnan(catal[:,14])==False)
 catal=catal[valid]
 gal_coor=gal_coor[valid]
-no_fg=np.where(catal[:,12]-catal[:,14]>2.5)
-# =============================================================================
-# no_fg=np.where(catal[:,-1]-catal[:,-2]>1.3)
-# catal=catal[no_fg]
-# gal_coor=gal_coor[no_fg]
-# =============================================================================
+# no_fg=np.where(catal[:,12]-catal[:,14]>2.5)
+no_fg=np.where(catal[:,-1]-catal[:,-2]>1.3)
+catal=catal[no_fg]
+gal_coor=gal_coor[no_fg]
 catal=np.c_[catal,gal_coor[:,0],gal_coor[:,1]]#in here we add the values for the galactic pm NOT galactic coordinates
 # %%
-radio=0.003
+radio=0.006
 found=0
 missing=0
 # pms=[-3.156,-5.585,-6.411,-0.219]#this are the ecu(mua,mud) and galactic(mul,mub) pm of SrgA* (Reid & Brunthaler (2020))
@@ -131,7 +129,7 @@ for i in range(len(yso_ra)):
 
         ax[0].yaxis.set_major_formatter(FormatStrFormatter('%.3f'))
         ax[0].xaxis.set_major_formatter(FormatStrFormatter('%.3f'))
-        ax[0].legend(['yso #%s, %s'%(i,tipo[i])],markerscale=1,loc=1,handlelength=1)
+        ax[0].legend(['yso #%s, %s, #stars=%s'%(i,tipo[i],len(gal[group[0],0]))],markerscale=1,loc=1,handlelength=1)
         
         
         np.savetxt(pruebas+'group_%s_%s.txt'%(i,name),np.c_[catal[group],gal[group][:,0],gal[group][:,1]],fmt='%.7f',header=('ra,dec,x_c,y_c,mua,dmua,mud,dmud,time,n1,n2,idt,m139,Separation,Ks,H,mul,mub,l,b'))
