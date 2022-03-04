@@ -76,7 +76,7 @@ with open(pruebas+ 'MS_%s_.reg'%(name), 'w') as f:
         f.close
         
 with open(pruebas+ 'pm_of_Ms_in_%s.txt'%(name), 'w') as f:
-        f.write('#mul, mub, mua, mud, ra, dec,x_c,y_c,l,b position in GALCEN_TABLE_D.cat ')
+        f.write('#mul, mub, mua, mud, ra, dec,x_c,y_c,l,b, Ks, H position in GALCEN_TABLE_D.cat ')
         f.close
 for i in range(len(yso_ra)):
 # for i in range(3,4):    
@@ -138,8 +138,9 @@ for i in range(len(yso_ra)):
         ax[1].scatter([gal_coor[group[0],0]],[gal_coor[group[0],1]], alpha =0.2)
         
         with open(pruebas+ 'pm_of_Ms_in_%s.txt'%(name), 'a') as f:
-            f.write('\n'+ '%.7f %.7f %.7f %.7f %.7f %.7f %.7f %.7f %.7f %.7f %.0f'%(float(gal_coor[index[0],0]),float(gal_coor[index[0],1]),float(catal[index[0],4]),
-                                                                          float(catal[index[0],6]),float(catal[index[0],0]),float(catal[index[0],1]),float(catal[index[0],2]),float(catal[index[0],3]),float(gal[index[0],0]),float(gal[index[0],1]),i))
+            f.write('\n'+ '%.7f %.7f %.7f %.7f %.7f %.7f %.7f %.7f %.7f %.7f %.7f %.7f %.0f'%(float(gal_coor[index[0],0]),float(gal_coor[index[0],1]),float(catal[index[0],4]),
+                                                                          float(catal[index[0],6]),float(catal[index[0],0]),float(catal[index[0],1]),float(catal[index[0],2]),float(catal[index[0],3]),float(gal[index[0],0]),float(gal[index[0],1])
+                                                                          ,float(catal[index[0],-4]),float(catal[index[0],-3]),i))
 
             f.close
        
