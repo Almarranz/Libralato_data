@@ -8,13 +8,7 @@ Created on Tue Feb 15 10:31:49 2022
 
 import numpy as np
 import matplotlib.pyplot as plt
-import emcee
-import corner
-import dynesty
-import scipy.integrate as integrate
-from astropy.stats import sigma_clip
-from astropy.stats import sigma_clipped_stats
-from matplotlib.ticker import FormatStrFormatter
+
 # %%
 
 cata='/Users/amartinez/Desktop/PhD/Libralato_data/CATALOGS/'
