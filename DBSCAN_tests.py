@@ -13,6 +13,7 @@ from matplotlib import rcParams
 from sklearn.neighbors import KDTree
 from kneed import DataGenerator, KneeLocator
 from matplotlib.ticker import FormatStrFormatter
+import pandas as pd
 from sklearn.preprocessing import StandardScaler
 rcParams.update({'xtick.major.pad': '7.0'})
 rcParams.update({'xtick.major.size': '7.5'})
@@ -36,14 +37,37 @@ plt.rcParams["mathtext.fontset"] = 'dejavuserif'
 from matplotlib import rc
 rc('font',**{'family':'serif','serif':['Palatino']})
 # %%
+name='WFC3IR'
+cata='/Users/amartinez/Desktop/PhD/Libralato_data/CATALOGS/'
+pruebas='/Users/amartinez/Desktop/PhD/Libralato_data/pruebas/'
+results='/Users/amartinez/Desktop/PhD/Libralato_data/results/'
+# %%
+# We upload galactic center stars, that we will use in the CMD
+# catal=np.loadtxt(results+'refined_%s_PM.txt'%(name))
+catal_df=pd.read_csv(results+'%s_refined_with GNS_partner_mag_K_H.txt'%(name),sep=',',names=['ra','dec','x_c','y_c','mua','dmua','mud','dmud','time','n1','n2','idt','m139','Separation','Ks','H'])
+
+# mul_mc,mub_mc,dmul_mc,dmub_mc
+gal_coor=np.loadtxt(results+'match_GNS_and_WFC3IR_refined_galactic.txt')
+
+catal=catal_df.to_numpy()
+valid=np.where(np.isnan(catal[:,14])==False)
+catal=catal[valid]
+gal_coor=gal_coor[valid]
+# no_fg=np.where(catal[:,12]-catal[:,14]>2.5)
+# =============================================================================
+# no_fg=np.where(catal[:,-1]-catal[:,-2]>1.3)
+# catal=catal[no_fg]
+# gal_coor=gal_coor[no_fg]
+# =============================================================================
+catal=np.c_[catal,gal_coor[:,0],gal_coor[:,1]]#in here we add the values for the galactic pm, NOT galactic coordinates
+
+# %%
 cluster_by='all'# this varible can be 'pm' or 'pos', indicating if you want cluster by velocities or positions
 alpha_g=192.85948
 delta_g = 27.12825
 tr=np.deg2rad
 
-pruebas='/Users/amartinez/Desktop/PhD/Libralato_data/pruebas/'
-name='WFC3IR'
-#mul, mub, mua, mud, ra, dec,x_c,y_c,l,b position in GALCEN_TABLE_D.cat 
+#mul, mub, mua, mud, ra, dec,x_c,y_c,l,b,Ks, H, position in GALCEN_TABLE_D.cat 
 Ms_all=np.loadtxt(pruebas +'pm_of_Ms_in_WFC3IR.txt')# this are the information (pm, coordinates and ID) for the Ms that remain in the data after triming it 
 group_lst=Ms_all[:,-1]#indtinfication number for the Ms
 
@@ -52,8 +76,8 @@ pms=[0,0,0,0]
 
 
 
-# for g in range(len(group_lst)):
-for g in range(0,1):
+for g in range(len(group_lst)):
+# for g in range(0,1):
     # print(group_lst[g])
     samples=4# number of minimun objects that defined a cluster
     
@@ -190,12 +214,20 @@ for g in range(0,1):
         
 # %%
     #Plots CMD of clusterd stars and the rest
-    #ra,dec,x_c,y_c,mua,dmua,mud,dmud,time,n1,n2,idt,m139,Separation,Ks,H,mul,mub,l,b
+    #ra,dec,x_c,y_c,mua,dmua,mud,dmud,time,n1,n2,idt,m139,Separation,Ks,H,mul,mub
+    radio=0.05
     fig, ax = plt.subplots(1,1,figsize=(8,8))
+    ax.invert_yaxis()
+    area=np.where(np.sqrt((catal[:,0]-Ms[0,4])**2 + (catal[:,1]-Ms[0,5])**2)< radio)
+    ax.scatter(catal[:,-3][area]-catal[:,-4][area],catal[:,-4][area],color='k',alpha=0.05)
+    # ax.arrow((Ms[0,11]-Ms[0,10])-0.2,Ms[0,10]-0.2,Ms[0,11]-Ms[0,10], Ms[0,10], color='red',zorder=3)
+    
+
+    # ax.scatter()
     ax.set_title('CMD. Group %s. # of Clusters = %s, #stars=%s'%(group, n_clusters,len(l)))
     for i in range(len(set(l))):
-        ax.scatter(data[:,15][colores_index[i]]-data[:,14][colores_index[i]],data[:,14][colores_index[i]], color=colors[i],s=50)
-        ax.invert_yaxis()
+        ax.scatter(data[:,15][colores_index[i]]-data[:,14][colores_index[i]],data[:,14][colores_index[i]], color=colors[i],s=50,zorder=3)
+        ax.scatter((Ms[0,11]-Ms[0,10]),Ms[0,10], color='red',s=100,marker='2',zorder=3)
         ax.set_xlabel('H$-$Ks') 
         ax.set_ylabel('Ks') 
 
