@@ -16,7 +16,6 @@ from astropy.stats import sigma_clip
 from astropy.stats import sigma_clipped_stats
 from matplotlib.ticker import FormatStrFormatter
 import pandas as pd
-from scipy.stats import norm
 from matplotlib import rcParams
 rcParams.update({'xtick.major.pad': '7.0'})
 rcParams.update({'xtick.major.size': '7.5'})
@@ -61,8 +60,8 @@ valid=np.where(np.isnan(df_np[:,4])==False)
 df_np=df_np[valid]
 gal_coor=gal_coor[valid]
 
-center=np.where(df_np[:,17]-df_np[:,4]>2.5)
-# center=np.where(catal[:,-1]-catal[:,-2]>1.3)
+# center=np.where(df_np[:,17]-df_np[:,4]>2.5)
+center=np.where(catal[:,-1]-catal[:,-2]>1.3)
 df_np=df_np[center]
 gal_coor=gal_coor[center]
 
@@ -107,8 +106,8 @@ fig, ax = plt.subplots(1,1, figsize=(10,10))
 # sig_h=sigma_clip(mul,sigma=500,maxiters=20,cenfunc='mean',masked=True)
 # mul=mul[sig_h.mask==False]
 
-h=ax.hist(mul,bins=20,linewidth=2,density=True)
-h1=np.histogram(mul,bins=20,density=False)
+h=ax.hist(mul,bins=auto,linewidth=2,density=True)
+h1=np.histogram(mul,bins=auto,density=False)
 
 x=[h[1][i]+(h[1][1]-h[1][0])/2 for i in range(len(h[0]))]#middle value for each bin
 ax.axvline(np.mean(mul), color='r', linestyle='dashed', linewidth=3)
@@ -121,37 +120,7 @@ ax.invert_xaxis()
 y=h[0]#height for each bin
 
 #%
-# %%
-# All this bit implement the new method of building the histogram by the uncertaonties in velovity
-w=h[1]
-#you can comment this lines (up to np.save) one you have compute pij. So will save the time of recoputing it
-pij=np.empty([len(mul),len(h[0])])
-for b in range(len(y)):
-    for v in range(len(mul)):
-        # snd = stats.norm(v_x[v],dvx[v])
-        if v%50000 == 0:
-            print('wroking on star #%s round %s of %s '%(v,b+1,len(y)))
-        pij[v,b]=norm(mul[v],dmul[v]).cdf(w[b+1])-norm(mul[v],dmul[v]).cdf(w[b])
-pij=np.array(pij)
-np.savetxt(pruebas+'mul_out_pij_accu%s.txt'%(lim_dmul),pij)
 
-pij=np.loadtxt(pruebas+'mul_out_pij_accu%s.txt'%(lim_dmul))
-vj = [np.sum(pij[:,j]*(1 - pij[:,j])) for j in range(len(h1[1])-1)]
-sj=np.sqrt(vj)   
-sj_n=sj/(len(mul)*(h[1][1]-h[1][0]))
-yerr=sj_n
-
-
-
-
-vx_p=[np.sum(pij[:,i]) for i in range(len(h1[1])-1)]
-fig,ax=plt.subplots(1,1)
-ax.scatter(x,vx_p/(len(mul)*(h[1][1]-h[1][0])),alpha=0.3,color='red')
-ax.hist(mul,bins=auto,edgecolor='black',linewidth=2,density=True,alpha=0.5)
-ax.errorbar(x,vx_p/(len(mul)*(h[1][1]-h[1][0])),sj/(len(mul)*(h[1][1]-h[1][0])))
-
-y= vx_p/(len(mul)*(h[1][1]-h[1][0]))   
-# %%
 
 # This plots mub vs mul  
 # =============================================================================
@@ -166,15 +135,13 @@ y= vx_p/(len(mul)*(h[1][1]-h[1][0]))
 # 
 # =============================================================================
 #%
-# This is the regular method, is have to be one or the other
-# =============================================================================
-# yerr=[]
-# y=np.where(y==0,0.001,y)
-# y1=h1[0]
-# y1=np.where(y1==0,0.001,y1)
-# # yerr = y*np.sqrt(1/y1+1/len(mul))
-# yerr = y*np.sqrt(1/y1)
-# =============================================================================
+
+yerr=[]
+y=np.where(y==0,0.001,y)
+y1=h1[0]
+y1=np.where(y1==0,0.001,y1)
+# yerr = y*np.sqrt(1/y1+1/len(mul))
+yerr = y*np.sqrt(1/y1)
 # 
 
 #%   
@@ -305,7 +272,6 @@ for i in range(9):
 # h_test=plt.hist(l,density=True)
 # plt.show()
 # =============================================================================
-
 
 
 
