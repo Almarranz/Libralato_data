@@ -70,7 +70,9 @@ radio=0.006
 found=0
 missing=0
 # pms=[-3.156,-5.585,-6.411,-0.219]#this are the ecu(mua,mud) and galactic(mul,mub) pm of SrgA* (Reid & Brunthaler (2020))
-pms=[0,0,0,0]
+# pms=[0,0,0,0]
+pms=[0,0,-5.60,0.20] #this is from the dynesty adjustment
+pms=np.array(pms)
 with open(pruebas+ 'MS_%s_.reg'%(name), 'w') as f:
         f.write('# Region file format: DS9 version 4.1'+"\n"+'global color=green dashlist=8 3 width=1 font="helvetica 10 normal roman" select=1 highlite=1 dash=0 fixed=0 edit=1 move=1 delete=1 include=1 source=1'+"\n"+'fk5'+'\n')
         f.close
@@ -121,7 +123,7 @@ for i in range(len(yso_ra)):
         ax[0].scatter(gal[group[0],0],gal[group[0],1])
         # ax.quiver(catal[index[0],0],catal[index[0],1],[catal[index[0],4]],[catal[index[0],6]],alpha=0.2)#this is for the vector on the Ms object in ecuatorial
         # ax.quiver(catal[index[0],0],catal[index[0],1],[gal_coor[index[0],0]],[gal_coor[index[0],1]])#this is for the vector on the Ms object in galactic
-        ax[0].quiver([gal[group[0],0]],[gal[group[0],1]],np.array([catal[group[0],4]])-pms[0],np.array([catal[group[0],6]])-pms[1],alpha=0.2)
+        # ax[0].quiver([gal[group[0],0]],[gal[group[0],1]],np.array([catal[group[0],4]])-pms[0],np.array([catal[group[0],6]])-pms[1],alpha=0.2)
         ax[0].quiver([gal[group[0],0]],[gal[group[0],1]],np.array([gal_coor[group[0],0]])-pms[2],np.array([gal_coor[group[0],1]])-pms[3])
         ax[0].set_xlabel(r'$\mathrm{l}$') 
         ax[0].set_ylabel(r'$\mathrm{b}$') 
@@ -134,8 +136,8 @@ for i in range(len(yso_ra)):
         
         np.savetxt(pruebas+'group_%s_%s.txt'%(i,name),np.c_[catal[group],gal[group][:,0],gal[group][:,1]],fmt='%.7f',header=('ra,dec,x_c,y_c,mua,dmua,mud,dmud,time,n1,n2,idt,m139,Separation,Ks,H,mul,mub,l,b'))
         
-        ax[1].scatter([gal_coor[index[0],0]],[gal_coor[index[0],1]],color='red',s=100)
-        ax[1].scatter([gal_coor[group[0],0]],[gal_coor[group[0],1]], alpha =0.2)
+        ax[1].scatter([gal_coor[index[0],0]]-pms[2],[gal_coor[index[0],1]]-pms[3],color='red',s=100)
+        ax[1].scatter([gal_coor[group[0],0]]-pms[2],[gal_coor[group[0],1]]-pms[3], alpha =0.2)
         
         with open(pruebas+ 'pm_of_Ms_in_%s.txt'%(name), 'a') as f:
             f.write('\n'+ '%.7f %.7f %.7f %.7f %.7f %.7f %.7f %.7f %.7f %.7f %.7f %.7f %.0f'%(float(gal_coor[index[0],0]),float(gal_coor[index[0],1]),float(catal[index[0],4]),
