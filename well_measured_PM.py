@@ -43,8 +43,8 @@ rc('font',**{'family':'serif','serif':['Palatino']})
 
 cata='/Users/amartinez/Desktop/PhD/Libralato_data/CATALOGS/'
 
-# name='ACSWFC'
-name='WFC3IR'
+name='ACSWFC'
+# name='WFC3IR'
 # ra,dec,x_c ,y_c,mua,dmua,mud,dmud, time, n1, n2, idt = np.loadtxt(cata+'GALCEN_%s_PM.cat'%(name),unpack=True)
 catal=np.loadtxt(cata+'GALCEN_%s_PM.cat'%(name))
 pruebas='/Users/amartinez/Desktop/PhD/Libralato_data/pruebas/'

@@ -13,8 +13,8 @@ import matplotlib.pyplot as plt
 
 cata='/Users/amartinez/Desktop/PhD/Libralato_data/CATALOGS/'
 #R.A. Dec. X Y μαcosδ σμαcosδ μδ σμδ  time n1 n2 ID
-# name='ACSWFC'
-name='WFC3IR'
+name='ACSWFC'
+# name='WFC3IR'
 # ra,dec,x_c ,y_c,mua,dmua,mud,dmud, time, n1, n2, idt = np.loadtxt(cata+'GALCEN_%s_PM.cat'%(name),unpack=True)
 catal=np.loadtxt(cata+'GALCEN_%s_PM.cat'%(name))
 pruebas='/Users/amartinez/Desktop/PhD/Libralato_data/pruebas/'
@@ -28,7 +28,7 @@ all_ep1=np.loadtxt(cata+'GALCEN_%s_GO12915.cat'%(name),unpack=False)
 all_ep2=np.loadtxt(cata+'GALCEN_%s_GO13771.cat'%(name),unpack=False )
 
 # %%
-epoch=2
+epoch=1
 if epoch == 1:
     ep1_test = all_ep1
     num=np.arange(0,len(all_ep1),1)

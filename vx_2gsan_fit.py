@@ -98,7 +98,7 @@ dmub=dmub[accu]
 #%
 print(min(mul),max(mul))
 
-auto='auto'
+auto='no'
 if auto !='auto':
     auto=np.arange(min(mul),max(mul),0.25)#also works if running each bing width one by one, for some reason...
     # print(auto)
