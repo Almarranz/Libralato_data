@@ -95,7 +95,7 @@ dmub=dmub[accu]
 #%
 print(min(mul),max(mul))
 binwidth=0.25
-auto='auto'
+auto='no'
 if auto !='auto':
     auto=np.arange(min(mul),max(mul)+ binwidth, binwidth)#also works if running each bing width one by one, for some reason...
     # print(auto)
@@ -231,6 +231,7 @@ plt.plot(xplot, gaussian(xplot, mean[0], mean[1], mean[2]) + gaussian(xplot, mea
 plt.plot(xplot, gaussian(xplot, mean[0], mean[1], mean[2])  , color="yellow", linestyle='dashed', linewidth=3, alpha=0.6)
 plt.plot(xplot, gaussian(xplot, mean[3], mean[4], mean[5])  , color="red", linestyle='dashed', linewidth=3, alpha=0.6)
 plt.plot(xplot, gaussian(xplot, mean[6], mean[7], mean[8]) , color='black', linestyle='dashed', linewidth=3, alpha=0.6)
+plt.axvline(mean[3],linestyle='dashed',color='green')
 plt.xlim(-20,10)
 plt.text(-10,max(h[0]-0.01),'logz=%.0f'%(results['logz'][-1]),color='b')
 
