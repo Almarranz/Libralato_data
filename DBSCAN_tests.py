@@ -64,7 +64,7 @@ gal_coor=gal_coor[valid]
 catal=np.c_[catal,gal_coor[:,0],gal_coor[:,1]]#in here we add the values for the galactic pm, NOT galactic coordinates
 
 # %%
-cluster_by='all'# this varible can be 'pm' or 'pos', indicating if you want cluster by velocities or positions
+cluster_by='all'# this varible can be 'pm' or 'pos', indicating if you want cluster by velocities or positions,or all for clustering in 4D
 alpha_g=192.85948
 delta_g = 27.12825
 tr=np.deg2rad
@@ -74,16 +74,16 @@ Ms_all=np.loadtxt(pruebas +'pm_of_Ms_in_WFC3IR.txt')# this are the information (
 group_lst=Ms_all[:,-1]#indtinfication number for the Ms
 
 # pms=[-3.156,-5.585,-6.411,-0.219]#this are the ecu(mua,mud) and galactic(mul,mub) pm of SrgA* (Reid & Brunthaler (2020))
-# pms=[0,0,0,0]
-pms=[0,0,-5.60,0.20] #this is from the dynesty adjustment
+pms=[0,0,0,0]
+# pms=[0,0,-5.60,-0.20] #this is from the dynesty adjustment
 # pms=np.array(pms)
 
 
 
 for g in range(len(group_lst)):
-# for g in range(0,1):
+# for g in range(0,3):
     # print(group_lst[g])
-    samples=5# number of minimun objects that defined a cluster
+    samples=10# number of minimun objects that defined a cluster
     
     group=int(group_lst[g])
     #ra,dec,x_c,y_c,mua,dmua,mud,dmud,time,n1,n2,idt,m139,Separation,Ks,H,mul,mub,l,b
@@ -93,7 +93,7 @@ for g in range(len(group_lst)):
     Ms=Ms_all[this]
 # %%
     if cluster_by == 'pm':
-        X=np.array([data[:,-4],data[:,-3]]).T #Select pm (galactic)
+        X=np.array([data[:,-4]-pms[2],data[:,-3]-pms[3]]).T #Select pm (galactic)
     elif cluster_by == 'pos':
         X=np.array([data[:,-2],data[:,-1]]).T #Select position (galactic)
     elif cluster_by == 'all':
@@ -106,8 +106,8 @@ for g in range(len(group_lst)):
 
     # dist, ind = tree.query(iris[:,0:2], k=5)
     dist, ind = tree.query(X_stad, k=samples) #DistNnce to the 1,2,3...k neighbour
-    d_KNN=sorted(dist[:,-1])#distance to the Kth neighbour
-    # d_KNN=sorted(dist[:,1])# this is how Ban do it
+    # d_KNN=sorted(dist[:,-1])#distance to the Kth neighbour
+    d_KNN=sorted(dist[:,1])# this is how Ban do it
 
     # This how Ban do it
 # =============================================================================
@@ -131,7 +131,7 @@ for g in range(len(group_lst)):
     # %% tutorial at https://scikit-learn.org/stable/auto_examples/cluster/plot_dbscan.html#sphx-glr-auto-examples-cluster-plot-dbscan-py
     
     
-    epsilon=rodilla/3
+    epsilon=rodilla/1.5
     # epsilon=0.45
     
     clustering = DBSCAN(eps=epsilon, min_samples=samples).fit(X_stad)
@@ -163,7 +163,7 @@ for g in range(len(group_lst)):
     # %%
     
     # %%
-    for k in range(len(colors)):
+    for k in range(len(colors)): #give noise color black with opacity 0.1
         if list(u_labels)[k] == -1:
             colors[k]=[0,0,0,0.1]
     # %%       
@@ -177,7 +177,7 @@ for g in range(len(group_lst)):
     if n_clusters > 0:
         fig, ax = plt.subplots(1,1,figsize=(8,8))
         ax.plot(np.arange(0,len(data),1),d_KNN)
-        ax.legend(['knee=%s, min=%s, eps=%s'%(round(kneedle.elbow_y, 3),round(min(d_KNN),2),round(epsilon,2))])
+        ax.legend(['knee=%s, min=%s, eps=%s, Dime=%s'%(round(kneedle.elbow_y, 3),round(min(d_KNN),2),round(epsilon,2),len(X[0]))])
         ax.set_xlabel('Point') 
         ax.set_ylabel('%s-NN distance'%(samples)) 
         # print(round(kneedle.knee, 3))
@@ -207,7 +207,7 @@ for g in range(len(group_lst)):
     
             ax[1].scatter(Ms[0,8],Ms[0,9],s=100,color='red',marker='2')
             # ax[1].quiver(data[:,0][colores_index[i]], data[:,1][colores_index[i]], X[:,0][colores_index[i]]-pms[2], X[:,1][colores_index[i]]-pms[3], alpha=0.5, color=colors[i])#ecuatorial
-            ax[1].quiver(data[:,-2][colores_index[i]], data[:,-1][colores_index[i]], X[:,0][colores_index[i]]-pms[2], X[:,1][colores_index[i]]-pms[3], alpha=0.5, color=colors[i])#galactic
+            ax[1].quiver(data[:,-2][colores_index[i]], data[:,-1][colores_index[i]], X[:,0][colores_index[i]], X[:,1][colores_index[i]], alpha=0.5, color=colors[i])#galactic
     
             # ax[1].set_xlabel('ra') 
             # ax[1].set_ylabel('dec') 
@@ -243,20 +243,20 @@ for g in range(len(group_lst)):
         fig, ax = plt.subplots(1,1,figsize=(8,8))
         ax.invert_yaxis()
         area=np.where(np.sqrt((catal[:,0]-Ms[0,4])**2 + (catal[:,1]-Ms[0,5])**2)< radio)
-        ax.scatter(catal[:,-3][area]-catal[:,-4][area],catal[:,-4][area],color='k',alpha=0.05)
+        ax.scatter(catal[:,-3][area]-catal[:,-4][area],catal[:,-4][area],color='k',marker='o',alpha=0.01,zorder=1)
         # ax.arrow((Ms[0,11]-Ms[0,10])-0.2,Ms[0,10]-0.2,Ms[0,11]-Ms[0,10], Ms[0,10], color='red',zorder=3)
         
     
         # ax.scatter()
         ax.set_title('CMD. Group %s. # of Clusters = %s, #stars=%s'%(group, n_clusters,len(l)))
-        for i in range(len(set(l))):
-            ax.scatter(data[:,15][colores_index[i]]-data[:,14][colores_index[i]],data[:,14][colores_index[i]], color=colors[i],s=50,zorder=3)
+        for i in range(len(set(l))-1):
+            ax.scatter(data[:,15][colores_index[i]]-data[:,14][colores_index[i]],data[:,14][colores_index[i]], color=colors[i],s=50,zorder=2)
             ax.scatter((Ms[0,11]-Ms[0,10]),Ms[0,10], color='red',s=100,marker='2',zorder=3)
             ax.set_xlabel('H$-$Ks') 
             ax.set_ylabel('Ks') 
 
    
-    
+
     
     
     
