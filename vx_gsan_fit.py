@@ -218,7 +218,7 @@ plt.show()
 
 results = sampler.results
 print(results['logz'][-1])
-
+# %%
 # h=plt.hist(v_x*-1, bins= nbins, color='darkblue', alpha = 0.6, density =True, histtype = 'stepfilled')
 h=plt.hist(mul, bins= auto, color='royalblue', alpha = 0.6, density =True, histtype = 'stepfilled')
 
@@ -231,7 +231,11 @@ plt.plot(xplot, gaussian(xplot, mean[0], mean[1], mean[2]) + gaussian(xplot, mea
 plt.plot(xplot, gaussian(xplot, mean[0], mean[1], mean[2])  , color="yellow", linestyle='dashed', linewidth=3, alpha=0.6)
 plt.plot(xplot, gaussian(xplot, mean[3], mean[4], mean[5])  , color="red", linestyle='dashed', linewidth=3, alpha=0.6)
 plt.plot(xplot, gaussian(xplot, mean[6], mean[7], mean[8]) , color='black', linestyle='dashed', linewidth=3, alpha=0.6)
-plt.axvline(mean[3],linestyle='dashed',color='green')
+plt.axvline(mean[3],linestyle='dashed',color='r')
+# list_tick=plt.xticks()[0]
+# list_tick=np.append(0,[mean[3],mean[0],mean[6]])
+# plt.xticks(fontsize=10)
+# plt.xticks(list_tick)
 plt.xlim(-20,10)
 plt.text(-10,max(h[0]-0.01),'logz=%.0f'%(results['logz'][-1]),color='b')
 
@@ -241,6 +245,8 @@ plt.ylabel('N')
 plt.xlabel(r'$\mathrm{\mu_{l} (mas\ yr^{-1})}$') 
 
 #%%
+print(plt.xticks()[0])
+# %%
 samples, weights = res.samples, np.exp(res.logwt - res.logz[-1])
 mean, cov = dyfunc.mean_and_cov(samples, weights)
 # print(mean)
