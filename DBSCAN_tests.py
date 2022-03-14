@@ -80,8 +80,8 @@ pms=[0,0,0,0]
 
 
 
-for g in range(len(group_lst)):
-# for g in range(0,3):
+# for g in range(len(group_lst)):
+for g in range(0,3):
     # print(group_lst[g])
     samples=10# number of minimun objects that defined a cluster
     
@@ -102,22 +102,25 @@ for g in range(len(group_lst)):
     X_stad = StandardScaler().fit_transform(X)
     print('These are the mean and std of X: %s %s'%(round(np.mean(X_stad),1),round(np.std(X_stad),1)))
     #THis is how I do it 
-    tree=KDTree(X_stad, leaf_size=2) 
+    # tree=KDTree(X_stad, leaf_size=2) 
 
-    # dist, ind = tree.query(iris[:,0:2], k=5)
-    dist, ind = tree.query(X_stad, k=samples) #DistNnce to the 1,2,3...k neighbour
-    # d_KNN=sorted(dist[:,-1])#distance to the Kth neighbour
-    d_KNN=sorted(dist[:,1])# this is how Ban do it
+    # # dist, ind = tree.query(iris[:,0:2], k=5)
+    # dist, ind = tree.query(X_stad, k=samples) #DistNnce to the 1,2,3...k neighbour
+    # # d_KNN=sorted(dist[:,-1])#distance to the Kth neighbour
+    # d_KNN=sorted(dist[:,1])# this is how Ban do it
 
     # This how Ban do it
-# =============================================================================
-#     nn = NearestNeighbors(n_neighbors=10, algorithm ='kd_tree')
-#     nn.fit(X_stad)# our training is basically our dataset itself
-#     dist, ind = nn.kneighbors(X_stad,10)
-#     d_KNN = np.sort(dist, axis=0)
-#     d_KNN = d_KNN[:,1] # this is the difference in bans method. She is selecting the distance to the closest 1st neigh.
-# =============================================================================
+    nn = NearestNeighbors(n_neighbors=10, algorithm ='kd_tree')
+    nn.fit(X_stad)# our training is basically our dataset itself
+    dist, ind = nn.kneighbors(X_stad,10)
+    d_KNN = np.sort(dist, axis=0)
+    d_KNN = d_KNN[:,1] # this is the difference in bans method. She is selecting the distance to the closest 1st neigh.
     
+    eps_for_mean=[np.mean(dist[i]) for i in range(len(dist))]
+    # eps_for_mean =[]
+    # for i in range(len(dist)):
+     
+    #     eps_for_mean.append(np.mean(dist[i]))
     
     kneedle = KneeLocator(np.arange(0,len(data),1), d_KNN, curve='convex', interp_method = "polynomial",direction="increasing")
     rodilla=round(kneedle.elbow_y, 3)
@@ -130,8 +133,8 @@ for g in range(len(group_lst)):
 
     # %% tutorial at https://scikit-learn.org/stable/auto_examples/cluster/plot_dbscan.html#sphx-glr-auto-examples-cluster-plot-dbscan-py
     
-    
-    epsilon=rodilla/1.5
+    epsilon=np.mean(eps_for_mean)
+    # epsilon=rodilla/1.5
     # epsilon=0.45
     
     clustering = DBSCAN(eps=epsilon, min_samples=samples).fit(X_stad)
