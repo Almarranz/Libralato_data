@@ -45,25 +45,28 @@ results='/Users/amartinez/Desktop/PhD/Libralato_data/results/'
 
 # name='ACSWFC'
 name='WFC3IR'
-df = pd.read_csv(pruebas+'match_GNS_and_%s_refined.txt'%(name),sep=',',names=['RA_gns','DE_gns','Jmag','Hmag','Ksmag','ra','dec','x_c','y_c','mua','dmua','mud','dmud','time','n1','n2','idt','m139','Separation'])
+df = pd.read_csv(pruebas+'relaxed_match_GNS_and_%s_refined.txt'%(name),sep=',',names=['RA_gns','DE_gns','Jmag','Hmag','Ksmag','ra','dec','x_c','y_c','mua','dmua','mud','dmud','mul_mc','mub_mc','dmul_mc','dmub_mc','time','n1','n2','idt','m139','Separation'])
 #I introduce this list because it has the magnitudes of GNS
-catal_df = pd.read_csv(results+'%s_refined_with GNS_partner_mag_K_H.txt'%(name),sep=',',names=['ra','dec','x_c','y_c','mua','dmua','mud','dmud','time','n1','n2','idt','m139','Separation','Ks','H'])
+catal_df = pd.read_csv(pruebas+'relaxed_%s_refined_with_GNS_partner_mag_K_H.txt'%(name),sep=',',names=['ra','dec','x_c','y_c','mua','dmua','mud','dmud','mul_mc','mub_mc','dmul_mc','dmub_mc','time','n1','n2','idt','m139','Separation','Ks','H'])
 
-gal_coor=np.loadtxt(results+'match_GNS_and_WFC3IR_refined_galactic.txt')#mul,mub,dmul,dmub
+# gal_coor=np.loadtxt(results+'match_GNS_and_WFC3IR_refined_galactic.txt')#mul,mub,dmul,dmub
+
+
 # %%
 
 df_np=df.to_numpy()
 catal=catal_df.to_numpy()
 
+
+
 valid=np.where(np.isnan(df_np[:,4])==False)
 
 df_np=df_np[valid]
-gal_coor=gal_coor[valid]
 
 # center=np.where(df_np[:,17]-df_np[:,4]>2.5)
 center=np.where(catal[:,-1]-catal[:,-2]>1.3)
 df_np=df_np[center]
-gal_coor=gal_coor[center]
+
 
 ra=df_np[:,5]
 dec=df_np[:,6]
@@ -72,18 +75,18 @@ mud=df_np[:,11]
 dmua=df_np[:,10]
 dmud=df_np[:,12]
 
-mul=gal_coor[:,0]
-mub=gal_coor[:,1]
+mul=df_np[:,13]
+mub=df_np[:,14]
 
-dmul=gal_coor[:,2]
-dmub=gal_coor[:,3]
+dmul=df_np[:,15]
+dmub=df_np[:,16]
 
 #%%
 
 #%%
 
 #%
-lim_dmul=10
+lim_dmul=2
 accu=np.where((abs(dmul)<lim_dmul) & (abs(dmub)<lim_dmul))#Are they in the paper selecting by the error of the galactic or equatorial coordintes???
 
 #%
@@ -218,7 +221,7 @@ plt.show()
 
 results = sampler.results
 print(results['logz'][-1])
-# %%
+# %
 # h=plt.hist(v_x*-1, bins= nbins, color='darkblue', alpha = 0.6, density =True, histtype = 'stepfilled')
 h=plt.hist(mul, bins= auto, color='royalblue', alpha = 0.6, density =True, histtype = 'stepfilled')
 
@@ -244,9 +247,9 @@ plt.gca().invert_xaxis()
 plt.ylabel('N')
 plt.xlabel(r'$\mathrm{\mu_{l} (mas\ yr^{-1})}$') 
 
-#%%
+#%
 print(plt.xticks()[0])
-# %%
+# %
 samples, weights = res.samples, np.exp(res.logwt - res.logz[-1])
 mean, cov = dyfunc.mean_and_cov(samples, weights)
 # print(mean)

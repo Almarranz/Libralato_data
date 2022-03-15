@@ -47,25 +47,28 @@ results='/Users/amartinez/Desktop/PhD/Libralato_data/results/'
 
 # name='ACSWFC'
 name='WFC3IR'
-df = pd.read_csv(pruebas+'match_GNS_and_%s_refined.txt'%(name),sep=',',names=['RA_gns','DE_gns','Jmag','Hmag','Ksmag','ra','dec','x_c','y_c','mua','dmua','mud','dmud','time','n1','n2','idt','m139','Separation'])
+df = pd.read_csv(pruebas+'relaxed_match_GNS_and_%s_refined.txt'%(name),sep=',',names=['RA_gns','DE_gns','Jmag','Hmag','Ksmag','ra','dec','x_c','y_c','mua','dmua','mud','dmud','mul_mc','mub_mc','dmul_mc','dmub_mc','time','n1','n2','idt','m139','Separation'])
 #I introduce this list because it has the magnitudes of GNS
-catal_df = pd.read_csv(results+'%s_refined_with GNS_partner_mag_K_H.txt'%(name),sep=',',names=['ra','dec','x_c','y_c','mua','dmua','mud','dmud','time','n1','n2','idt','m139','Separation','Ks','H'])
+catal_df = pd.read_csv(pruebas+'relaxed_%s_refined_with_GNS_partner_mag_K_H.txt'%(name),sep=',',names=['ra','dec','x_c','y_c','mua','dmua','mud','dmud','mul_mc','mub_mc','dmul_mc','dmub_mc','time','n1','n2','idt','m139','Separation','Ks','H'])
 
-gal_coor=np.loadtxt(results+'match_GNS_and_WFC3IR_refined_galactic.txt')#mul,mub,dmul,dmub
+# gal_coor=np.loadtxt(results+'match_GNS_and_WFC3IR_refined_galactic.txt')#mul,mub,dmul,dmub
+
+
 # %%
 
 df_np=df.to_numpy()
 catal=catal_df.to_numpy()
 
+
+
 valid=np.where(np.isnan(df_np[:,4])==False)
 
 df_np=df_np[valid]
-gal_coor=gal_coor[valid]
 
 # center=np.where(df_np[:,17]-df_np[:,4]>2.5)
 center=np.where(catal[:,-1]-catal[:,-2]>1.3)
 df_np=df_np[center]
-gal_coor=gal_coor[center]
+
 
 ra=df_np[:,5]
 dec=df_np[:,6]
@@ -74,11 +77,11 @@ mud=df_np[:,11]
 dmua=df_np[:,10]
 dmud=df_np[:,12]
 
-mul=gal_coor[:,0]
-mub=gal_coor[:,1]
+mul=df_np[:,13]
+mub=df_np[:,14]
 
-dmul=gal_coor[:,2]
-dmub=gal_coor[:,3]
+dmul=df_np[:,15]
+dmub=df_np[:,16]
 
 #%%
 
@@ -86,15 +89,15 @@ dmub=gal_coor[:,3]
 
 #%
 
-lim_dmul=1
+lim_dmul=0.5
 accu=np.where((abs(dmul)<lim_dmul) & (abs(dmub)<lim_dmul))
-#%%
+#%
 mul=mul[accu]
 mub=mub[accu]
 dmul=dmul[accu]
 dmub=dmub[accu]
 # m139=m139[accu]
-#%%
+#%
 print(min(mul),max(mul))
 
 auto='no'
@@ -102,10 +105,10 @@ if auto !='auto':
     auto=np.arange(min(mul),max(mul),0.25)#also works if running each bing width one by one, for some reason...
     # print(auto)
 
-#%%
+#%
 
 
-#%%
+#%
 fig, ax = plt.subplots(1,1, figsize=(10,10))
 
 # sig_hb=sigma_clip(mub,sigma=500,maxiters=20,cenfunc='mean',masked=True)
@@ -122,7 +125,7 @@ ax.set_ylabel('N')
 ax.set_xlim(-10,10)
 ax.set_xlabel(r'$\mathrm{\mu_{b} (mas\ yr^{-1})}$') 
 yb=hb[0]#height for each bin
-#%%
+#%
 
 # =============================================================================
 # fig, ax =plt.subplots(1,1,figsize=(10,10))
@@ -135,7 +138,7 @@ yb=hb[0]#height for each bin
 # ax.invert_xaxis()
 # 
 # =============================================================================
-# %%
+# %
 
 yerr=[]
 yb=np.where(yb==0,0.001,yb)
@@ -148,13 +151,13 @@ yerr = yb*np.sqrt(1/y1)
 # In[7]:   
 def gaussian(x, mu, sig, amp):
     return amp * (1 / (sig * (np.sqrt(2 * np.pi)))) * np.exp(-np.power(x - mu, 2.) / (2 * np.power(sig, 2.))) 
-#%%
+#%
 def loglike(theta):
     mu1, sigma1, amp1,mu2,sigma2,amp2 = theta
     model = gaussian(xb, mu1, sigma1, amp1)+gaussian(xb,mu2,sigma2,amp2)
      
     return -0.5 * np.sum(((yb - model)/yerr) ** 2)#chi squared model
-#%% 
+#% 
 def prior_transform(utheta):
     """Transforms the uniform random variable `u ~ Unif[0., 1.)`
     to the parameter of interest `x ~ Unif[-10., 10.)`."""
@@ -174,12 +177,12 @@ def prior_transform(utheta):
     
 
     return mu1, sigma1, amp1, mu2, sigma2, amp2
-#%% 
+#%
 sampler = dynesty.NestedSampler(loglike, prior_transform, ndim=6, nlive=500,
                                             bound='multi', sample='rwalk')
 sampler.run_nested()
 res = sampler.results
-#%%
+#%
 from dynesty import plotting as dyplot
 rcParams.update({'font.size': 10})
 # truths = [mu1_true, sigma1_true, amp1_true, mu2_true, sigma2_true, amp2_true]
@@ -195,7 +198,7 @@ fig, axes = dyplot.traceplot(sampler.results,labels=labels,show_titles=True,
 plt.show()
 rcParams.update({'font.size': 20})
 
-#%%
+#%
 from dynesty import utils as dyfunc
     
 samples, weights = res.samples, np.exp(res.logwt - res.logz[-1])
@@ -211,7 +214,7 @@ plt.legend(['$\mu_{b}$ %s '%(name)],fontsize=70,markerscale=0,shadow=True,bbox_t
 
 plt.show() 
     
-# %%
+# %
 
 from matplotlib import rc
 rc('font',**{'family':'serif','serif':['Palatino']})

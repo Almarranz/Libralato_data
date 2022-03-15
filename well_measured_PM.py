@@ -124,10 +124,10 @@ ax.set_xlim(12,24)
 ax.set_xlabel('m_F139 (trimmed)')
 ax.set_ylabel('$d\mu_{a}$')
 pm_wmp=np.c_[pm_wmp,all_eps[:,0]]
-# np.savetxt(pruebas+'refined_%s_PM.txt'%(name),pm_wmp,header='ra dec x_c  y_c mua dmua mud dmud  time  n1  n2  idt  mF139')
+# np.savetxt(pruebas+'refined_%s_PM.txt'%(name),pm_wmp,header='ra,dec,x_c ,y_c,mua,dmua,mud,dmud,mul_mc,mub_mc,dmul_mc,dmub_mc, time, n1, n2, idt,  mF139')
 # np.savetxt(pruebas+'refined_%s_phot.txt'%(name),all_eps)
 
-np.savetxt(pruebas+'relaxed_refined_%s_PM.txt'%(name),pm_wmp,header='ra dec x_c  y_c mua dmua mud dmud  time  n1  n2  idt  mF139')
+np.savetxt(pruebas+'relaxed_refined_%s_PM.txt'%(name),pm_wmp,header='ra,dec,x_c ,y_c,mua,dmua,mud,dmud,mul_mc,mub_mc,dmul_mc,dmub_mc, time, n1, n2, idt,  mF139')
 np.savetxt(pruebas+'relaxed_refined_%s_phot.txt'%(name),all_eps)
 
 # %%
