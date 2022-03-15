@@ -43,24 +43,28 @@ rc('font',**{'family':'serif','serif':['Palatino']})
 
 cata='/Users/amartinez/Desktop/PhD/Libralato_data/CATALOGS/'
 
-name='ACSWFC'
-# name='WFC3IR'
+# name='ACSWFC'
+name='WFC3IR'
 # ra,dec,x_c ,y_c,mua,dmua,mud,dmud, time, n1, n2, idt = np.loadtxt(cata+'GALCEN_%s_PM.cat'%(name),unpack=True)
 catal=np.loadtxt(cata+'GALCEN_%s_PM.cat'%(name))
+# mul_mc,mub_mc,dmul_mc,dmub_mc
+pm_MC=np.loadtxt(cata+'GALCEN_%s_PM_galactic.txt'%(name))#this are the mul and mub (MC computed)
+# ra,dec,x_c ,y_c,mua,dmua,mud,dmud,mul_mc,mub_mc,dmul_mc,dmub_mc, time, n1, n2, idt
+catal=np.c_[catal[:,0:8],pm_MC,catal[:,8:]]
 pruebas='/Users/amartinez/Desktop/PhD/Libralato_data/pruebas/'
 results='/Users/amartinez/Desktop/PhD/Libralato_data/results/'
 
 # mag, rms, qfit, o, RADXS, nf, nu, Localsky, Local_skyrms
 # mag, rms, qfit, o, RADXS, nf, nu, Localsky, Local_skyrms = np.loadtxt(cata+'GALCEN_%s_GO12915.cat'%(name),unpack=True)
-ep1_fix=np.loadtxt(pruebas+'foto_well_mesaured_ep%s_%s.txt'%(name,1))
-ep2_fix=np.loadtxt(pruebas+'foto_well_mesaured_ep%s_%s.txt'%(name,2))
+ep1_fix=np.loadtxt(pruebas+'relaxed_foto_well_mesaured_ep%s_%s.txt'%(name,1))
+ep2_fix=np.loadtxt(pruebas+'relaxed_foto_well_mesaured_ep%s_%s.txt'%(name,2))
 mag, rms, qfit, o, RADXS, nf, nu, Localsky, Local_skyrms= np.loadtxt(cata+'GALCEN_%s_GO12915.cat'%(name),unpack=True )
 all_ep1= np.loadtxt(cata+'GALCEN_%s_GO12915.cat'%(name),unpack=False)
 
 
 # %%
 ep12,ep12_ind,ep21_ind=np.intersect1d(ep1_fix[:,9],ep2_fix[:,9], return_indices=True,assume_unique=True)
-# You have to use these index with the whole catalog of 812377 stars, not witg tge well mesuared ones
+# You have to use these index with the whole catalog of 812377 stars, not with the well mesuared ones
 # %%
 # ra,dec,x_c ,y_c,mua,dmua,mud,dmud, time, n1, n2, idt
 pm_wmp=catal[ep12.astype(int)]#pm_wmp stands for proper motion well mesaured photometry
@@ -78,6 +82,8 @@ ax.scatter(mag,catal[:,5],s=0.1,color='k',alpha=1)
 ax.scatter(all_eps[:,0],pm_wmp[:,5],s=0.1,color='red',alpha=1)
 ax.set_ylim(0,10)
 ax.set_xlim(12,24)
+ax.set_xlabel('m_F139')
+ax.set_ylabel('$d\mu_{a}$')
 # %%
 # Condiytions for the proper motions:
 #     (a) Pm uncertainty better that 85th percentile for any given magnitude
@@ -98,8 +104,8 @@ for i in range(min(mag_b),(max(mag_b)+1)):
         perc = np.percentile(error_i,85)
         all_sum.append(len(error_i))
         for j in range(len(error_i)):
-            if error_i[j] < 10:
-                if (error_i[j] <= 0.1) or (error_i[j] <= perc):
+            if error_i[j] < 5:
+                if (error_i[j] <= 0.7) or (error_i[j] <= perc):
                     error_valid.append(mag_binned[0][j]) 
     except :
         print('Fallo:',len(error_i))
@@ -115,12 +121,14 @@ ax.scatter(mag,catal[:,5],s=0.1,color='k',alpha=1)
 ax.scatter(all_eps[:,0],pm_wmp[:,5],s=0.1,color='red',alpha=1)
 ax.set_ylim(0,10)
 ax.set_xlim(12,24)
+ax.set_xlabel('m_F139 (trimmed)')
+ax.set_ylabel('$d\mu_{a}$')
 pm_wmp=np.c_[pm_wmp,all_eps[:,0]]
 # np.savetxt(pruebas+'refined_%s_PM.txt'%(name),pm_wmp,header='ra dec x_c  y_c mua dmua mud dmud  time  n1  n2  idt  mF139')
 # np.savetxt(pruebas+'refined_%s_phot.txt'%(name),all_eps)
 
-np.savetxt(results+'refined_%s_PM.txt'%(name),pm_wmp,header='ra dec x_c  y_c mua dmua mud dmud  time  n1  n2  idt  mF139')
-np.savetxt(results+'refined_%s_phot.txt'%(name),all_eps)
+np.savetxt(pruebas+'relaxed_refined_%s_PM.txt'%(name),pm_wmp,header='ra dec x_c  y_c mua dmua mud dmud  time  n1  n2  idt  mF139')
+np.savetxt(pruebas+'relaxed_refined_%s_phot.txt'%(name),all_eps)
 
 # %%
 
