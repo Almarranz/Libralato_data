@@ -136,11 +136,11 @@ if trim_data == 'yes':
     print(len(ep1_test),'Condition e')
     
     # ,fmt='%.4f %.4f %.4f %.4f %.4f %.0f %.0f %.2f %.2f %.0f'
-    np.savetxt(results+'relaxed_foto_well_mesaured_ep%s_%s.txt'%(name,epoch),ep1_test,delimiter='   ',fmt='%.10f %.4f %.4f %.4f %.4f %.0f %.0f %.2f %.2f %.0f',header='some trimming aplayed on the data from Libralato et al. 2021')
+    np.savetxt(pruebas+'relaxed_foto_well_mesaured_ep%s_%s.txt'%(name,epoch),ep1_test,delimiter='   ',fmt='%.10f %.4f %.4f %.4f %.4f %.0f %.0f %.2f %.2f %.0f',header='some trimming aplayed on the data from Libralato et al. 2021')
 # %%
 elif trim_data =='no':
     print(len(ep1_test),'NO conditions!')
-    np.savetxt(results+'relaxed_foto_well_mesaured_ep%s_%s.txt'%(name,epoch),ep1_test,delimiter='   ',fmt='%.10f %.4f %.4f %.4f %.4f %.0f %.0f %.2f %.2f %.0f',header='no trimming aplayed on the data from Libralato et al. 2021')
+    np.savetxt(pruebas+'relaxed_foto_well_mesaured_ep%s_%s.txt'%(name,epoch),ep1_test,delimiter='   ',fmt='%.10f %.4f %.4f %.4f %.4f %.0f %.0f %.2f %.2f %.0f',header='no trimming aplayed on the data from Libralato et al. 2021')
 else:
     print('you have to choose: trim_data equals to "yes" or "no"')
 
