@@ -86,7 +86,7 @@ dmub=df_np[:,16]
 #%%
 
 #%
-lim_dmul=2
+lim_dmul=0.7
 accu=np.where((abs(dmul)<lim_dmul) & (abs(dmub)<lim_dmul))#Are they in the paper selecting by the error of the galactic or equatorial coordintes???
 
 #%
@@ -98,7 +98,7 @@ dmub=dmub[accu]
 #%
 print(min(mul),max(mul))
 binwidth=0.25
-auto='no'
+auto='auto'#auto can be: 'auto' or 'no'. If auto, then np.hist decides the bining. If no no the with of the bins is binwidth
 if auto !='auto':
     auto=np.arange(min(mul),max(mul)+ binwidth, binwidth)#also works if running each bing width one by one, for some reason...
     # print(auto)
@@ -172,8 +172,8 @@ def prior_transform(utheta):
     amp1 = 1 * uamp1 
    
     mu2 = -5*umu2-5/2 # red
-    sigma2 =4*usigma2   
-    amp2 = .33* uamp2   
+    sigma2 =3.5 +(usigma2*2-1)  
+    amp2 = 1* uamp2   
 
     mu3 = -7*umu3-7/2 # black
     sigma3 = 3*(usigma3)
