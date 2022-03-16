@@ -10,7 +10,8 @@ ___
 3. well_measured_PM.py. Apply a couple more of condition from Libralto et al for PM selection. It returns a list with the selected stars: their proper motion and their magnitude mF139.
 ___
 4. After step 3 you have to go to **TopCat**, look in **VIZIER** for the NSD central region catalog (DO NOT forget to check **unlimited rows**), and cross-match it  with the list retrived for step 3. (Save the relsuting list in **CVS-non header** format). 
-**IMPORTANT note**: Check the script 5.1 or 5.2 to know which columns you have to save
+
+> **IMPORTANT note**: Check the script 5.1 or 5.2 to know which columns you have to save
 ___
 5. Now we can do the fitting of the Gaussian to the data for mul and mub. This steep *is not necessary* for steep 6
 > - 5.1. vy_gsa_fit.py. Ypu have to choose the color cut and the max allowed uncertaintie in velocity.
