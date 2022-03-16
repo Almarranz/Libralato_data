@@ -69,7 +69,7 @@ catal=catal[no_fg]
 gal_coor=gal_coor[no_fg]
 catal=np.c_[catal,gal_coor[:,0],gal_coor[:,1]]#in here we add the values for the galactic pm NOT galactic coordinates
 # %%
-lim_dmul=0.7
+lim_dmul=0.5
 #Should be a way to import a variable from another script, but this doesnt work
 # from vx_gsan_fit import lim_dmul # this import the limit in velocity we used for fitting the distribution to the gaussians
 
@@ -152,7 +152,7 @@ for i in range(len(yso_ra)):
         
         ax[1].scatter([gal_coor[index[0],0]]-pms[2],[gal_coor[index[0],1]]-pms[3],color='red',s=100)
         ax[1].scatter([gal_coor[group[0],0]]-pms[2],[gal_coor[group[0],1]]-pms[3], alpha =0.2)
-        
+                                                                #mul, mub, mua, mud, ra, dec,x_c,y_c,l,b, Ks, H position in GALCEN_TABLE_D.cat
         with open(pruebas+ 'pm_of_Ms_in_%s.txt'%(name), 'a') as f:
             f.write('\n'+ '%.7f %.7f %.7f %.7f %.7f %.7f %.7f %.7f %.7f %.7f %.7f %.7f %.0f'%(float(gal_coor[index[0],0]),float(gal_coor[index[0],1]),float(catal[index[0],4]),
                                                                           float(catal[index[0],6]),float(catal[index[0],0]),float(catal[index[0],1]),float(catal[index[0],2]),float(catal[index[0],3]),float(gal[index[0],0]),float(gal[index[0],1])

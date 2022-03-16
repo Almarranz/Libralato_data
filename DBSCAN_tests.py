@@ -5,7 +5,7 @@ Created on Thu Feb 24 09:23:55 2022
 
 @author: amartinez
 """
-
+# %%
 from sklearn.cluster import DBSCAN
 from sklearn.neighbors import NearestNeighbors
 import numpy as np
@@ -46,15 +46,15 @@ results='/Users/amartinez/Desktop/PhD/Libralato_data/results/'
 # %%
 # We upload galactic center stars, that we will use in the CMD
 # catal=np.loadtxt(results+'refined_%s_PM.txt'%(name))
-catal_df=pd.read_csv(results+'%s_refined_with GNS_partner_mag_K_H.txt'%(name),sep=',',names=['ra','dec','x_c','y_c','mua','dmua','mud','dmud','time','n1','n2','idt','m139','Separation','Ks','H'])
+catal_df=pd.read_csv(pruebas+'relaxed_%s_refined_with_GNS_partner_mag_K_H.txt'%(name),sep=',',names=['ra','dec','x_c','y_c','mua','dmua','mud','dmud','mul_mc','mub_mc','dmul_mc','dmub_mc','time','n1','n2','idt','m139','Separation','Ks','H'])
 
 # mul_mc,mub_mc,dmul_mc,dmub_mc
-gal_coor=np.loadtxt(results+'match_GNS_and_WFC3IR_refined_galactic.txt')
+# gal_coor=np.loadtxt(results+'match_GNS_and_WFC3IR_refined_galactic.txt')
 
 catal=catal_df.to_numpy()
 valid=np.where(np.isnan(catal[:,14])==False)
 catal=catal[valid]
-gal_coor=gal_coor[valid]
+gal_coor=catal[:,8:12]#in the origial script the galactic velocities and uncertainties were in a different file. Im doing this so I dont have to change this script that much.
 # no_fg=np.where(catal[:,12]-catal[:,14]>2.5)
 # =============================================================================
 # no_fg=np.where(catal[:,-1]-catal[:,-2]>1.3)
@@ -80,8 +80,8 @@ pms=[0,0,0,0]
 
 
 
-# for g in range(len(group_lst)):
-for g in range(0,3):
+for g in range(len(group_lst)):
+# for g in range(0,3):
     # print(group_lst[g])
     samples=10# number of minimun objects that defined a cluster
     
@@ -102,20 +102,24 @@ for g in range(0,3):
     X_stad = StandardScaler().fit_transform(X)
     print('These are the mean and std of X: %s %s'%(round(np.mean(X_stad),1),round(np.std(X_stad),1)))
     #THis is how I do it 
-    # tree=KDTree(X_stad, leaf_size=2) 
+    tree=KDTree(X_stad, leaf_size=2) 
 
-    # # dist, ind = tree.query(iris[:,0:2], k=5)
-    # dist, ind = tree.query(X_stad, k=samples) #DistNnce to the 1,2,3...k neighbour
-    # # d_KNN=sorted(dist[:,-1])#distance to the Kth neighbour
-    # d_KNN=sorted(dist[:,1])# this is how Ban do it
+    # dist, ind = tree.query(iris[:,0:2], k=5)
+    dist, ind = tree.query(X_stad, k=samples) #DistNnce to the 1,2,3...k neighbour
+    # d_KNN=sorted(dist[:,-1])#distance to the Kth neighbour
+    d_KNN=sorted(dist[:,1])# this is how Ban do it
 
     # This how Ban do it
-    nn = NearestNeighbors(n_neighbors=10, algorithm ='kd_tree')
-    nn.fit(X_stad)# our training is basically our dataset itself
-    dist, ind = nn.kneighbors(X_stad,10)
-    d_KNN = np.sort(dist, axis=0)
-    d_KNN = d_KNN[:,1] # this is the difference in bans method. She is selecting the distance to the closest 1st neigh.
-    
+# =============================================================================
+#     nn = NearestNeighbors(n_neighbors=10, algorithm ='kd_tree')
+#     nn.fit(X_stad)# our training is basically our dataset itself
+#     dist, ind = nn.kneighbors(X_stad,10)
+#     d_KNN = np.sort(dist, axis=0)
+#     d_KNN = d_KNN[:,1] # this is the difference in bans method. She is selecting the distance to the closest 1st neigh.
+#     
+# =============================================================================
+
+#This is yet another way for epsilon. Copied from Ban` script
     eps_for_mean=[np.mean(dist[i]) for i in range(len(dist))]
     # eps_for_mean =[]
     # for i in range(len(dist)):
@@ -133,8 +137,8 @@ for g in range(0,3):
 
     # %% tutorial at https://scikit-learn.org/stable/auto_examples/cluster/plot_dbscan.html#sphx-glr-auto-examples-cluster-plot-dbscan-py
     
-    epsilon=np.mean(eps_for_mean)
-    # epsilon=rodilla/1.5
+    # epsilon=np.mean(eps_for_mean)
+    epsilon=rodilla/1.5
     # epsilon=0.45
     
     clustering = DBSCAN(eps=epsilon, min_samples=samples).fit(X_stad)
@@ -178,20 +182,21 @@ for g in range(0,3):
     # %%
     # print(colores_index)
     if n_clusters > 0:
-        fig, ax = plt.subplots(1,1,figsize=(8,8))
-        ax.plot(np.arange(0,len(data),1),d_KNN)
-        ax.legend(['knee=%s, min=%s, eps=%s, Dime=%s'%(round(kneedle.elbow_y, 3),round(min(d_KNN),2),round(epsilon,2),len(X[0]))])
-        ax.set_xlabel('Point') 
-        ax.set_ylabel('%s-NN distance'%(samples)) 
-        # print(round(kneedle.knee, 3))
-        # print(round(kneedle.elbow, 3))
-        # print(round(kneedle.knee_y, 3))
-        # print(round(kneedle.elbow_y, 3))
-        ax.axhline(round(kneedle.elbow_y, 3),linestyle='dashed',color='k')
+        if epsilon != np.mean(eps_for_mean):# it doest plot the knee plot when epsilon in choosen with a different method
+            fig, ax = plt.subplots(1,1,figsize=(8,8))
+            ax.plot(np.arange(0,len(data),1),d_KNN)
+            ax.legend(['knee=%s, min=%s, eps=%s, Dime=%s'%(round(kneedle.elbow_y, 3),round(min(d_KNN),2),round(epsilon,2),len(X[0]))])
+            ax.set_xlabel('Point') 
+            ax.set_ylabel('%s-NN distance'%(samples)) 
+            # print(round(kneedle.knee, 3))
+            # print(round(kneedle.elbow, 3))
+            # print(round(kneedle.knee_y, 3))
+            # print(round(kneedle.elbow_y, 3))
+            ax.axhline(round(kneedle.elbow_y, 3),linestyle='dashed',color='k')
         
         fig, ax = plt.subplots(1,2,figsize=(20,10))
         ax[0].set_title('Group %s. # of Clusters = %s'%(group, n_clusters))
-        ax[1].set_title('# of stars = #%s'%(len(l)))
+        ax[1].set_title('# of stars = #%s,eps=%s'%(len(l),round(epsilon,2)))
         # for i in range(n_clusters):
         for i in range(len(set(l))):
             # fig, ax = plt.subplots(1,1,figsize=(10,10))
@@ -253,7 +258,7 @@ for g in range(0,3):
         # ax.scatter()
         ax.set_title('CMD. Group %s. # of Clusters = %s, #stars=%s'%(group, n_clusters,len(l)))
         for i in range(len(set(l))-1):
-            ax.scatter(data[:,15][colores_index[i]]-data[:,14][colores_index[i]],data[:,14][colores_index[i]], color=colors[i],s=50,zorder=2)
+            ax.scatter(data[:,19][colores_index[i]]-data[:,18][colores_index[i]],data[:,18][colores_index[i]], color=colors[i],s=50,zorder=2)
             ax.scatter((Ms[0,11]-Ms[0,10]),Ms[0,10], color='red',s=100,marker='2',zorder=3)
             ax.set_xlabel('H$-$Ks') 
             ax.set_ylabel('Ks') 
