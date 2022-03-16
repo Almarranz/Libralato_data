@@ -15,6 +15,8 @@ from astropy.coordinates import SkyCoord
 import astropy.units as u
 from astropy.table import QTable
 from matplotlib import rcParams
+import os
+import glob
 rcParams.update({'xtick.major.pad': '7.0'})
 rcParams.update({'xtick.major.size': '7.5'})
 rcParams.update({'xtick.major.width': '1.5'})
@@ -51,12 +53,13 @@ tipo=np.loadtxt(cata+'GALCEN_TABLE_D.cat',unpack=True, usecols=(3),dtype='str')
 # ra,dec,x_c ,y_c,mua,dmua,mud,dmud, time, n1, n2, idt = np.loadtxt(cata+'GALCEN_%s_PM.cat'%(name),unpack=True)
 # catal=np.loadtxt(cata+'GALCEN_%s_PM.cat'%(name))
 # catal=np.loadtxt(results+'refined_%s_PM.txt'%(name))
-catal_df=pd.read_csv(results+'%s_refined_with GNS_partner_mag_K_H.txt'%(name),sep=',',names=['ra','dec','x_c','y_c','mua','dmua','mud','dmud','time','n1','n2','idt','m139','Separation','Ks','H'])
+catal_df=pd.read_csv(pruebas+'relaxed_%s_refined_with_GNS_partner_mag_K_H.txt'%(name),sep=',',names=['ra','dec','x_c','y_c','mua','dmua','mud','dmud','mul_mc','mub_mc','dmul_mc','dmub_mc','time','n1','n2','idt','m139','Separation','Ks','H'])
 
 # mul_mc,mub_mc,dmul_mc,dmub_mc
-gal_coor=np.loadtxt(results+'match_GNS_and_WFC3IR_refined_galactic.txt')
+
 
 catal=catal_df.to_numpy()
+gal_coor=catal[:,8:12]#in the origial script the galactic velocities and uncertainties were in a different file. Im doing this so I dont have to change this script that much.
 valid=np.where(np.isnan(catal[:,14])==False)
 catal=catal[valid]
 gal_coor=gal_coor[valid]
@@ -66,13 +69,24 @@ catal=catal[no_fg]
 gal_coor=gal_coor[no_fg]
 catal=np.c_[catal,gal_coor[:,0],gal_coor[:,1]]#in here we add the values for the galactic pm NOT galactic coordinates
 # %%
+lim_dmul=0.7
+#Should be a way to import a variable from another script, but this doesnt work
+# from vx_gsan_fit import lim_dmul # this import the limit in velocity we used for fitting the distribution to the gaussians
+
+accu=np.where((abs(gal_coor[:,2])<lim_dmul) & (abs(gal_coor[:,3])<lim_dmul))#Are they in the paper selecting by the error of the galactic or equatorial coordintes???
+catal=catal[accu]
+# %%
 radio=0.009
 found=0
 missing=0
 # pms=[-3.156,-5.585,-6.411,-0.219]#this are the ecu(mua,mud) and galactic(mul,mub) pm of SrgA* (Reid & Brunthaler (2020))
-# pms=[0,0,0,0]
-pms=[0,0,-5.60,0.20] #this is from the dynesty adjustment
+pms=[0,0,0,0]
+# pms=[0,0,-5.60,0.20] #this is from the dynesty adjustment
 pms=np.array(pms)
+for file_to_remove in glob.glob(pruebas+'group_*'):
+    os.remove(file_to_remove) 
+
+# %%
 with open(pruebas+ 'MS_%s_.reg'%(name), 'w') as f:
         f.write('# Region file format: DS9 version 4.1'+"\n"+'global color=green dashlist=8 3 width=1 font="helvetica 10 normal roman" select=1 highlite=1 dash=0 fixed=0 edit=1 move=1 delete=1 include=1 source=1'+"\n"+'fk5'+'\n')
         f.close
