@@ -71,9 +71,11 @@ pm_wmp=catal[ep12.astype(int)]#pm_wmp stands for proper motion well mesaured pho
 all_eps=all_ep1[ep12.astype(int)]
 # Discarted stars with errors equals 99.999mas/yr
 # Discarted stars with velocities >70
+#We trim the data that do not have uncertainties for the velocities
 
 velocity=np.sqrt(pm_wmp[:,4]**2+pm_wmp[:,6]**2)
-v_valid=np.where((pm_wmp[:,5]<90) & (velocity<70) )
+vel_lim=100000# here we can choose whatever or not include a velocity upper limit
+v_valid=np.where((pm_wmp[:,5]<90) & (velocity<vel_lim) )
 pm_wmp=pm_wmp[v_valid]
 all_eps=all_eps[v_valid]
 # %%
@@ -141,7 +143,7 @@ elif trim_data =='no':
     ax.set_xlim(12,24)
     ax.set_xlabel('m_F139 (trimmed)')
     ax.set_ylabel('$d\mu_{a}$')
-
+    pm_wmp=np.c_[pm_wmp,all_eps[:,0]]
     np.savetxt(pruebas+'relaxed_refined_%s_PM.txt'%(name),pm_wmp,header='ra,dec,x_c ,y_c,mua,dmua,mud,dmud,mul_mc,mub_mc,dmul_mc,dmub_mc, time, n1, n2, idt,  mF139')
     np.savetxt(pruebas+'relaxed_refined_%s_phot.txt'%(name),all_eps)
 
