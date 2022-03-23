@@ -70,7 +70,7 @@ delta_g = 27.12825
 tr=np.deg2rad
 
 #mul, mub, mua, mud, ra, dec,x_c,y_c,l,b,Ks, H, position in GALCEN_TABLE_D.cat 
-Ms_all=np.loadtxt(pruebas +'pm_of_Ms_in_WFC3IR.txt')# this are the information (pm, coordinates and ID) for the Ms that remain in the data after triming it 
+Ms_all=np.loadtxt(pruebas +'relaxed_pm_of_Ms_in_WFC3IR.txt')# this are the information (pm, coordinates and ID) for the Ms that remain in the data after triming it 
 group_lst=Ms_all[:,-1]#indtinfication number for the Ms
 
 # pms=[-3.156,-5.585,-6.411,-0.219]#this are the ecu(mua,mud) and galactic(mul,mub) pm of SrgA* (Reid & Brunthaler (2020))
@@ -87,7 +87,7 @@ for g in range(len(group_lst)):
     
     group=int(group_lst[g])
     #ra,dec,x_c,y_c,mua,dmua,mud,dmud,time,n1,n2,idt,m139,Separation,Ks,H,mul,mub,l,b
-    data=np.loadtxt(pruebas + 'group_%s_%s.txt'%(group,name))
+    data=np.loadtxt(pruebas + 'relaxed_group_%s_%s.txt'%(group,name))
     
     this=np.where(Ms_all[:,-1]==group)
     Ms=Ms_all[this]

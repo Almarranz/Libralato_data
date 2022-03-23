@@ -83,15 +83,15 @@ missing=0
 pms=[0,0,0,0]
 # pms=[0,0,-5.60,0.20] #this is from the dynesty adjustment
 pms=np.array(pms)
-for file_to_remove in glob.glob(pruebas+'group_*'):
+for file_to_remove in glob.glob(pruebas+'relaxed_group_*'):
     os.remove(file_to_remove) 
 
 # %%
-with open(pruebas+ 'MS_%s_.reg'%(name), 'w') as f:
+with open(pruebas+ 'relaxed_MS_%s_.reg'%(name), 'w') as f:
         f.write('# Region file format: DS9 version 4.1'+"\n"+'global color=green dashlist=8 3 width=1 font="helvetica 10 normal roman" select=1 highlite=1 dash=0 fixed=0 edit=1 move=1 delete=1 include=1 source=1'+"\n"+'fk5'+'\n')
         f.close
         
-with open(pruebas+ 'pm_of_Ms_in_%s.txt'%(name), 'w') as f:
+with open(pruebas+ 'relaxed_pm_of_Ms_in_%s.txt'%(name), 'w') as f:
         f.write('#mul, mub, mua, mud, ra, dec,x_c,y_c,l,b, Ks, H position in GALCEN_TABLE_D.cat ')
         f.close
 for i in range(len(yso_ra)):
@@ -101,7 +101,7 @@ for i in range(len(yso_ra)):
     if len(index[0]>0):
         print(index[0])
         print(float(catal[index[0],0]),catal[index[0],1])
-        with open(pruebas+ 'MS_%s_.reg'%(name), 'a') as f:
+        with open(pruebas+ 'relaxed_MS_%s_.reg'%(name), 'a') as f:
             f.write("\n"+'point(%s,%s) # point=x'%(float(catal[index[0],0]),float(catal[index[0],1]))+"\n"+
                     "\n"+ 'circle(%s,%s,%s)'%(float(catal[index[0],0]),float(catal[index[0],1]),radio)+' #text={%s,%s}'%(i,tipo[i]))
             f.close
@@ -148,12 +148,12 @@ for i in range(len(yso_ra)):
         ax[0].legend(['yso #%s, %s, #stars=%s'%(i,tipo[i],len(gal[group[0],0]))],markerscale=1,loc=1,handlelength=1)
         
         
-        np.savetxt(pruebas+'group_%s_%s.txt'%(i,name),np.c_[catal[group],gal[group][:,0],gal[group][:,1]],fmt='%.7f',header=('ra,dec,x_c,y_c,mua,dmua,mud,dmud,time,n1,n2,idt,m139,Separation,Ks,H,mul,mub,l,b'))
+        np.savetxt(pruebas+'relaxed_group_%s_%s.txt'%(i,name),np.c_[catal[group],gal[group][:,0],gal[group][:,1]],fmt='%.7f',header=('ra,dec,x_c,y_c,mua,dmua,mud,dmud,time,n1,n2,idt,m139,Separation,Ks,H,mul,mub,l,b'))
         
         ax[1].scatter([gal_coor[index[0],0]]-pms[2],[gal_coor[index[0],1]]-pms[3],color='red',s=100)
         ax[1].scatter([gal_coor[group[0],0]]-pms[2],[gal_coor[group[0],1]]-pms[3], alpha =0.2)
                                                                 #mul, mub, mua, mud, ra, dec,x_c,y_c,l,b, Ks, H position in GALCEN_TABLE_D.cat
-        with open(pruebas+ 'pm_of_Ms_in_%s.txt'%(name), 'a') as f:
+        with open(pruebas+ 'relaxed_pm_of_Ms_in_%s.txt'%(name), 'a') as f:
             f.write('\n'+ '%.7f %.7f %.7f %.7f %.7f %.7f %.7f %.7f %.7f %.7f %.7f %.7f %.0f'%(float(gal_coor[index[0],0]),float(gal_coor[index[0],1]),float(catal[index[0],4]),
                                                                           float(catal[index[0],6]),float(catal[index[0],0]),float(catal[index[0],1]),float(catal[index[0],2]),float(catal[index[0],3]),float(gal[index[0],0]),float(gal[index[0],1])
                                                                           ,float(catal[index[0],-4]),float(catal[index[0],-3]),i))
