@@ -12,15 +12,20 @@ import matplotlib.pyplot as plt
 # %%
 
 cata='/Users/amartinez/Desktop/PhD/Libralato_data/CATALOGS/'
+pruebas='/Users/amartinez/Desktop/PhD/Libralato_data/pruebas/'
+results='/Users/amartinez/Desktop/PhD/Libralato_data/results/'
+
 #R.A. Dec. X Y μαcosδ σμαcosδ μδ σμδ  time n1 n2 ID
 name='ACSWFC'
 # name='WFC3IR'
-# ra,dec,x_c ,y_c,mua,dmua,mud,dmud, time, n1, n2, idt = np.loadtxt(cata+'GALCEN_%s_PM.cat'%(name),unpack=True)
-catal=np.loadtxt(cata+'GALCEN_%s_PM.cat'%(name))
-# ra,dec,x_c ,y_c,mua,dmua,mud,dmud, time, n1, n2, idt, mul, mub, dmul, dmub= np.loadtxt(cata+'GALCEN_%s_PM.cat'%(name),unpack=True)
-catal=np.loadtxt(cata + '%s_pm_galactic.txt'%(name))# this is the Libralato`s catalog plus the galatic proper motions
-pruebas='/Users/amartinez/Desktop/PhD/Libralato_data/pruebas/'
-results='/Users/amartinez/Desktop/PhD/Libralato_data/results/'
+
+# Pm catalog are not used in this scripts, do not know why is this here...
+# =============================================================================
+# # ra,dec,x_c ,y_c,mua,dmua,mud,dmud, time, n1, n2, idt = np.loadtxt(cata+'GALCEN_%s_PM.cat'%(name),unpack=True)
+# catal=np.loadtxt(cata+'GALCEN_%s_PM.cat'%(name))
+# # ra,dec,x_c ,y_c,mua,dmua,mud,dmud, time, n1, n2, idt, mul, mub, dmul, dmub= np.loadtxt(cata+'GALCEN_%s_PM.cat'%(name),unpack=True)
+# catal=np.loadtxt(cata + '%s_pm_galactic.txt'%(name))# this is the Libralato`s catalog plus the galatic proper motions
+# =============================================================================
 
 # %%
 
@@ -47,7 +52,7 @@ fig, ax = plt.subplots(1,1,figsize=(10,10))
 n,bins_edges,otro=ax.hist(ep1_test[:,0],bins=np.arange(np.round(min(ep1_test[:,0])),np.round(max(ep1_test[:,0])+1),paso),linewidth=2,edgecolor='black') 
 mag_b=np.digitize(ep1_test[:,0], np.arange(np.round(min(ep1_test[:,0])),np.round(max(ep1_test[:,0])+1),paso), right=True)
 # %%
-trim_data= 'yes'
+trim_data= 'yyou'
 # Condition (a): qfit > percentile85 in bins of 1mag width (the width of 1mag i guessed)
 if trim_data == 'yes':
     all_sum=[]
@@ -145,7 +150,8 @@ if trim_data == 'yes':
 elif trim_data=='no':
     np.savetxt(results+'relaxed_foto_well_mesaured_ep%s_%s.txt'%(name,epoch),ep1_test,delimiter='   ',fmt='%.10f %.4f %.4f %.4f %.4f %.0f %.0f %.2f %.2f %.0f',header='index for the stars that fullfil the well_mesaured critreia from Libralato et al. 2021')
 
-
+else:
+    print('you have to set trim_data variable to either "yes" or "no"')
 
 
 
