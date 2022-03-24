@@ -47,23 +47,26 @@ results='/Users/amartinez/Desktop/PhD/Libralato_data/results/'
 
 # name='ACSWFC'
 name='WFC3IR'
-df = pd.read_csv(pruebas+'match_GNS_and_%s_refined.txt'%(name),sep=',',names=['RA_gns','DE_gns','Jmag','Hmag','Ksmag','ra','dec','x_c','y_c','mua','dmua','mud','dmud','time','n1','n2','idt','m139','Separation'])
+# "'RA_gns','DE_gns','Jmag','Hmag','Ksmag','ra','dec','x_c','y_c','mua','dmua','mud','dmud','time','n1','n2','ID','mul','mub','dmul','dmub','m139','Separation'",
+# df= pd.read_csv(pruebas+'match_GNS_and_%s_refined.txt'%(name),sep=',',names=['RA_gns','DE_gns','Jmag','Hmag','Ksmag','ra','dec','x_c','y_c','mua','dmua','mud','dmud','time','n1','n2','ID','mul','mub','dmul','dmub','m139','Separation'])
+df_np=np.loadtxt(pruebas + 'match_GNS_and_%s_refined_galactic.txt'%(name))
 #I introduce this list because it has the magnitudes of GNS
-catal_df = pd.read_csv(results+'%s_refined_with GNS_partner_mag_K_H.txt'%(name),sep=',',names=['ra','dec','x_c','y_c','mua','dmua','mud','dmud','time','n1','n2','idt','m139','Separation','Ks','H'])
-
-gal_coor=np.loadtxt(results+'match_GNS_and_WFC3IR_refined_galactic.txt')#mul,mub,dmul,dmub
+# ra','dec','x_c','y_c','mua','dmua','mud','dmud','time','n1','n2','ID','mul','mub','dmul','dmub','m139','Separation'",Ks,H
+catal = np.loadtxt(pruebas+'%s_refined_with GNS_partner_mag_K_H.txt'%(name))
+gal_coor=catal[:,[12,13,14,15]]#mul,mub,dmul,dmub
+#%%
+tes=catal[:,[12,13,14,15]]
 # %%
 
-df_np=df.to_numpy()
-catal=catal_df.to_numpy()
+# df_np=df.to_numpy()
 
 valid=np.where(np.isnan(df_np[:,4])==False)
 
 df_np=df_np[valid]
 gal_coor=gal_coor[valid]
 
-# center=np.where(df_np[:,17]-df_np[:,4]>2.5)
-center=np.where(catal[:,-1]-catal[:,-2]>1.3)
+center=np.where(df_np[:,-2]-df_np[:,4]>2.5)
+# center=np.where(catal[:,-1]-catal[:,-2]>1.3)
 df_np=df_np[center]
 gal_coor=gal_coor[center]
 

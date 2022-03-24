@@ -32,15 +32,21 @@ plt.rcParams["mathtext.fontset"] = 'dejavuserif'
 from matplotlib import rc
 rc('font',**{'family':'serif','serif':['Palatino']})
 
-
+#Warning:
+# =============================================================================
+# note that the original PM cagalogs from Libralto have a column value called 'ID',
+# which is a idetification number they give to each star. These have nothing to to with
+# the value 'idt' that I have gave to the stars in the photometric catalog in order to cross the
+# march epch 1 and epoch2
+# =============================================================================
 # %%
 
 cata='/Users/amartinez/Desktop/PhD/Libralato_data/CATALOGS/'
 pruebas='/Users/amartinez/Desktop/PhD/Libralato_data/pruebas/'
 results='/Users/amartinez/Desktop/PhD/Libralato_data/results/'
 
-name='ACSWFC'
-# name='WFC3IR'
+# name='ACSWFC'
+name='WFC3IR'
 # ra,dec,x_c ,y_c,mua,dmua,mud,dmud, time, n1, n2, idt = np.loadtxt(cata+'GALCEN_%s_PM.cat'%(name),unpack=True)
 # catal=np.loadtxt(cata+'GALCEN_%s_PM.cat'%(name))
 # ra,dec,x_c ,y_c,mua,dmua,mud,dmud, time, n1, n2, idt, mul, mub, dmul, dmub= np.loadtxt(cata+'GALCEN_%s_PM.cat'%(name),unpack=True)
@@ -126,10 +132,10 @@ if trim_data=='yes':
     
     # =============================================================================
     np.savetxt(results+'refined_%s_PM.txt'%(name),pm_wmp,fmt='%.7f %.7f %.4f %.4f %.5f %.5f %.5f %.5f %.0f %.0f %.0f %.0f %.5f %.5f %.5f %.5f %.5f ',
-               header='ra dec x_c  y_c mua dmua mud dmud  time  n1  n2  idt mul mub dmul dmub mF139')
+               header='ra dec x_c  y_c mua dmua mud dmud  time  n1  n2  ID mul mub dmul dmub mF139')
     np.savetxt(results+'refined_%s_phot.txt'%(name),all_eps,fmt='%.4f %.4f %.4f %.4f %.4f %.0f %.0f %.2f %.2f', header='mag, rms, qfit, o, RADXS, nf, nu, Localsky, Local_skyrms')
     # =============================================================================
 elif trim_data=='no':
-    np.savetxt(results+'relaxed_refined_%s_PM.txt'%(name),pm_wmp,header='ra dec x_c  y_c mua dmua mud dmud  time  n1  n2  idt  mF139')
-    np.savetxt(results+'relaxed_refined_%s_phot.txt'%(name),all_eps,fmt='%.4f %.4f %.4f %.4f %.4f %.0f %.0f %.2f %.2f %.0f', header='mag, rms, qfit, o, RADXS, nf, nu, Localsky, Local_skyrms, idt')
+    np.savetxt(results+'relaxed_refined_%s_PM.txt'%(name),pm_wmp,header='ra dec x_c  y_c mua dmua mud dmud  time  n1  n2  ID  mF139')
+    np.savetxt(results+'relaxed_refined_%s_phot.txt'%(name),all_eps,fmt='%.4f %.4f %.4f %.4f %.4f %.0f %.0f %.2f %.2f %.0f', header='mag, rms, qfit, o, RADXS, nf, nu, Localsky, Local_skyrms')
     # %%
