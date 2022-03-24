@@ -12,8 +12,8 @@ cata='/Users/amartinez/Desktop/PhD/Libralato_data/CATALOGS/'
 pruebas='/Users/amartinez/Desktop/PhD/Libralato_data/pruebas/'
 results='/Users/amartinez/Desktop/PhD/Libralato_data/results/'
 #R.A. Dec. X Y μαcosδ σμαcosδ μδ σμδ  time n1 n2 ID
-# name='ACSWFC'
-name='WFC3IR'
+name='ACSWFC'
+# name='WFC3IR'
 # ra,dec,x_c ,y_c,mua,dmua,mud,dmud, time, n1, n2, idt = np.loadtxt(cata+'GALCEN_%s_PM.cat'%(name),unpack=True)
 catal=np.loadtxt(cata+'GALCEN_%s_PM.cat'%(name))
 # mul_mc,mub_mc,dmul_mc,dmub_mc
