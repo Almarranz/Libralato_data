@@ -15,6 +15,8 @@ from astropy.coordinates import SkyCoord
 import astropy.units as u
 from astropy.table import QTable
 from matplotlib import rcParams
+import os
+import glob
 rcParams.update({'xtick.major.pad': '7.0'})
 rcParams.update({'xtick.major.size': '7.5'})
 rcParams.update({'xtick.major.width': '1.5'})
@@ -60,19 +62,22 @@ catal=catal_df.to_numpy()
 valid=np.where(np.isnan(catal[:,14])==False)
 catal=catal[valid]
 gal_coor=gal_coor[valid]
-# no_fg=np.where(catal[:,12]-catal[:,14]>2.5)
-no_fg=np.where(catal[:,-1]-catal[:,-2]>1.3)
+no_fg=np.where(catal[:,12]-catal[:,14]>2.5)
+# no_fg=np.where(catal[:,-1]-catal[:,-2]>1.3)
 catal=catal[no_fg]
 gal_coor=gal_coor[no_fg]
 catal=np.c_[catal,gal_coor[:,0],gal_coor[:,1]]#in here we add the values for the galactic pm NOT galactic coordinates
 # %%
-radio=0.009
+radio=0.006
 found=0
 missing=0
 # pms=[-3.156,-5.585,-6.411,-0.219]#this are the ecu(mua,mud) and galactic(mul,mub) pm of SrgA* (Reid & Brunthaler (2020))
 # pms=[0,0,0,0]
 pms=[0,0,-5.60,0.20] #this is from the dynesty adjustment
 pms=np.array(pms)
+
+for file_to_remove in glob.glob(pruebas+'group_*'):
+    os.remove(file_to_remove) 
 with open(pruebas+ 'MS_%s_.reg'%(name), 'w') as f:
         f.write('# Region file format: DS9 version 4.1'+"\n"+'global color=green dashlist=8 3 width=1 font="helvetica 10 normal roman" select=1 highlite=1 dash=0 fixed=0 edit=1 move=1 delete=1 include=1 source=1'+"\n"+'fk5'+'\n')
         f.close
