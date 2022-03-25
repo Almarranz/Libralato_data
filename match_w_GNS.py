@@ -63,16 +63,9 @@ gns_match=gns_np[idx[0][valid]]
 # ra','dec','x_c','y_c','mua','dmua','mud','dmud','time','n1','n2','ID','mul','mub','dmul','dmub','m139','Separation'",Ks,H
 gns_and_lib=np.c_[gns_match[:,[0,1,18,20,22]],libr_match, idx[1][valid].to(u.arcsec).value]
 
-np.savetxt(pruebas + '%smatch_GNS_and_%s_refined_galactic.txt'%(pre,name),gns_and_lib,
+np.savetxt(results + '%smatch_GNS_and_%s_refined_galactic.txt'%(pre,name),gns_and_lib,
             header = 'RA_gns DE_gns Jmag Hmag Ksmag ra dec x_c y_c mua dmua mud dmud time n1 n2 ID mul mub dmul dmub m139 Separation',
             fmt='%.7f %.7f %.4f %.4f %.4f %.7f %.7f %.4f %.4f %.5f %.5f %.5f %.5f %.0f %.0f %.0f %.0f %.5f %.5f %.5f %.5f %.5f %.3f')
-gns_and_lib=np.c_[gns_match[:,[0,1,18,20,22]],libr_match]
-
-
-# %%
-# print(np.std(idx[1][valid].to(u.arcsec).value))
-
-
 
 
 
