@@ -51,22 +51,22 @@ gns_match=gns_np[idx[0][valid]]
 # libr_test =  SkyCoord(ra=gns_match[:,0]*u.degree, dec=gns_match[:,1]*u.degree)
 # idx_test,d2d_test,d3d_test = libr_test.match_to_catalog_sky(gns_test)
 # 
-# print(max(d2d_test))
+# print(max(d2d_test))#the results of this has to be smaller than the distand defined for the valid condition
 # 
 # =============================================================================
 
-# %%
-# df = pd.read_csv(pruebas+'match_GNS_and_%s_refined.txt'%(name),sep=','
-#                  ,names=['RA_gns','DE_gns','Jmag','Hmag','Ksmag','ra','dec','x_c','y_c','mua','dmua','mud','dmud','time','n1','n2','idt','m139','Separation'])
-
-# catal_df = pd.read_csv(results+'%s_refined_with GNS_partner_mag_K_H.txt'%(name),
-#                        sep=',',names=['ra','dec','x_c','y_c','mua','dmua','mud','dmud','time','n1','n2','idt','m139','Separation','Ks','H'])
-
-# not sure yet wich coordinates should I used for the matching. Ask paco why so many.
+# %% Do I really need BOTH of these lists?
+#
+# 
 # ['_RAJ2000'0, '_DEJ2000'1, 'RAJ2000'2, 'e_RAJ2000'3, 'DEJ2000'4, 'e_DEJ2000'5, 'RAJdeg'6, 
 #  'e_RAJdeg'7, 'DEJdeg'8, 'e_DEJdeg'9, 'RAHdeg'10, 'e_RAHdeg'11, 'DEHdeg'12, 
 #  'e_DEHdeg'13, 'RAKsdeg'14, 'e_RAKsdeg'15, 'DEKsdeg'16, 'e_DEKsdeg'17, 
 #  'Jmag'18, 'e_Jmag'19, 'Hmag'20, 'e_Hmag'21, 'Ksmag'22, 'e_Ksmag'23, 'iJ'24, 'iH'25, 'iKs'26]
+# ra','dec','x_c','y_c','mua','dmua','mud','dmud','time','n1','n2','ID','mul','mub','dmul','dmub','m139','Separation'",Ks,H
+cabeza="ra','dec','x_c','y_c','mua','dmua','mud','dmud','time','n1','n2','ID','mul','mub','dmul','dmub','m139','Separation',Ks,H"
+formato='%.7f %.7f %.4f %.4f %.5f %.5f %.5f %.5f %.0f %.0f %.0f %.0f %.5f %.5f %.5f %.5f %.5f %.3f %.4f %4f'
+np.savetxt(pruebas + '%s%s_refined_with_GNS_partner_mag_K_H.txt'%(pre, name),np.c_[libr_match, idx[1][valid].to(u.arcsec).value,gns_match[:,[22,20]]]
+           ,header=cabeza, fmt=formato)
 gns_and_lib=np.c_[gns_match[:,[0,1,18,20,22]],libr_match, idx[1][valid].to(u.arcsec).value]
 
 np.savetxt(pruebas + '%smatch_GNS_and_%s_refined_galactic.txt'%(pre,name),gns_and_lib,
@@ -76,7 +76,7 @@ gns_and_lib=np.c_[gns_match[:,[0,1,18,20,22]],libr_match]
 
 
 # %%
-print(np.std(idx[1][valid].to(u.arcsec).value))
+# print(np.std(idx[1][valid].to(u.arcsec).value))
 
 
 
