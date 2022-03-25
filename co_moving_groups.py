@@ -17,6 +17,8 @@ from astropy.table import QTable
 from matplotlib import rcParams
 import os
 import glob
+import sys
+# %%
 rcParams.update({'xtick.major.pad': '7.0'})
 rcParams.update({'xtick.major.size': '7.5'})
 rcParams.update({'xtick.major.width': '1.5'})
@@ -43,37 +45,46 @@ cata='/Users/amartinez/Desktop/PhD/Libralato_data/CATALOGS/'
 pruebas='/Users/amartinez/Desktop/PhD/Libralato_data/pruebas/'
 results='/Users/amartinez/Desktop/PhD/Libralato_data/results/'
 name='WFC3IR'
+# name='ACSWFC'
+trimmed_data='yes'
+if trimmed_data=='yes':
+    pre=''
+elif trimmed_data=='no':
+    pre='relaxed_'
+    
+else:
+    sys.exit("Have to set trimmed_data to either 'yes' or 'no'")
+    
 #ra, dec, ID(in ACSWFC_PM or WFC3IR_PM),Original list, Altervative Id
 yso_ra,yso_dec,yso_ID=np.loadtxt(cata+'GALCEN_TABLE_D.cat',unpack=True, usecols=(0,1,2))
 tipo=np.loadtxt(cata+'GALCEN_TABLE_D.cat',unpack=True, usecols=(3),dtype='str')
-# yso_df=pd.read_csv(cata+'GALCEN_TABLE_D.cat', sep=' ')
-# yso=yso_df.to_numpy()
+
 
 
 # ra,dec,x_c ,y_c,mua,dmua,mud,dmud, time, n1, n2, idt = np.loadtxt(cata+'GALCEN_%s_PM.cat'%(name),unpack=True)
-# catal=np.loadtxt(cata+'GALCEN_%s_PM.cat'%(name))
-# catal=np.loadtxt(results+'refined_%s_PM.txt'%(name))
-catal_df=pd.read_csv(results+'%s_refined_with GNS_partner_mag_K_H.txt'%(name),sep=',',names=['ra','dec','x_c','y_c','mua','dmua','mud','dmud','time','n1','n2','idt','m139','Separation','Ks','H'])
+# catal_df=pd.read_csv(results+'%s_refined_with GNS_partner_mag_K_H.txt'%(name),sep=',',names=['ra','dec','x_c','y_c','mua','dmua','mud','dmud','time','n1','n2','idt','m139','Separation','Ks','H'])
 
-# mul_mc,mub_mc,dmul_mc,dmub_mc
-gal_coor=np.loadtxt(results+'match_GNS_and_WFC3IR_refined_galactic.txt')
+# "'RA_gns','DE_gns','Jmag','Hmag','Ksmag','ra','dec','x_c','y_c','mua','dmua','mud','dmud','time','n1','n2','ID','mul','mub','dmul','dmub','m139','Separation'",
+catal=np.loadtxt(pruebas + '%smatch_GNS_and_%s_refined_galactic.txt'%(pre,name))
 
-catal=catal_df.to_numpy()
-valid=np.where(np.isnan(catal[:,14])==False)
+
+
+
+# catal=catal_df.to_numpy()
+valid=np.where(np.isnan(catal[:,4])==False)# This is for the valus than make Ks magnitude valid, but shouldn´t we do the same with the H magnitudes?
 catal=catal[valid]
-gal_coor=gal_coor[valid]
 no_fg=np.where(catal[:,12]-catal[:,14]>2.5)
 # no_fg=np.where(catal[:,-1]-catal[:,-2]>1.3)
-catal=catal[no_fg]
-gal_coor=gal_coor[no_fg]
-catal=np.c_[catal,gal_coor[:,0],gal_coor[:,1]]#in here we add the values for the galactic pm NOT galactic coordinates
+
+# mul_mc,mub_mc,dmul_mc,dmub_mc
+gal_coor=catal[:,[17,18,19,20]]
 # %%
 radio=0.006
 found=0
 missing=0
 # pms=[-3.156,-5.585,-6.411,-0.219]#this are the ecu(mua,mud) and galactic(mul,mub) pm of SrgA* (Reid & Brunthaler (2020))
-# pms=[0,0,0,0]
-pms=[0,0,-5.60,0.20] #this is from the dynesty adjustment
+pms=[0,0,0,0]
+# pms=[0,0,-5.60,0.20] #this is from the dynesty adjustment
 pms=np.array(pms)
 
 for file_to_remove in glob.glob(pruebas+'group_*'):
@@ -86,25 +97,25 @@ with open(pruebas+ 'pm_of_Ms_in_%s.txt'%(name), 'w') as f:
         f.write('#mul, mub, mua, mud, ra, dec,x_c,y_c,l,b, Ks, H position in GALCEN_TABLE_D.cat ')
         f.close
 for i in range(len(yso_ra)):
-# for i in range(3,4):    
-    print(yso_ra[i])
-    index=np.where((catal[:,0]==yso_ra[i]) & (catal[:,1]==yso_dec[i]) )
-    if len(index[0]>0):
+# for i in range(1):    
+    print(yso_ra[i],yso_dec[i])
+    index=np.where((catal[:,5]==yso_ra[i]) & (catal[:,6]==yso_dec[i]) ) # looping a picking the stars coord on the Ms catalog
+    if len(index[0]>0): 
         print(index[0])
-        print(float(catal[index[0],0]),catal[index[0],1])
+        print(float(catal[index[0],5]),catal[index[0],6])
         with open(pruebas+ 'MS_%s_.reg'%(name), 'a') as f:
             f.write("\n"+'point(%s,%s) # point=x'%(float(catal[index[0],0]),float(catal[index[0],1]))+"\n"+
                     "\n"+ 'circle(%s,%s,%s)'%(float(catal[index[0],0]),float(catal[index[0],1]),radio)+' #text={%s,%s}'%(i,tipo[i]))
             f.close
-        group=np.where(np.sqrt((catal[:,0]-catal[index[0],0])**2 + (catal[:,1]-catal[index[0],1])**2)< radio)
+        group=np.where(np.sqrt((catal[:,5]-catal[index[0],5])**2 + (catal[:,6]-catal[index[0],6])**2)< radio)
         print(len(group[0]))
-        ra_=catal[:,0]
-        dec_=catal[:,1]
+        ra_=catal[:,5]
+        dec_=catal[:,6]
         # Process needed for the trasnformation to galactic coordinates
-        c = SkyCoord(ra=ra_*u.degree, dec=dec_*u.degree, frame='fk5')
+        c = SkyCoord(ra=ra_*u.degree, dec=dec_*u.degree, frame='fk5')#you are using frame 'fk5' but maybe it si J2000, right? becouse this are Paco`s coordinates. Try out different frames
         gal_c=c.galactic
         
-        t_gal= QTable([gal_c], names=["lines coord"])
+        t_gal= QTable([gal_c.l,gal_c.b], names=('l','b'))
         
         df_gal=t_gal.to_pandas()
         gal=df_gal.to_numpy()
@@ -123,13 +134,10 @@ for i in range(len(yso_ra)):
 # 
 # =============================================================================
         # This will plot the vectors and stars in the galactic frame
-
-        ax[0].scatter(gal[index[0],0],gal[index[0],1],color='red',s=100)
-        ax[0].scatter(gal[group[0],0],gal[group[0],1])
-        # ax.quiver(catal[index[0],0],catal[index[0],1],[catal[index[0],4]],[catal[index[0],6]],alpha=0.2)#this is for the vector on the Ms object in ecuatorial
-        # ax.quiver(catal[index[0],0],catal[index[0],1],[gal_coor[index[0],0]],[gal_coor[index[0],1]])#this is for the vector on the Ms object in galactic
-        # ax[0].quiver([gal[group[0],0]],[gal[group[0],1]],np.array([catal[group[0],4]])-pms[0],np.array([catal[group[0],6]])-pms[1],alpha=0.2)
-        ax[0].quiver([gal[group[0],0]],[gal[group[0],1]],np.array([gal_coor[group[0],0]])-pms[2],np.array([gal_coor[group[0],1]])-pms[3])
+        t_gal['l'] = t_gal['l'].wrap_at('180d')
+        ax[0].scatter(t_gal['l'][index[0]],t_gal['b'][index[0]],color='red',s=100)
+        ax[0].scatter(t_gal['l'][group[0]],t_gal['b'][group[0]])
+        ax[0].quiver([t_gal['l'][group[0]]],[t_gal['b'][group[0]]],np.array([gal_coor[group[0],0]])-pms[2],np.array([gal_coor[group[0],1]])-pms[3])
         ax[0].set_xlabel(r'$\mathrm{l}$') 
         ax[0].set_ylabel(r'$\mathrm{b}$') 
 
@@ -170,7 +178,12 @@ for i in range(len(yso_ra)):
 #         ax.hist(catal[group[0],6],alpha=0.5,bins='auto') 
 #         ax.legend(['mua (yso #%s)'%(i),'mub'],markerscale=1,loc=1,handlelength=1)
 # =============================================================================
-        
+        t_gal['l'] = t_gal['l'].wrap_at('180d')
+        fig, ax = plt.subplots(1,2,figsize=(20,10))
+        ax[0].scatter(t_gal['l'][index[0]],t_gal['b'][index[0]],color='red',s=100)
+        ax[0].scatter(t_gal['l'][group[0]],t_gal['b'][group[0]])
+        # ax[0].quiver([gal[group[0],0]],[gal[group[0],1]],np.array([gal_coor[group[0],0]])-pms[2],np.array([gal_coor[group[0],1]])-pms[3])
+
     else:
         print('No mach in %s catalog'%(name))
         missing +=1
@@ -178,6 +191,22 @@ for i in range(len(yso_ra)):
     # plt.ylabel(r'$\mathrm{\mu_{d} (mas\ yr^{-1})}$') 
     
 print('Found %s , missing %s'%(found, missing))
+
+# %%
+print(t_gal['l'][index[0]])
+# %%
+# =============================================================================
+# t_gal['l'] = t_gal['l'].wrap_at('180d')
+# fig, ax = plt.subplots(1,2,figsize=(20,10))
+# ax[0].scatter(t_gal['l'][index[0]],t_gal['b'][index[0]],color='red',s=100)
+# ax[0].scatter(t_gal['l'][group[0]],t_gal['b'][group[0]])
+# ax[0].quiver([t_gal['l'][group[0]]],[t_gal['b'][group[0]]],np.array([gal_coor[group[0],0]])-pms[2],np.array([gal_coor[group[0],1]])-pms[3])
+# 
+# 
+# =============================================================================
+
+
+
 
 
 
