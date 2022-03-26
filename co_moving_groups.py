@@ -94,7 +94,7 @@ with open(pruebas+ 'MS_%s_.reg'%(name), 'w') as f:
         f.close
         
 with open(pruebas+ 'pm_of_Ms_in_%s.txt'%(name), 'w') as f:
-        f.write('#mul, mub, mua, mud, ra, dec,x_c,y_c,l,b, Ks, H position in GALCEN_TABLE_D.cat ')
+        f.write('#mul, mub, mua, mud, ra, dec,dmul,dmub,l,b, Ks, H position in GALCEN_TABLE_D.cat ')
         f.close
 for i in range(len(yso_ra)):
 # for i in range(1):    
@@ -134,7 +134,7 @@ for i in range(len(yso_ra)):
 # 
 # =============================================================================
         # This will plot the vectors and stars in the galactic frame
-        t_gal['l'] = t_gal['l'].wrap_at('180d')
+        t_gal['l'] = t_gal['l'].wrap_at('180d')#doesnt split the plot when the grpu fall both ways of l,b=0,0
         ax[0].scatter(t_gal['l'][index[0]],t_gal['b'][index[0]],color='red',s=100)
         ax[0].scatter(t_gal['l'][group[0]],t_gal['b'][group[0]])
         ax[0].quiver([t_gal['l'][group[0]]],[t_gal['b'][group[0]]],np.array([gal_coor[group[0],0]])-pms[2],np.array([gal_coor[group[0],1]])-pms[3])
@@ -152,10 +152,11 @@ for i in range(len(yso_ra)):
         ax[1].scatter([gal_coor[index[0],0]]-pms[2],[gal_coor[index[0],1]]-pms[3],color='red',s=100)
         ax[1].scatter([gal_coor[group[0],0]]-pms[2],[gal_coor[group[0],1]]-pms[3], alpha =0.2)
         
-        with open(pruebas+ 'pm_of_Ms_in_%s.txt'%(name), 'a') as f:
-            f.write('\n'+ '%.7f %.7f %.7f %.7f %.7f %.7f %.7f %.7f %.7f %.7f %.7f %.7f %.0f'%(float(gal_coor[index[0],0]),float(gal_coor[index[0],1]),float(catal[index[0],4]),
-                                                                          float(catal[index[0],6]),float(catal[index[0],0]),float(catal[index[0],1]),float(catal[index[0],2]),float(catal[index[0],3]),float(gal[index[0],0]),float(gal[index[0],1])
-                                                                          ,float(catal[index[0],-4]),float(catal[index[0],-3]),i))
+        with open(pruebas+ 'pm_of_Ms_in_%s.txt'%(name), 'a') as f:#mul, mub, mua, mud, ra, dec,dmul,dmub,l,b, Ks, H, position in GALCEN_TABLE_D.cat 
+            f.write('\n'+ '%.7f %.7f %.7f %.7f %.7f %.7f %.7f %.7f %.7f %.7f %.7f %.7f %.0f'%(float(gal_coor[index[0],0]),float(gal_coor[index[0],1]),float(catal[index[0],9]),
+                                                                          float(catal[index[0],11]),float(catal[index[0],5]),float(catal[index[0],6]),float(catal[index[0],-4]),float(catal[index[0],-3]),t_gal['l'][index[0]].value,t_gal['b'][index[0]].value,
+                                                                          float(catal[index[0],4]),float(catal[index[0],3]),i))
+                                                         # "'RA_gns','DE_gns','Jmag','Hmag','Ksmag','ra','dec','x_c','y_c','mua','dmua','mud','dmud','time','n1','n2','ID','mul','mub','dmul','dmub','m139','Separation'",
 
             f.close
        
