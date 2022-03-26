@@ -59,18 +59,13 @@ else:
 yso_ra,yso_dec,yso_ID=np.loadtxt(cata+'GALCEN_TABLE_D.cat',unpack=True, usecols=(0,1,2))
 tipo=np.loadtxt(cata+'GALCEN_TABLE_D.cat',unpack=True, usecols=(3),dtype='str')
 
-
-
-# ra,dec,x_c ,y_c,mua,dmua,mud,dmud, time, n1, n2, idt = np.loadtxt(cata+'GALCEN_%s_PM.cat'%(name),unpack=True)
-# catal_df=pd.read_csv(results+'%s_refined_with GNS_partner_mag_K_H.txt'%(name),sep=',',names=['ra','dec','x_c','y_c','mua','dmua','mud','dmud','time','n1','n2','idt','m139','Separation','Ks','H'])
-
 # "'RA_gns','DE_gns','Jmag','Hmag','Ksmag','ra','dec','x_c','y_c','mua','dmua','mud','dmud','time','n1','n2','ID','mul','mub','dmul','dmub','m139','Separation'",
 catal=np.loadtxt(pruebas + '%smatch_GNS_and_%s_refined_galactic.txt'%(pre,name))
 
 
 
 
-# catal=catal_df.to_numpy()
+
 valid=np.where(np.isnan(catal[:,4])==False)# This is for the valus than make Ks magnitude valid, but shouldn´t we do the same with the H magnitudes?
 catal=catal[valid]
 no_fg=np.where(catal[:,12]-catal[:,14]>2.5)
@@ -192,22 +187,6 @@ for i in range(len(yso_ra)):
     # plt.ylabel(r'$\mathrm{\mu_{d} (mas\ yr^{-1})}$') 
     
 print('Found %s , missing %s'%(found, missing))
-
-# %%
-print(t_gal['l'][index[0]])
-# %%
-# =============================================================================
-# t_gal['l'] = t_gal['l'].wrap_at('180d')
-# fig, ax = plt.subplots(1,2,figsize=(20,10))
-# ax[0].scatter(t_gal['l'][index[0]],t_gal['b'][index[0]],color='red',s=100)
-# ax[0].scatter(t_gal['l'][group[0]],t_gal['b'][group[0]])
-# ax[0].quiver([t_gal['l'][group[0]]],[t_gal['b'][group[0]]],np.array([gal_coor[group[0],0]])-pms[2],np.array([gal_coor[group[0],1]])-pms[3])
-# 
-# 
-# =============================================================================
-
-
-
 
 
 
