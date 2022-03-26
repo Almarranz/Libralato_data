@@ -72,7 +72,7 @@ no_fg=np.where(catal[:,12]-catal[:,14]>2.5)
 # no_fg=np.where(catal[:,-1]-catal[:,-2]>1.3)
 
 # mul_mc,mub_mc,dmul_mc,dmub_mc
-gal_coor=catal[:,[17,18,19,20]]
+gal_coor=catal[:,[17,18,19,20]]#this separation of the galactic pms itsnt really neccesary. It is a reminisce of the previous version of the script
 # %%
 radio=0.006
 found=0
@@ -89,7 +89,7 @@ with open(pruebas+ 'MS_%s_.reg'%(name), 'w') as f:
         f.close
         
 with open(pruebas+ 'pm_of_Ms_in_%s.txt'%(name), 'w') as f:
-        f.write('#mul, mub, mua, mud, ra, dec,dmul,dmub,l,b, Ks, H position in GALCEN_TABLE_D.cat ')
+        f.write('#mul, mub, mua, mud, ra, dec,dmul,dmub,l,b, Ks, H, m139, position in GALCEN_TABLE_D.cat ')
         f.close
 for i in range(len(yso_ra)):
 # for i in range(1):    
@@ -141,16 +141,18 @@ for i in range(len(yso_ra)):
         ax[0].xaxis.set_major_formatter(FormatStrFormatter('%.3f'))
         ax[0].legend(['yso #%s, %s, #stars=%s'%(i,tipo[i],len(gal[group[0],0]))],markerscale=1,loc=1,handlelength=1)
         
-        
-        np.savetxt(pruebas+'group_%s_%s.txt'%(i,name),np.c_[catal[group],gal[group][:,0],gal[group][:,1]],fmt='%.7f',header=('ra,dec,x_c,y_c,mua,dmua,mud,dmud,time,n1,n2,idt,m139,Separation,Ks,H,mul,mub,l,b'))
+        formato='%.7f %.7f %.4f %.4f %.4f %.7f %.7f %.4f %.4f %.5f %.5f %.5f %.5f %.0f %.0f %.0f %.0f %.5f %.5f %.5f %.5f %.5f %.3f'
+        # "'RA_gns','DE_gns','Jmag','Hmag','Ksmag','ra','dec','x_c','y_c','mua','dmua','mud','dmud','time','n1','n2','ID','mul','mub','dmul','dmub','m139','Separation'",
+        np.savetxt(pruebas+'group_%s_%s.txt'%(i,name),catal[group],fmt=formato,header=("'RA_gns','DE_gns','Jmag','Hmag','Ksmag','ra','dec','x_c','y_c','mua','dmua','mud','dmud','time','n1','n2','ID','mul','mub','dmul','dmub','m139','Separation'"))
+        #group_%s_%s.txt are the stars around the Massive one from the list of massive stars, thar are also in the trimmed(or not) Libralato data
         
         ax[1].scatter([gal_coor[index[0],0]]-pms[2],[gal_coor[index[0],1]]-pms[3],color='red',s=100)
         ax[1].scatter([gal_coor[group[0],0]]-pms[2],[gal_coor[group[0],1]]-pms[3], alpha =0.2)
         
-        with open(pruebas+ 'pm_of_Ms_in_%s.txt'%(name), 'a') as f:#mul, mub, mua, mud, ra, dec,dmul,dmub,l,b, Ks, H, position in GALCEN_TABLE_D.cat 
-            f.write('\n'+ '%.7f %.7f %.7f %.7f %.7f %.7f %.7f %.7f %.7f %.7f %.7f %.7f %.0f'%(float(gal_coor[index[0],0]),float(gal_coor[index[0],1]),float(catal[index[0],9]),
+        with open(pruebas+ 'pm_of_Ms_in_%s.txt'%(name), 'a') as f:#mul, mub, mua, mud, ra, dec,dmul,dmub,l,b, Ks, H,m139 position in GALCEN_TABLE_D.cat 
+            f.write('\n'+ '%.7f %.7f %.7f %.7f %.7f %.7f %.7f %.7f %.7f %.7f %.4f %.4f %.4f %.0f'%(float(gal_coor[index[0],0]),float(gal_coor[index[0],1]),float(catal[index[0],9]),
                                                                           float(catal[index[0],11]),float(catal[index[0],5]),float(catal[index[0],6]),float(catal[index[0],-4]),float(catal[index[0],-3]),t_gal['l'][index[0]].value,t_gal['b'][index[0]].value,
-                                                                          float(catal[index[0],4]),float(catal[index[0],3]),i))
+                                                                          float(catal[index[0],4]),float(catal[index[0],3]),float(catal[index[0],-2]),i))
                                                          # "'RA_gns','DE_gns','Jmag','Hmag','Ksmag','ra','dec','x_c','y_c','mua','dmua','mud','dmud','time','n1','n2','ID','mul','mub','dmul','dmub','m139','Separation'",
 
             f.close
