@@ -60,7 +60,7 @@ yso_ra,yso_dec,yso_ID=np.loadtxt(cata+'GALCEN_TABLE_D.cat',unpack=True, usecols=
 tipo=np.loadtxt(cata+'GALCEN_TABLE_D.cat',unpack=True, usecols=(3),dtype='str')
 
 # "'RA_gns','DE_gns','Jmag','Hmag','Ksmag','ra','dec','x_c','y_c','mua','dmua','mud','dmud','time','n1','n2','ID','mul','mub','dmul','dmub','m139','Separation'",
-catal=np.loadtxt(pruebas + '%smatch_GNS_and_%s_refined_galactic.txt'%(pre,name))
+catal=np.loadtxt(results + '%smatch_GNS_and_%s_refined_galactic.txt'%(pre,name))
 
 
 
@@ -68,8 +68,9 @@ catal=np.loadtxt(pruebas + '%smatch_GNS_and_%s_refined_galactic.txt'%(pre,name))
 
 valid=np.where(np.isnan(catal[:,4])==False)# This is for the valus than make Ks magnitude valid, but shouldn´t we do the same with the H magnitudes?
 catal=catal[valid]
-no_fg=np.where(catal[:,12]-catal[:,14]>2.5)
-# no_fg=np.where(catal[:,-1]-catal[:,-2]>1.3)
+# center=np.where(catal[:,12]-catal[:,14]>2.5) # you can choose the way to make the color cut, as they did in libralato or as it is done in GNS
+center=np.where(catal[:,3]-catal[:,4]>1.3)
+catal=catal[center]
 
 # mul_mc,mub_mc,dmul_mc,dmub_mc
 gal_coor=catal[:,[17,18,19,20]]#this separation of the galactic pms itsnt really neccesary. It is a reminisce of the previous version of the script
@@ -116,18 +117,7 @@ for i in range(len(yso_ra)):
         gal=df_gal.to_numpy()
         
         fig, ax = plt.subplots(1,2,figsize=(20,10))
-        # This will plot the vector and stars in the ecuatorial frame
-# =============================================================================
-#         ax[0].scatter(catal[index[0],0],catal[index[0],1],color='red',s=100)
-#         ax[0].scatter(catal[group[0],0],catal[group[0],1])
-#         # ax.quiver(catal[index[0],0],catal[index[0],1],[catal[index[0],4]],[catal[index[0],6]],alpha=0.2)#this is for the vector on the Ms object in ecuatorial
-#         # ax.quiver(catal[index[0],0],catal[index[0],1],[gal_coor[index[0],0]],[gal_coor[index[0],1]])#this is for the vector on the Ms object in galactic
-#         ax[0].quiver([catal[group[0],0]],[catal[group[0],1]],np.array([catal[group[0],4]])-pms[0],np.array([catal[group[0],6]])-pms[1],alpha=0.2)
-#         ax[0].quiver([catal[group[0],0]],[catal[group[0],1]],np.array([gal_coor[group[0],0]])-pms[2],np.array([gal_coor[group[0],1]])-pms[3])
-#         ax[0].set_xlabel(r'$\mathrm{ra}$') 
-#         ax[0].set_ylabel(r'$\mathrm{dec}$') 
-# 
-# =============================================================================
+       
         # This will plot the vectors and stars in the galactic frame
         t_gal['l'] = t_gal['l'].wrap_at('180d')#doesnt split the plot when the grpu fall both ways of l,b=0,0
         ax[0].scatter(t_gal['l'][index[0]],t_gal['b'][index[0]],color='red',s=100)
@@ -170,17 +160,6 @@ for i in range(len(yso_ra)):
         # ax[1].axhline(pms[3], color='orange',linestyle='dashed', linewidth=1)
         ax[1].scatter(pms[2],pms[3],s=150, marker='*')
         found +=1
-# =============================================================================
-#         fig, ax = plt.subplots(1,1,figsize=(10,10))
-#         ax.hist(catal[group[0],4],bins='auto') 
-#         ax.hist(catal[group[0],6],alpha=0.5,bins='auto') 
-#         ax.legend(['mua (yso #%s)'%(i),'mub'],markerscale=1,loc=1,handlelength=1)
-# =============================================================================
-        t_gal['l'] = t_gal['l'].wrap_at('180d')
-        fig, ax = plt.subplots(1,2,figsize=(20,10))
-        ax[0].scatter(t_gal['l'][index[0]],t_gal['b'][index[0]],color='red',s=100)
-        ax[0].scatter(t_gal['l'][group[0]],t_gal['b'][group[0]])
-        # ax[0].quiver([gal[group[0],0]],[gal[group[0],1]],np.array([gal_coor[group[0],0]])-pms[2],np.array([gal_coor[group[0],1]])-pms[3])
 
     else:
         print('No mach in %s catalog'%(name))

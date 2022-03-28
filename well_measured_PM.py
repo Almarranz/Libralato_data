@@ -89,7 +89,7 @@ ax.scatter(all_eps[:,0],pm_wmp[:,5],s=0.1,color='red',alpha=1)
 ax.set_ylim(0,10)
 ax.set_xlim(12,24)
 # %%
-trim_data='yes'
+trim_data='yes' # WARNNING: trim_data is if you want to trimmed the data you are using. trimmed_data if for uploading trimmed or not data. THEY ARE TWO DIFFERENTS VARIABLES!!!
 if trim_data=='yes':
     # Conditions for the proper motions:
     #     (a) Pm uncertainty better that 85th percentile for any given magnitude
