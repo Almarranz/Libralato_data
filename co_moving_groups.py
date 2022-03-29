@@ -83,7 +83,7 @@ pms=[0,0,0,0]
 # pms=[0,0,-5.60,0.20] #this is from the dynesty adjustment
 pms=np.array(pms)
 
-for file_to_remove in glob.glob(pruebas+'group_*'):
+for file_to_remove in glob.glob(pruebas+'group_*'):#Remove the files for previpus runs
     os.remove(file_to_remove) 
 with open(pruebas+ 'MS_%s_.reg'%(name), 'w') as f:
         f.write('# Region file format: DS9 version 4.1'+"\n"+'global color=green dashlist=8 3 width=1 font="helvetica 10 normal roman" select=1 highlite=1 dash=0 fixed=0 edit=1 move=1 delete=1 include=1 source=1'+"\n"+'fk5'+'\n')
