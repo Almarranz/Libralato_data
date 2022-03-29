@@ -15,6 +15,11 @@ from sklearn.neighbors import KDTree
 from kneed import DataGenerator, KneeLocator
 from matplotlib.ticker import FormatStrFormatter
 import pandas as pd
+import sys
+from astropy import units as u
+from astropy.coordinates import SkyCoord
+from astropy.table import QTable
+# %%
 from sklearn.preprocessing import StandardScaler
 rcParams.update({'xtick.major.pad': '7.0'})
 rcParams.update({'xtick.major.size': '7.5'})
@@ -39,37 +44,47 @@ from matplotlib import rc
 rc('font',**{'family':'serif','serif':['Palatino']})
 plt.rcParams.update({'figure.max_open_warning': 0})# a warniing for matplot lib pop up because so many plots, this turining it of
 # %%
+cata='/Users/amartinez/Desktop/PhD/Libralato_data/CATALOGS/'
+pruebas='/Users/amartinez/Desktop/PhD/Libralato_data/pruebas/'
+results='/Users/amartinez/Desktop/PhD/Libralato_data/results/'
+
 name='WFC3IR'
+# name='ACSWFC'
+trimmed_data='yes'
+if trimmed_data=='yes':
+    pre=''
+elif trimmed_data=='no':
+    pre='relaxed_'
+    
+else:
+    sys.exit("Have to set trimmed_data to either 'yes' or 'no'")
+    
 cata='/Users/amartinez/Desktop/PhD/Libralato_data/CATALOGS/'
 pruebas='/Users/amartinez/Desktop/PhD/Libralato_data/pruebas/'
 results='/Users/amartinez/Desktop/PhD/Libralato_data/results/'
 # %%
 # We upload galactic center stars, that we will use in the CMD
 # catal=np.loadtxt(results+'refined_%s_PM.txt'%(name))
-catal_df=pd.read_csv(results+'%s_refined_with GNS_partner_mag_K_H.txt'%(name),sep=',',names=['ra','dec','x_c','y_c','mua','dmua','mud','dmud','time','n1','n2','idt','m139','Separation','Ks','H'])
+# catal_df=pd.read_csv(pruebas+'%s_refined_with_GNS_partner_mag_K_H.txt'%(name),sep=',',names=['ra','dec','x_c','y_c','mua','dmua','mud','dmud','time','n1','n2','idt','m139','Separation','Ks','H'])
 
+# "'RA_gns','DE_gns','Jmag','Hmag','Ksmag','ra','dec','x_c','y_c','mua','dmua','mud','dmud','time','n1','n2','ID','mul','mub','dmul','dmub','m139','Separation'",
+catal=np.loadtxt(pruebas + '%smatch_GNS_and_%s_refined_galactic.txt'%(pre,name))
+
+
+
+
+
+# catal=catal_df.to_numpy()
+# valid=np.where(np.isnan(catal[:,14])==False)
 # mul_mc,mub_mc,dmul_mc,dmub_mc
-gal_coor=np.loadtxt(results+'match_GNS_and_WFC3IR_refined_galactic.txt')
+# gal_coor=catal[:,[17,18,19,20]]
 
-catal=catal_df.to_numpy()
-valid=np.where(np.isnan(catal[:,14])==False)
-catal=catal[valid]
-gal_coor=gal_coor[valid]
-# no_fg=np.where(catal[:,12]-catal[:,14]>2.5)
-# =============================================================================
-# no_fg=np.where(catal[:,-1]-catal[:,-2]>1.3)
-# catal=catal[no_fg]
-# gal_coor=gal_coor[no_fg]
-# =============================================================================
-catal=np.c_[catal,gal_coor[:,0],gal_coor[:,1]]#in here we add the values for the galactic pm, NOT galactic coordinates
 
 # %%
 cluster_by='all'# this varible can be 'pm' or 'pos', indicating if you want cluster by velocities or positions,or all for clustering in 4D
-alpha_g=192.85948
-delta_g = 27.12825
-tr=np.deg2rad
 
-#mul, mub, mua, mud, ra, dec,x_c,y_c,l,b,Ks, H, position in GALCEN_TABLE_D.cat 
+
+#mul, mub, mua, mud, ra, dec,dmul,dmub,l,b,Ks, H, m139, position in GALCEN_TABLE_D.cat 
 Ms_all=np.loadtxt(pruebas +'pm_of_Ms_in_WFC3IR.txt')# this are the information (pm, coordinates and ID) for the Ms that remain in the data after triming it 
 group_lst=Ms_all[:,-1]#indtinfication number for the Ms
 
@@ -80,43 +95,53 @@ pms=[0,0,0,0]
 
 
 
-# for g in range(len(group_lst)):
-for g in range(0,3):
+for g in range(len(group_lst)):
+# for g in range(4,5):
     # print(group_lst[g])
     samples=10# number of minimun objects that defined a cluster
     
     group=int(group_lst[g])
     #ra,dec,x_c,y_c,mua,dmua,mud,dmud,time,n1,n2,idt,m139,Separation,Ks,H,mul,mub,l,b
+    # "'RA_gns','DE_gns','Jmag','Hmag','Ksmag','ra','dec','x_c','y_c','mua','dmua','mud','dmud','time','n1','n2','ID','mul','mub','dmul','dmub','m139','Separation'",
     data=np.loadtxt(pruebas + 'group_%s_%s.txt'%(group,name))
     
     this=np.where(Ms_all[:,-1]==group)
     Ms=Ms_all[this]
+# %%    
+    ra_=data[:,5]
+    dec_=data[:,6]
+    # Process needed for the trasnformation to galactic coordinates
+    c = SkyCoord(ra=ra_*u.degree, dec=dec_*u.degree, frame='fk5')#you are using frame 'fk5' but maybe it si J2000, right? becouse this are Paco`s coordinates. Try out different frames
+    gal_c=c.galactic
+    
+    t_gal= QTable([gal_c.l,gal_c.b], names=('l','b'))  
+    
 # %%
     if cluster_by == 'pm':
-        X=np.array([data[:,-4]-pms[2],data[:,-3]-pms[3]]).T #Select pm (galactic)
+        X=np.array([data[:,-6]-pms[2],data[:,-5]-pms[3]]).T #Select pm (galactic)
     elif cluster_by == 'pos':
-        X=np.array([data[:,-2],data[:,-1]]).T #Select position (galactic)
+        X=np.array([t_gal['l'].value,t_gal['b'].value]).T #Select position (galactic)
     elif cluster_by == 'all':
-        X=np.array([data[:,-4]-pms[2],data[:,-3]-pms[3],data[:,-2],data[:,-1]]).T# in Castro-Ginard et al. 2018 they cluster the data in a 5D space: pm,position and paralax    
+        X=np.array([data[:,-6]-pms[2],data[:,-5]-pms[3],t_gal['l'].value,t_gal['b'].value]).T# in Castro-Ginard et al. 2018 they cluster the data in a 5D space: pm,position and paralax    
         
     X_stad = StandardScaler().fit_transform(X)
     print('These are the mean and std of X: %s %s'%(round(np.mean(X_stad),1),round(np.std(X_stad),1)))
     #THis is how I do it 
-    # tree=KDTree(X_stad, leaf_size=2) 
+    tree=KDTree(X_stad, leaf_size=2) 
 
-    # # dist, ind = tree.query(iris[:,0:2], k=5)
-    # dist, ind = tree.query(X_stad, k=samples) #DistNnce to the 1,2,3...k neighbour
-    # # d_KNN=sorted(dist[:,-1])#distance to the Kth neighbour
+    
+    dist, ind = tree.query(X_stad, k=samples) #DistNnce to the 1,2,3...k neighbour
+    d_KNN=sorted(dist[:,-1])#distance to the Kth neighbour
     # d_KNN=sorted(dist[:,1])# this is how Ban do it
 
     # This how Ban do it
-    nn = NearestNeighbors(n_neighbors=10, algorithm ='kd_tree')
-    nn.fit(X_stad)# our training is basically our dataset itself
-    dist, ind = nn.kneighbors(X_stad,10)
-    d_KNN = np.sort(dist, axis=0)
-    d_KNN = d_KNN[:,1] # this is the difference in bans method. She is selecting the distance to the closest 1st neigh.
+    # nn = NearestNeighbors(n_neighbors=samples, algorithm ='kd_tree')
+    # nn.fit(X_stad)# our training is basically our dataset itself
+    # dist, ind = nn.kneighbors(X_stad,samples)
+    # d_KNN = np.sort(dist, axis=0)
+    # d_KNN = d_KNN[:,1] # this is the difference in bans method. She is selecting the distance to the closest 1st neigh. I choose the last one d_KNN[:,-1]
     
-    eps_for_mean=[np.mean(dist[i]) for i in range(len(dist))]
+    # eps_for_mean=[np.mean(dist[i]) for i in range(len(dist))]
     # eps_for_mean =[]
     # for i in range(len(dist)):
      
@@ -133,15 +158,22 @@ for g in range(0,3):
 
     # %% tutorial at https://scikit-learn.org/stable/auto_examples/cluster/plot_dbscan.html#sphx-glr-auto-examples-cluster-plot-dbscan-py
     
-    epsilon=np.mean(eps_for_mean)
-    # epsilon=rodilla/1.5
-    # epsilon=0.45
-    
+    # epsilon=np.mean(eps_for_mean)
+    # epsilon=rodilla/
+    epsilon = round(min(d_KNN),2)
+    # epsilon=0.2
     clustering = DBSCAN(eps=epsilon, min_samples=samples).fit(X_stad)
-    
-    docu=DBSCAN.__doc__
-    
     l=clustering.labels_
+    loop=0
+    while len(set(l))< 2:
+        loop +=1
+        clustering = DBSCAN(eps=epsilon, min_samples=samples).fit(X_stad)
+        
+        l=clustering.labels_
+        epsilon +=0.01
+        
+        print('DBSCAN loop %s. Trying with eps=%s'%(loop,round(epsilon,3)))
+    print('This is the number of clusters: %s'%(len(set(l))-1))
     # %%Plots the vector poits plots for all the selected stars
 # =============================================================================
 #     fig, ax = plt.subplots(1,1,figsize=(8,8))
@@ -178,20 +210,23 @@ for g in range(0,3):
     # %%
     # print(colores_index)
     if n_clusters > 0:
-        fig, ax = plt.subplots(1,1,figsize=(8,8))
-        ax.plot(np.arange(0,len(data),1),d_KNN)
-        ax.legend(['knee=%s, min=%s, eps=%s, Dime=%s'%(round(kneedle.elbow_y, 3),round(min(d_KNN),2),round(epsilon,2),len(X[0]))])
-        ax.set_xlabel('Point') 
-        ax.set_ylabel('%s-NN distance'%(samples)) 
-        # print(round(kneedle.knee, 3))
-        # print(round(kneedle.elbow, 3))
-        # print(round(kneedle.knee_y, 3))
-        # print(round(kneedle.elbow_y, 3))
-        ax.axhline(round(kneedle.elbow_y, 3),linestyle='dashed',color='k')
+        #This plots the need plot
+# =============================================================================
+#         fig, ax = plt.subplots(1,1,figsize=(8,8))
+#         ax.plot(np.arange(0,len(data),1),d_KNN)
+#         ax.legend(['knee=%s, min=%s, eps=%s, Dim.=%s'%(round(kneedle.elbow_y, 3),round(min(d_KNN),2),round(epsilon,2),len(X[0]))])
+#         ax.set_xlabel('Point') 
+#         ax.set_ylabel('%s-NN distance'%(samples)) 
+#         # print(round(kneedle.knee, 3))
+#         # print(round(kneedle.elbow, 3))
+#         # print(round(kneedle.knee_y, 3))
+#         # print(round(kneedle.elbow_y, 3))
+#         ax.axhline(round(kneedle.elbow_y, 3),linestyle='dashed',color='k')
+# =============================================================================
         
         fig, ax = plt.subplots(1,2,figsize=(20,10))
         ax[0].set_title('Group %s. # of Clusters = %s'%(group, n_clusters))
-        ax[1].set_title('# of stars = #%s'%(len(l)))
+        ax[1].set_title('# of stars = #%s, eps=%s'%(len(l),epsilon))
         # for i in range(n_clusters):
         for i in range(len(set(l))):
             # fig, ax = plt.subplots(1,1,figsize=(10,10))
@@ -201,16 +236,24 @@ for g in range(0,3):
             ax[0].set_ylim(-10,10)
             ax[0].set_xlabel(r'$\mathrm{\mu_{l} (mas\ yr^{-1})}$') 
             ax[0].set_ylabel(r'$\mathrm{\mu_{b} (mas\ yr^{-1})}$') 
+        
             ax[0].scatter(Ms[0,0]-pms[2],Ms[0,1]-pms[3],s=50,color='red',marker='2')
             ax[0].scatter(pms[2],pms[3],s=150, marker='*')
             ax[0].invert_xaxis()
             
+            
+            
+            #ra,dec,x_c,y_c,mua,dmua,mud,dmud,time,n1,n2,idt,m139,Separation,Ks,H,mul,mub,l,b
+            #data="'RA_gns','DE_gns','Jmag','Hmag','Ksmag','ra','dec','dmul','dmub','mua','dmua','mud','dmud','time','n1','n2','ID','mul','mub','dmul','dmub','m139','Separation'",
+            
             # ax[1].scatter(data[:,0][colores_index[i]],data[:,1][colores_index[i]], color=colors[i],s=50)#plots in ecuatorials
-            ax[1].scatter(data[:,-2][colores_index[i]],data[:,-1][colores_index[i]], color=colors[i],s=50)#plots in galactic
-    
+            t_gal['l'] = t_gal['l'].wrap_at('180d')
+            ax[1].scatter(t_gal['l'][colores_index[i]].value,t_gal['b'][colores_index[i]].value, color=colors[i],s=50)#plots in galactic
+    #Ms=mul, mub, mua, mud, ra, dec,dmul,dmub,l,b,Ks, H, m139, position in GALCEN_TABLE_D.cat 
+
             ax[1].scatter(Ms[0,8],Ms[0,9],s=100,color='red',marker='2')
-            # ax[1].quiver(data[:,0][colores_index[i]], data[:,1][colores_index[i]], X[:,0][colores_index[i]]-pms[2], X[:,1][colores_index[i]]-pms[3], alpha=0.5, color=colors[i])#ecuatorial
-            ax[1].quiver(data[:,-2][colores_index[i]], data[:,-1][colores_index[i]], X[:,0][colores_index[i]], X[:,1][colores_index[i]], alpha=0.5, color=colors[i])#galactic
+            ax[1].quiver(t_gal['l'][colores_index[i]].value,t_gal['b'][colores_index[i]].value, X[:,0][colores_index[i]]-pms[2], X[:,1][colores_index[i]]-pms[3], alpha=0.5, color=colors[i])#ecuatorial
+            # ax[1].quiver(data[:,17][colores_index[i]], data[:,18][colores_index[i]], X[:,0][colores_index[i]], X[:,1][colores_index[i]], alpha=0.5, color=colors[i])#galactic
     
             # ax[1].set_xlabel('ra') 
             # ax[1].set_ylabel('dec') 
@@ -239,26 +282,29 @@ for g in range(0,3):
     #         ax.scatter(Ms[0,0],Ms[0,1],s=10,color='red')
     # =============================================================================
             
-    # %%
+    # %%'ra','dec','x_c','y_c','mua','dmua','mud','dmud','time','n1','n2','idt','m139','Separation','Ks','H'
+    # "'RA_gns','DE_gns','Jmag','Hmag','Ksmag','ra','dec','x_c','y_c','mua','dmua','mud','dmud','time','n1','n2','ID','mul','mub','dmul','dmub','m139','Separation'",
+
         #Plots CMD of clusterd stars and the rest
         #ra,dec,x_c,y_c,mua,dmua,mud,dmud,time,n1,n2,idt,m139,Separation,Ks,H,mul,mub
         radio=0.05
         fig, ax = plt.subplots(1,1,figsize=(8,8))
         ax.invert_yaxis()
-        area=np.where(np.sqrt((catal[:,0]-Ms[0,4])**2 + (catal[:,1]-Ms[0,5])**2)< radio)
-        ax.scatter(catal[:,-3][area]-catal[:,-4][area],catal[:,-4][area],color='k',marker='o',alpha=0.01,zorder=1)
+        area=np.where(np.sqrt((catal[:,5]-Ms[0,4])**2 + (catal[:,6]-Ms[0,5])**2)< radio)
+        ax.scatter(catal[:,3][area]-catal[:,4][area],catal[:,4][area],color='k',marker='o',alpha=0.01,zorder=1)
         # ax.arrow((Ms[0,11]-Ms[0,10])-0.2,Ms[0,10]-0.2,Ms[0,11]-Ms[0,10], Ms[0,10], color='red',zorder=3)
         
     
         # ax.scatter()
         ax.set_title('CMD. Group %s. # of Clusters = %s, #stars=%s'%(group, n_clusters,len(l)))
         for i in range(len(set(l))-1):
-            ax.scatter(data[:,15][colores_index[i]]-data[:,14][colores_index[i]],data[:,14][colores_index[i]], color=colors[i],s=50,zorder=2)
+            ax.scatter(data[:,3][colores_index[i]]-data[:,4][colores_index[i]],data[:,4][colores_index[i]], color=colors[i],s=50,zorder=2)
             ax.scatter((Ms[0,11]-Ms[0,10]),Ms[0,10], color='red',s=100,marker='2',zorder=3)
             ax.set_xlabel('H$-$Ks') 
             ax.set_ylabel('Ks') 
 
-   
+# %%
+print(min(t_gal['l'].value))
 
     
     
