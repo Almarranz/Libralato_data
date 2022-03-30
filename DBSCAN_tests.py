@@ -95,11 +95,11 @@ pms=[0,0,0,0]
 
 
 
-for g in range(len(group_lst)):
-# for g in range(4,5):
+# for g in range(len(group_lst)):
+for g in range(4,5):
     # print(group_lst[g])
-    samples=10# number of minimun objects that defined a cluster
-    
+    samples=5# number of minimun objects that defined a cluster
+    samples_dist = samples# the distance to the kth neightbour that will define the frist epsilon for debsacn to star looping
     group=int(group_lst[g])
     #ra,dec,x_c,y_c,mua,dmua,mud,dmud,time,n1,n2,idt,m139,Separation,Ks,H,mul,mub,l,b
     # "'RA_gns','DE_gns','Jmag','Hmag','Ksmag','ra','dec','x_c','y_c','mua','dmua','mud','dmud','time','n1','n2','ID','mul','mub','dmul','dmub','m139','Separation'",
@@ -130,7 +130,7 @@ for g in range(len(group_lst)):
     tree=KDTree(X_stad, leaf_size=2) 
 
     
-    dist, ind = tree.query(X_stad, k=samples) #DistNnce to the 1,2,3...k neighbour
+    dist, ind = tree.query(X_stad, k=samples_dist) #DistNnce to the 1,2,3...k neighbour
     d_KNN=sorted(dist[:,-1])#distance to the Kth neighbour
     # d_KNN=sorted(dist[:,1])# this is how Ban do it
 
@@ -303,10 +303,25 @@ for g in range(len(group_lst)):
             ax.set_xlabel('H$-$Ks') 
             ax.set_ylabel('Ks') 
 
-# %%
-print(min(t_gal['l'].value))
 
+# %%
+        rojo1=np.where((catal[:,3][area]-catal[:,4][area]>1.3) )#& (abs(catal[:,3][area]-catal[:,4][area]<1.3+0.3) ))
+        catal_r=catal[rojo1]
+        rojo=np.where(abs(catal_r[:,3]-catal_r[:,4]<0.1))
+        catal_r=catal_r[rojo]
+        
+        
+        fig, ax = plt.subplots(1,1,figsize=(8,8))
+        # ax.invert_yaxis()
+        # ax.scatter(catal[:,3][area],catal[:,4][area],color='k',marker='o',alpha=0.01,zorder=1)
+        # ax.scatter(catal[:,3][area][rojo],catal[:,4][area][rojo],color='tomato',marker='o',alpha=0.01,zorder=1)
+        ax.scatter(np.abs(catal_r[:,3]-catal_r[:,4]),catal_r[:,4]-catal_r[:,3],color='tomato',marker='o',alpha=0.1,zorder=1)
+        
+        # ax.set_ylabel('Ks') 
+        # ax.set_xlabel('|H$-$Ks|') 
+# %%
+        print(min(np.abs(catal[:,4][area][rojo]-catal[:,3][area][rojo])))    
+# %%
+        abs_v=np.abs(catal_r[:,4]-catal_r[:,3])
     
-    
-    
-    
+        print(min(abs_v))
