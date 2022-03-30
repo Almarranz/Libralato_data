@@ -19,6 +19,10 @@ import sys
 from astropy import units as u
 from astropy.coordinates import SkyCoord
 from astropy.table import QTable
+import pylab as p
+r_u=22
+# from co_moving_groups import r_u #Here you can chooose to run co_moving_gropus and use its r_u or choose your r_u
+
 # %%
 from sklearn.preprocessing import StandardScaler
 rcParams.update({'xtick.major.pad': '7.0'})
@@ -96,14 +100,14 @@ pms=[0,0,0,0]
 
 
 # for g in range(len(group_lst)):
-for g in range(4,5):
+for g in range(0,5):
     # print(group_lst[g])
     samples=5# number of minimun objects that defined a cluster
     samples_dist = samples# the distance to the kth neightbour that will define the frist epsilon for debsacn to star looping
     group=int(group_lst[g])
     #ra,dec,x_c,y_c,mua,dmua,mud,dmud,time,n1,n2,idt,m139,Separation,Ks,H,mul,mub,l,b
     # "'RA_gns','DE_gns','Jmag','Hmag','Ksmag','ra','dec','x_c','y_c','mua','dmua','mud','dmud','time','n1','n2','ID','mul','mub','dmul','dmub','m139','Separation'",
-    data=np.loadtxt(pruebas + 'group_%s_%s.txt'%(group,name))
+    data=np.loadtxt(pruebas + 'group_radio%s_%s_%s.txt'%(r_u,group,name))
     
     this=np.where(Ms_all[:,-1]==group)
     Ms=Ms_all[this]
@@ -225,7 +229,7 @@ for g in range(4,5):
 # =============================================================================
         
         fig, ax = plt.subplots(1,2,figsize=(20,10))
-        ax[0].set_title('Group %s. # of Clusters = %s'%(group, n_clusters))
+        ax[0].set_title('Group %s, radio = %s # of Clusters = %s'%(group,r_u, n_clusters))
         ax[1].set_title('# of stars = #%s, eps=%s'%(len(l),epsilon))
         # for i in range(n_clusters):
         for i in range(len(set(l))):
@@ -296,32 +300,35 @@ for g in range(4,5):
         
     
         # ax.scatter()
-        ax.set_title('CMD. Group %s. # of Clusters = %s, #stars=%s'%(group, n_clusters,len(l)))
+        ax.set_title('Group %s,radio %s Clrs = %s, #=%s'%(group,r_u,n_clusters,len(l)))
         for i in range(len(set(l))-1):
+           
+            min_c=min(data[:,3][colores_index[i]]-data[:,4][colores_index[i]])
+            max_c=max(data[:,3][colores_index[i]]-data[:,4][colores_index[i]])
+            min_Ks=min(data[:,4][colores_index[i]])
+            p.arrow(max_c+max_c/5,min_Ks+0.5,-(max_c+max_c/5-max_c),0,head_width=0.05,color=colors[i])
             ax.scatter(data[:,3][colores_index[i]]-data[:,4][colores_index[i]],data[:,4][colores_index[i]], color=colors[i],s=50,zorder=2)
+            ax.axvline(min_c,color=colors[i],ls='dashed',alpha=0.5)
+            ax.axvline(max_c,color=colors[i],ls='dashed',alpha=0.5)
+            ax.annotate('%s'%(round(max_c-min_c,3)),(max_c+max_c/5,min_Ks+0.5),color=colors[i])
             ax.scatter((Ms[0,11]-Ms[0,10]),Ms[0,10], color='red',s=100,marker='2',zorder=3)
             ax.set_xlabel('H$-$Ks') 
             ax.set_ylabel('Ks') 
 
 
-# %%
-        rojo1=np.where((catal[:,3][area]-catal[:,4][area]>1.3) )#& (abs(catal[:,3][area]-catal[:,4][area]<1.3+0.3) ))
-        catal_r=catal[rojo1]
-        rojo=np.where(abs(catal_r[:,3]-catal_r[:,4]<0.1))
-        catal_r=catal_r[rojo]
+# %%Here I trying to figure out how to include color in dbscan, without much luch...
+        # rojo1=np.where((catal[:,3][area]-catal[:,4][area]>1.3) )#& (abs(catal[:,3][area]-catal[:,4][area]<1.3+0.3) ))
+        # catal_r=catal[rojo1]
+        # rojo=np.where(abs(catal_r[:,3]-catal_r[:,4]<0.1))
+        # catal_r=catal_r[rojo]
         
         
-        fig, ax = plt.subplots(1,1,figsize=(8,8))
-        # ax.invert_yaxis()
-        # ax.scatter(catal[:,3][area],catal[:,4][area],color='k',marker='o',alpha=0.01,zorder=1)
-        # ax.scatter(catal[:,3][area][rojo],catal[:,4][area][rojo],color='tomato',marker='o',alpha=0.01,zorder=1)
-        ax.scatter(np.abs(catal_r[:,3]-catal_r[:,4]),catal_r[:,4]-catal_r[:,3],color='tomato',marker='o',alpha=0.1,zorder=1)
+        # fig, ax = plt.subplots(1,1,figsize=(8,8))
+        # # ax.invert_yaxis()
+        # # ax.scatter(catal[:,3][area],catal[:,4][area],color='k',marker='o',alpha=0.01,zorder=1)
+        # # ax.scatter(catal[:,3][area][rojo],catal[:,4][area][rojo],color='tomato',marker='o',alpha=0.01,zorder=1)
+        # ax.scatter(np.abs(catal_r[:,3]-catal_r[:,4]),catal_r[:,4]-catal_r[:,3],color='tomato',marker='o',alpha=0.1,zorder=1)
         
-        # ax.set_ylabel('Ks') 
-        # ax.set_xlabel('|H$-$Ks|') 
-# %%
-        print(min(np.abs(catal[:,4][area][rojo]-catal[:,3][area][rojo])))    
-# %%
-        abs_v=np.abs(catal_r[:,4]-catal_r[:,3])
-    
-        print(min(abs_v))
+        # # ax.set_ylabel('Ks') 
+        # # ax.set_xlabel('|H$-$Ks|') 
+#
