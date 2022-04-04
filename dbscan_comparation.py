@@ -92,7 +92,7 @@ catal=np.loadtxt(pruebas + '%smatch_GNS_and_%s_refined_galactic.txt'%(pre,name))
 
 
 # %%
-cluster_by='all'# this varible can be 'pm' or 'pos', indicating if you want cluster by velocities or positions,or all for clustering in 4D
+cluster_by='all_color'# this varible can be 'pm' or 'pos', indicating if you want cluster by velocities or positions,or all for clustering in 4D
 
 
 #mul, mub, mua, mud, ra, dec,dmul,dmub,l,b,Ks, H, m139, position in GALCEN_TABLE_D.cat 
@@ -142,7 +142,8 @@ for g in range(len(group_lst)):
             X=np.array([t_gal['l'].value,t_gal['b'].value]).T #Select position (galactic)
         elif cluster_by == 'all':
             X=np.array([data[:,-6]-pms[2],data[:,-5]-pms[3],t_gal['l'].value,t_gal['b'].value]).T# in Castro-Ginard et al. 2018 they cluster the data in a 5D space: pm,position and paralax    
-            
+        elif cluster_by == 'all_color':
+            X=np.array([data[:,-6]-pms[2],data[:,-5]-pms[3],t_gal['l'].value,t_gal['b'].value,data[:,3]-data[:,4]]).T#
         X_stad = StandardScaler().fit_transform(X)
         print('These are the mean and std of X: %s %s'%(round(np.mean(X_stad),1),round(np.std(X_stad),1)))
         #THis is how I do it 
@@ -314,6 +315,7 @@ for g in range(len(group_lst)):
                     ax[2].set_ylabel('Ks') 
                     
                     
-                    
-                    
-    
+
+
+
+   
