@@ -92,11 +92,11 @@ catal=np.loadtxt(pruebas + '%smatch_GNS_and_%s_refined_galactic.txt'%(pre,name))
 
 
 # %%
-cluster_by='all_color'# this varible can be 'pm' or 'pos', indicating if you want cluster by velocities or positions,or all for clustering in 4D
+cluster_by='all_pixel'# this varible can be 'pm' or 'pos', indicating if you want cluster by velocities or positions,or all for clustering in 4D
 
 
 #mul, mub, mua, mud, ra, dec,dmul,dmub,l,b,Ks, H, m139, position in GALCEN_TABLE_D.cat 
-Ms_all=np.loadtxt(pruebas +'pm_of_Ms_in_WFC3IR.txt')# this are the information (pm, coordinates and ID) for the Ms that remain in the data after triming it 
+Ms_all=np.loadtxt(pruebas +'pm_of_Ms_in_%s.txt'%(name))# this are the information (pm, coordinates and ID) for the Ms that remain in the data after triming it 
 group_lst=Ms_all[:,-1]#indtinfication number for the Ms
 
 # pms=[-3.156,-5.585,-6.411,-0.219]#this are the ecu(mua,mud) and galactic(mul,mub) pm of SrgA* (Reid & Brunthaler (2020))
@@ -106,20 +106,22 @@ pms=[0,0,0,0]
 
 
 
-for g in range(len(group_lst)):
-# for g in range(0,2):
+# for g in range(len(group_lst)):
+for g in range(0,10):
     seed(g)
     fig, ax = plt.subplots(1,1,figsize=(30,10))
     ax.set_ylim(0,10)
     ax.text(0.0, 5, 'Group %s'%(int(group_lst[g])),fontsize= 400,color=plt.cm.rainbow(random()))
     
     # print(group_lst[g])
-    samples=5# number of minimun objects that defined a cluster
+    samples=7# number of minimun objects that defined a cluster
     samples_dist = samples# the distance to the kth neightbour that will define the frist epsilon for debsacn to star looping
     group=int(group_lst[g])
     #ra,dec,x_c,y_c,mua,dmua,mud,dmud,time,n1,n2,idt,m139,Separation,Ks,H,mul,mub,l,b
     # "'RA_gns','DE_gns','Jmag','Hmag','Ksmag','ra','dec','x_c','y_c','mua','dmua','mud','dmud','time','n1','n2','ID','mul','mub','dmul','dmub','m139','Separation'",
-    r_u=[11,22,32,43]
+    # r_u=[22,32,43,76]#this are the radios around the MS
+    r_u=[22,32]#this are the radios around the MS
+
     for r in  range(len(r_u)):
       
         data=np.loadtxt(pruebas + 'group_radio%s_%s_%s.txt'%(r_u[r],group,name))
@@ -138,14 +140,19 @@ for g in range(len(group_lst)):
     # %%
         if cluster_by == 'pm':
             X=np.array([data[:,-6]-pms[2],data[:,-5]-pms[3]]).T #Select pm (galactic)
+        elif cluster_by == 'pm_color':
+            X=np.array([data[:,-6]-pms[2],data[:,-5]-pms[3],data[:,3]-data[:,4]]).T #Select pm (galactic)
         elif cluster_by == 'pos':
-            X=np.array([t_gal['l'].value,t_gal['b'].value]).T #Select position (galactic)
+            # X=np.array([t_gal['l'].value,t_gal['b'].value]).T #Select position (galactic)
+            X=np.array([data[:,7],data[:,8]]).T #Select position (pixels)
         elif cluster_by == 'all':
             X=np.array([data[:,-6]-pms[2],data[:,-5]-pms[3],t_gal['l'].value,t_gal['b'].value]).T# in Castro-Ginard et al. 2018 they cluster the data in a 5D space: pm,position and paralax    
+        elif cluster_by == 'all_pixel':
+            X=np.array([data[:,-6]-pms[2],data[:,-5]-pms[3],data[:,7],data[:,8]]).T# using pixel position instead of coordinates for the clustering   
         elif cluster_by == 'all_color':
             X=np.array([data[:,-6]-pms[2],data[:,-5]-pms[3],t_gal['l'].value,t_gal['b'].value,data[:,3]-data[:,4]]).T#
         X_stad = StandardScaler().fit_transform(X)
-        print('These are the mean and std of X: %s %s'%(round(np.mean(X_stad),1),round(np.std(X_stad),1)))
+        # print('These are the mean and std of X: %s %s'%(round(np.mean(X_stad),1),round(np.std(X_stad),1)))
         #THis is how I do it 
         tree=KDTree(X_stad, leaf_size=2) 
     
@@ -179,7 +186,7 @@ for g in range(len(group_lst)):
         # %% tutorial at https://scikit-learn.org/stable/auto_examples/cluster/plot_dbscan.html#sphx-glr-auto-examples-cluster-plot-dbscan-py
         
         # epsilon=np.mean(eps_for_mean)
-        # epsilon=rodilla/
+        # epsilon=rodilla
         epsilon = round(min(d_KNN),2)
         # epsilon=0.2
         clustering = DBSCAN(eps=epsilon, min_samples=samples).fit(X_stad)
@@ -210,7 +217,7 @@ for g in range(len(group_lst)):
         
         
         n_clusters = len(set(l)) - (1 if -1 in l else 0)
-        print('Number of cluster for group %s with eps=%s and min_sambles=%s: %s'%(group,round(epsilon,2),samples,n_clusters))
+        print('Group %s.Number of cluster, eps=%s and min_sambles=%s: %s'%(group,round(epsilon,2),samples,n_clusters))
         n_noise=list(l).count(-1)
         # %%
         u_labels = set(l)
@@ -248,14 +255,18 @@ for g in range(len(group_lst)):
             
             ax[2].invert_yaxis()
             seed(g)
-            ax[0].set_title('Group %s, radio = %s # of Clusters = %s'%(group,r_u[r], n_clusters),color=plt.cm.rainbow(random()))
+            ax[0].set_title('Group %s, radio = %s, # of Clusters = %s'%(group,r_u[r], n_clusters),color=plt.cm.rainbow(random()))
             seed(g)
             ax[1].set_title('# of stars = #%s, eps=%s'%(len(l),round(epsilon,3)),color=plt.cm.rainbow(random()))
+            t_gal['l'] = t_gal['l'].wrap_at('180d')
+            ax[0].scatter(X[:,0][colores_index[-1]],X[:,1][colores_index[-1]], color=colors[-1],s=50,zorder=1)
+            ax[1].quiver(t_gal['l'][colores_index[-1]].value,t_gal['b'][colores_index[-1]].value, X[:,0][colores_index[-1]]-pms[2], X[:,1][colores_index[-1]]-pms[3], alpha=0.5, color=colors[-1])
+
             # for i in range(n_clusters):
-            for i in range(len(set(l))):
+            for i in range(len(set(l))-1):
                 # fig, ax = plt.subplots(1,1,figsize=(10,10))
                 # ax.set_title('Cluster #%s'%(i+1))
-                ax[0].scatter(X[:,0][colores_index[i]],X[:,1][colores_index[i]], color=colors[i],s=50)
+                ax[0].scatter(X[:,0][colores_index[i]],X[:,1][colores_index[i]], color=colors[i],s=50,zorder=3)
                 ax[0].set_xlim(-10,10)
                 ax[0].set_ylim(-10,10)
                 ax[0].set_xlabel(r'$\mathrm{\mu_{l} (mas\ yr^{-1})}$') 
@@ -272,11 +283,11 @@ for g in range(len(group_lst)):
                 
                 # ax[1].scatter(data[:,0][colores_index[i]],data[:,1][colores_index[i]], color=colors[i],s=50)#plots in ecuatorials
                 t_gal['l'] = t_gal['l'].wrap_at('180d')
-                ax[1].scatter(t_gal['l'][colores_index[i]].value,t_gal['b'][colores_index[i]].value, color=colors[i],s=50)#plots in galactic
+                ax[1].scatter(t_gal['l'][colores_index[i]].value,t_gal['b'][colores_index[i]].value, color=colors[i],s=50,zorder=3)#plots in galactic
         #Ms=mul, mub, mua, mud, ra, dec,dmul,dmub,l,b,Ks, H, m139, position in GALCEN_TABLE_D.cat 
     
                 ax[1].scatter(Ms[0,8],Ms[0,9],s=100,color='red',marker='2')
-                ax[1].quiver(t_gal['l'][colores_index[i]].value,t_gal['b'][colores_index[i]].value, X[:,0][colores_index[i]]-pms[2], X[:,1][colores_index[i]]-pms[3], alpha=0.5, color=colors[i])#ecuatorial
+                ax[1].quiver(t_gal['l'][colores_index[i]].value,t_gal['b'][colores_index[i]].value, X[:,0][colores_index[i]]-pms[2], X[:,1][colores_index[i]]-pms[3], alpha=0.5, color=colors[i])
                 # ax[1].quiver(data[:,17][colores_index[i]], data[:,18][colores_index[i]], X[:,0][colores_index[i]], X[:,1][colores_index[i]], alpha=0.5, color=colors[i])#galactic
         
                 # ax[1].set_xlabel('ra') 
@@ -294,7 +305,7 @@ for g in range(len(group_lst)):
             
                 radio=0.05
                 seed(g)
-                ax[2].set_title('#%s, radio = %s # of Clusters = %s'%(g,r_u[r], n_clusters),color=plt.cm.rainbow(random()))
+                ax[2].set_title('#%s/112,min stars/cluster = %s'%(g, samples),color=plt.cm.rainbow(random()))
                 
                 area=np.where(np.sqrt((catal[:,5]-Ms[0,4])**2 + (catal[:,6]-Ms[0,5])**2)< radio)
                 ax[2].scatter(catal[:,3][area]-catal[:,4][area],catal[:,4][area],color='k',marker='o',alpha=0.01,zorder=1)
