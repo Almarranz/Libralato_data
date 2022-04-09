@@ -167,14 +167,14 @@ from kneed import DataGenerator, KneeLocator
 
     
 # %
-# X=np.array([pml,pmb,l,b]).T
-X=np.array([pml,pmb]).T
+X=np.array([pml,pmb,l,b]).T
+# X=np.array([pml,pmb]).T
 # X=np.array([l,b]).T
 
 X_stad = StandardScaler().fit_transform(X)
 # X_stad=X
 
-samples_dist=200
+samples_dist=14
 tree=KDTree(X_stad, leaf_size=2) 
 dist, ind = tree.query(X_stad, k=samples_dist) 
 # d_KNN=sorted(dist[:,-1])
@@ -187,8 +187,8 @@ rodilla=round(kneedle.elbow_y, 3)
 # =============================================================================
 # # Choose the right epsilon is crucial. I didnt figure it out yet...
 # =============================================================================
-epsilon=rodilla
-# epsilon = min(d_KNN)
+# epsilon=rodilla
+epsilon = min(d_KNN)+0.1
 
 
 fig, ax = plt.subplots(1,1,figsize=(8,8))
@@ -237,6 +237,34 @@ plotting('l','b',l[colores_index[-1]], b[colores_index[-1]],1, color=colors[-1],
 
 
 # %%
-print(X.shape[0])
+
+# %%
+# Now that we can find a cluster, we are going to tryint again changing the distance, e.g. zooming in the data
+# so, we choose randomnly a cluster point and performn the clustering only on the points within a certain distance
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
