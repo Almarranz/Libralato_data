@@ -131,15 +131,15 @@ def density_plot(a,b,namex, namey, ind, **kwargs):
         ax[ind].invert_xaxis()
     return pl
 # %%This is the plottin section
-fig, ax = plt.subplots(1,3,figsize=(30,10))
-plotting('ra','dec',ra,dec,0,alpha=0.5)
-plotting('mura','mudec',pmra,pmdec,1,alpha=0.01)
-plotting('m127-m157','m157',m127-m153,m153,2,alpha=0.05)
-# %%
-fig, ax = plt.subplots(1,3,figsize=(30,10))
-plotting_h('ra','dec',ra,dec,0,bins=50,norm=matplotlib.colors.LogNorm())
-plotting_h('mura','mudec',pmra,pmdec,1,bins=50,norm=matplotlib.colors.LogNorm())
-plotting('m127-m157','m157',m127-m153,m153,2,alpha=0.2)
+# fig, ax = plt.subplots(1,3,figsize=(30,10))
+# plotting('ra','dec',ra,dec,0,alpha=0.5)
+# plotting('mura','mudec',pmra,pmdec,1,alpha=0.01)
+# plotting('m127-m157','m157',m127-m153,m153,2,alpha=0.05)
+# # %%
+# fig, ax = plt.subplots(1,3,figsize=(30,10))
+# plotting_h('ra','dec',ra,dec,0,bins=50,norm=matplotlib.colors.LogNorm())
+# plotting_h('mura','mudec',pmra,pmdec,1,bins=50,norm=matplotlib.colors.LogNorm())
+# plotting('m127-m157','m157',m127-m153,m153,2,alpha=0.2)
 
 # %%
 fig, ax = plt.subplots(1,3,figsize=(30,10))
@@ -223,7 +223,7 @@ for c in u_labels:
 
 
 fig, ax = plt.subplots(1,2,figsize=(20,10))
-ax[0].set_title('n of cluster = %s,eps=%s,min size=%s'%(n_clusters,epsilon,samples_dist))
+ax[0].set_title('n of cluster = %s,eps=%s,min size=%s'%(n_clusters,round(epsilon,2),samples_dist))
 ax[1].set_title('%s'%(choosen_cluster))
 ax[0].invert_xaxis()
 
@@ -241,10 +241,54 @@ plotting('l','b',l[colores_index[-1]], b[colores_index[-1]],1, color=colors[-1],
 # %%
 # Now that we can find a cluster, we are going to tryint again changing the distance, e.g. zooming in the data
 # so, we choose randomnly a cluster point and performn the clustering only on the points within a certain distance
+def plotting_h(namex,namey,x,y,ind,**kwargs):
+    try:
+        pl=ax[ind].hexbin(x.value,y.value,**kwargs)
+    except:
+        pl=ax[ind].hexbin(x,y,**kwargs)
+    try:
+        ax[ind].set_xlabel('%s(%s)'%(namex,x.unit)) # Set the axis label in the form "Variable description [units]"
+        ax[ind].set_ylabel('%s(%s)'%(namey, y.unit))
+    except:
+        ax[ind].set_xlabel('%s'%(namex)) 
+        ax[ind].set_ylabel('%s'%(namey))
+    if ind ==2:
+        ax[ind].invert_yaxis()
+    if ind ==1:
+        ax[ind].invert_xaxis()
+    return pl
+def plotting(namex,namey,x,y,ind,**kwargs):
 
+    pl=ax[ind].scatter(x,y,**kwargs)
+    
+    try:
+        ax[ind].set_xlabel('%s(%s)'%(namex,x.unit)) # Set the axis label in the form "Variable description [units]"
+        ax[ind].set_ylabel('%s(%s)'%(namey, y.unit))
+    except:
+        ax[ind].set_xlabel('%s'%(namex)) 
+        ax[ind].set_ylabel('%s'%(namey))
+    if ind ==2:
+        ax[ind].invert_yaxis()
+    return pl
+clus_gal=arc_gal[colores_index[0]]
+pm_clus=pm_gal[[colores_index[0]]]
+# pm_gal = SkyCoord(ra  = ra ,dec = dec, pm_ra_cosdec = pmra, pm_dec = pmdec,frame = 'icrs').galactic
 
+fig, ax = plt.subplots(1,2,figsize=(20,10))
 
+plotting('l','b',arc_gal.l, arc_gal.b,1)
+plotting('l','b',clus_gal.l, clus_gal.b,1)
+plotting('mul','mub',pm_gal.pm_l_cosb, pm_gal.pm_b,0)
+plotting('mul','mub',pm_clus.pm_l_cosb, pm_clus.pm_b,0)
+ax[0].invert_xaxis()
 
+# rand=np.random.choice(np.arange(0,len(qt_np_c)),1)
+# gns_rand=qt_np[rand]
+
+rand = np.random.choice(np.arange(0,len(pm_clus)),1)
+
+rand_clus = clus_gal[rand]
+rand_pm = pm_clus[rand]
 
 
 
