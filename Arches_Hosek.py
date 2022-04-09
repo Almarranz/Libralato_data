@@ -271,27 +271,39 @@ def plotting(namex,namey,x,y,ind,**kwargs):
         ax[ind].invert_yaxis()
     return pl
 clus_gal=arc_gal[colores_index[0]]
-pm_clus=pm_gal[[colores_index[0]]]
+pm_clus=pm_gal[colores_index[0]]
+# =============================================================================
+# # NOte to myself: pm_clus is a Skycoord pm obeject
+# # , that is not the same than a Skycoor coord objet. 
+# # The former stores coord and pm and, aparently to acces 
+# # the proper motions coordinate you have to do it separetly
+# # , i.e. pm_clus.pm_l_cob or pm_clu.b(doing pm_clus.pm does not worñ)
+# =============================================================================
 # pm_gal = SkyCoord(ra  = ra ,dec = dec, pm_ra_cosdec = pmra, pm_dec = pmdec,frame = 'icrs').galactic
 
 fig, ax = plt.subplots(1,2,figsize=(20,10))
+
+
+
+
+rand = np.random.choice(np.arange(0,len(clus_gal)),1)
+
+rand_clus = clus_gal[rand]
+rand_pm = pm_clus[rand]
+radio=10*u.arcsec
+idxc, group, d2d,d3d = clus_gal.search_around_sky(rand_clus, radio)
 
 plotting('l','b',arc_gal.l, arc_gal.b,1)
 plotting('l','b',clus_gal.l, clus_gal.b,1)
 plotting('mul','mub',pm_gal.pm_l_cosb, pm_gal.pm_b,0)
 plotting('mul','mub',pm_clus.pm_l_cosb, pm_clus.pm_b,0)
+
+
+
 ax[0].invert_xaxis()
-
-# rand=np.random.choice(np.arange(0,len(qt_np_c)),1)
-# gns_rand=qt_np[rand]
-
-rand = np.random.choice(np.arange(0,len(pm_clus)),1)
-
-rand_clus = clus_gal[rand]
-rand_pm = pm_clus[rand]
-
-
-
+# %%
+print((pm_clus.b[10]))
+print((clus_gal.b[10]))
 
 
 
