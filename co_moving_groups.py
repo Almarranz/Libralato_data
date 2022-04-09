@@ -44,9 +44,9 @@ rc('font',**{'family':'serif','serif':['Palatino']})
 cata='/Users/amartinez/Desktop/PhD/Libralato_data/CATALOGS/'
 pruebas='/Users/amartinez/Desktop/PhD/Libralato_data/pruebas/'
 results='/Users/amartinez/Desktop/PhD/Libralato_data/results/'
-name='WFC3IR'
-# name='ACSWFC'
-trimmed_data='yes'
+# name='WFC3IR'
+name='ACSWFC'
+trimmed_data='no'
 if trimmed_data=='yes':
     pre=''
 elif trimmed_data=='no':
@@ -76,16 +76,15 @@ elif center_definition =='G_G':
     catal=catal[valid]
     center=np.where(catal[:,3]-catal[:,4]>1.3)
 catal=catal[center]
-
-dmu_lim = 0.4
-vel_lim = np.where((catal[:,19]<=0.4) & (catal[:,20]<=0.4))
+dmu_lim = 5
+vel_lim = np.where((catal[:,19]<=dmu_lim) & (catal[:,20]<=dmu_lim))
 catal=catal[vel_lim]
 # mul_mc,mub_mc,dmul_mc,dmub_mc
 gal_coor=catal[:,[17,18,19,20]]#this separation of the galactic pms itsnt really neccesary. It is a reminisce of the previous version of the script
 # %%
 #Selecting search radio and trasforming it to arcsec for naming differents lists
 #Im doing this in order to compare the clusters found in different groups and check how much they depend of the searching radio 
-radio_ls=[0.003,0.006,0.009,0.012]
+radio_ls=[0.003,0.006,0.009,0.012,0.021]
 for r in range(len(radio_ls)):
     radio=radio_ls[r]
     r_u=radio*u.degree
@@ -100,7 +99,7 @@ for r in range(len(radio_ls)):
     # pms=[0,0,-5.60,0.20] #this is from the dynesty adjustment
     pms=np.array(pms)
     
-    for file_to_remove in glob.glob(pruebas+'group_radio%s*'%(r_u)):#Remove the files for previpus runs adn radios
+    for file_to_remove in glob.glob(pruebas+'group_radio%s_%s*'%(r_u,name)):#Remove the files for previpus runs adn radios
         os.remove(file_to_remove) 
     with open(pruebas+ 'MS_%s_radio%s.reg'%(name,r_u), 'w') as f:
             f.write('# Region file format: DS9 version 4.1'+"\n"+'global color=green dashlist=8 3 width=1 font="helvetica 10 normal roman" select=1 highlite=1 dash=0 fixed=0 edit=1 move=1 delete=1 include=1 source=1'+"\n"+'fk5'+'\n')
@@ -120,16 +119,18 @@ for r in range(len(radio_ls)):
                 f.write("\n"+'point(%s,%s) # point=x'%(float(catal[index[0],0]),float(catal[index[0],1]))+"\n"+
                         "\n"+ 'circle(%s,%s,%s)'%(float(catal[index[0],0]),float(catal[index[0],1]),radio)+' #text={%s,%s}'%(i,tipo[i]))
                 f.close
-# =============================================================================
-#             group=np.where(np.sqrt((catal[:,5]-catal[index[0],5])**2 + (catal[:,6]-catal[index[0],6])**2)< radio)
-# =============================================================================
+            group=np.where(np.sqrt((catal[:,5]-catal[index[0],5])**2 + (catal[:,6]-catal[index[0],6])**2)< radio)
             
-            Ms_coor=SkyCoord(catal[index[0],5]*u.degree,catal[index[0],6]*u.degree)
-            catalog = SkyCoord(ra=catal[:,5]*u.degree, dec=catal[:,6]*u.degree)
-            idxc, group, d2d,d3d = catalog.search_around_sky(Ms_coor, r_u*u.arcsec)
-            
-            # print(len(group[0]))
-            print(len(group))
+# =============================================================================
+#             Ms_coor=SkyCoord(catal[index[0],5]*u.degree,catal[index[0],6]*u.degree)
+#             catalog = SkyCoord(ra=catal[:,5]*u.degree, dec=catal[:,6]*u.degree)
+#             idxc, group, d2d,d3d = catalog.search_around_sky(Ms_coor, r_u*u.arcsec)
+#             
+# =============================================================================
+            print(len(group[0]))
+# =============================================================================
+#             print(len(group))
+# =============================================================================
             ra_=catal[:,5]
             dec_=catal[:,6]
             # Process needed for the trasnformation to galactic coordinates
@@ -146,40 +147,40 @@ for r in range(len(radio_ls)):
             np.savetxt(pruebas+'group_radio%s_%s_%s.txt'%(r_u,i,name),catal[group],fmt=formato,header=("'RA_gns','DE_gns','Jmag','Hmag','Ksmag','ra','dec','x_c','y_c','mua','dmua','mud','dmud','time','n1','n2','ID','mul','mub','dmul','dmub','m139','Separation'"))
             #This plots pmb vs pml and b vs l
     # =============================================================================
-    #         fig, ax = plt.subplots(1,2,figsize=(20,10))
-    #        
-    #         # This will plot the vectors and stars in the galactic frame
-    #         t_gal['l'] = t_gal['l'].wrap_at('180d')#doesnt split the plot when the grpu fall both ways of l,b=0,0
-    #         ax[0].scatter(t_gal['l'][index[0]],t_gal['b'][index[0]],color='red',s=100)
-    #         ax[0].scatter(t_gal['l'][group[0]],t_gal['b'][group[0]])
-    #         ax[0].quiver([t_gal['l'][group[0]]],[t_gal['b'][group[0]]],np.array([gal_coor[group[0],0]])-pms[2],np.array([gal_coor[group[0],1]])-pms[3])
-    #         ax[0].set_xlabel(r'$\mathrm{l}$') 
-    #         ax[0].set_ylabel(r'$\mathrm{b}$') 
-    # 
-    # 
-    #         ax[0].yaxis.set_major_formatter(FormatStrFormatter('%.3f'))
-    #         ax[0].xaxis.set_major_formatter(FormatStrFormatter('%.3f'))
-    #         ax[0].legend(['yso #%s, %s, #stars=%s'%(i,tipo[i],len(gal[group[0],0]))],markerscale=1,loc=1,handlelength=1)
-    #         
-    #         
-    #         #group_%s_%s.txt are the stars around the Massive one from the list of massive stars, thar are also in the trimmed(or not) Libralato data
-    #         
-    #         ax[1].scatter([gal_coor[index[0],0]]-pms[2],[gal_coor[index[0],1]]-pms[3],color='red',s=100)
-    #         ax[1].scatter([gal_coor[group[0],0]]-pms[2],[gal_coor[group[0],1]]-pms[3], alpha =0.2)
-    #         
-    #         
-    #         
-    #         
-    #         ax[1].yaxis.set_major_formatter(FormatStrFormatter('%.0f'))
-    #         ax[1].xaxis.set_major_formatter(FormatStrFormatter('%.0f'))
-    #         ax[1].legend(['yso #%s, %s'%(i,tipo[i])],markerscale=1,loc=1,handlelength=1)
-    #         ax[1].set_xlabel(r'$\mathrm{\mu_{l} (mas\ yr^{-1})}$') 
-    #         ax[1].set_ylabel(r'$\mathrm{\mu_{b} (mas\ yr^{-1})}$') 
-    #         ax[1].invert_xaxis()
-    #         
-    #         # ax[1].axvline(pms[2], color='orange',linestyle='dashed', linewidth=1)
-    #         # ax[1].axhline(pms[3], color='orange',linestyle='dashed', linewidth=1)
-    #         ax[1].scatter(pms[2],pms[3],s=150, marker='*')
+            fig, ax = plt.subplots(1,2,figsize=(20,10))
+            
+            # This will plot the vectors and stars in the galactic frame
+            t_gal['l'] = t_gal['l'].wrap_at('180d')#doesnt split the plot when the grpu fall both ways of l,b=0,0
+            ax[0].scatter(t_gal['l'][index[0]],t_gal['b'][index[0]],color='red',s=100)
+            ax[0].scatter(t_gal['l'][group[0]],t_gal['b'][group[0]])
+            ax[0].quiver([t_gal['l'][group[0]]],[t_gal['b'][group[0]]],np.array([gal_coor[group[0],0]])-pms[2],np.array([gal_coor[group[0],1]])-pms[3])
+            ax[0].set_xlabel(r'$\mathrm{l}$') 
+            ax[0].set_ylabel(r'$\mathrm{b}$') 
+    
+    
+            ax[0].yaxis.set_major_formatter(FormatStrFormatter('%.3f'))
+            ax[0].xaxis.set_major_formatter(FormatStrFormatter('%.3f'))
+            ax[0].legend(['yso #%s, %s, #stars=%s'%(i,tipo[i],len(gal[group[0],0]))],markerscale=1,loc=1,handlelength=1)
+            
+            
+            #group_%s_%s.txt are the stars around the Massive one from the list of massive stars, thar are also in the trimmed(or not) Libralato data
+            
+            ax[1].scatter([gal_coor[index[0],0]]-pms[2],[gal_coor[index[0],1]]-pms[3],color='red',s=100)
+            ax[1].scatter([gal_coor[group[0],0]]-pms[2],[gal_coor[group[0],1]]-pms[3], alpha =0.2)
+            
+            
+            
+            
+            ax[1].yaxis.set_major_formatter(FormatStrFormatter('%.0f'))
+            ax[1].xaxis.set_major_formatter(FormatStrFormatter('%.0f'))
+            ax[1].legend(['yso #%s, %s'%(i,tipo[i])],markerscale=1,loc=1,handlelength=1)
+            ax[1].set_xlabel(r'$\mathrm{\mu_{l} (mas\ yr^{-1})}$') 
+            ax[1].set_ylabel(r'$\mathrm{\mu_{b} (mas\ yr^{-1})}$') 
+            ax[1].invert_xaxis()
+            
+            # ax[1].axvline(pms[2], color='orange',linestyle='dashed', linewidth=1)
+            # ax[1].axhline(pms[3], color='orange',linestyle='dashed', linewidth=1)
+            ax[1].scatter(pms[2],pms[3],s=150, marker='*')
     # =============================================================================
             found +=1
             t_gal['l'] = t_gal['l'].wrap_at('180d')#doesnt split the plot when the grpu fall both ways of l,b=0,0
@@ -200,7 +201,8 @@ for r in range(len(radio_ls)):
     print('Found %s , missing %s'%(found, missing)+'\n'+30*'#')
     
     
-    
+# %%
+
     
     
     
