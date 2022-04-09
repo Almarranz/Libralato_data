@@ -46,14 +46,16 @@ from matplotlib import rc
 rc('font',**{'family':'serif','serif':['Palatino']})
 plt.rcParams.update({'figure.max_open_warning': 0})# a warniing for matplot lib pop up because so many plots, this turining it of
 
-#%% Test on commit
+#%% 
 catal='/Users/amartinez/Desktop/PhD/Arches_and_Quintuplet_Hosek/'
 pruebas='/Users/amartinez/Desktop/PhD/Arches_and_Quintuplet_Hosek/pruebas/'
-#Arches reference point 
-center_arc = SkyCoord('17h45m50.4769267s', '-28d49m19.16770s', frame='icrs')
-#Choose Arches or Quintuplet
-arches=Table.read(catal + 'Arches_cat_H22_Pclust.fits')
-# arches = Table.read(catal + 'Quintuplet_cat_H22_Pclust.fits')
+# =============================================================================
+# #Choose Arches or Quintuplet
+# =============================================================================
+choosen_cluster = 'Arches'
+
+center_arc = SkyCoord('17h45m50.4769267s', '-28d49m19.16770s', frame='icrs') if choosen_cluster =='Arches' else SkyCoord('17h46m15.13s', '-28d49m34.7s', frame='icrs')#Quintuplet
+arches=Table.read(catal + 'Arches_cat_H22_Pclust.fits') if choosen_cluster =='Arches' else Table.read(catal + 'Quintuplet_cat_H22_Pclust.fits')
 
 columnas=str(arches.columns)
 arc_coor=SkyCoord(ra=arches['ra*']*u.arcsec+center_arc.ra,dec=arches['dec']*u.arcsec+ center_arc.dec)
@@ -165,8 +167,8 @@ from kneed import DataGenerator, KneeLocator
 
     
 # %
-X=np.array([pml,pmb,l,b]).T
-# X=np.array([pml,pmb]).T
+# X=np.array([pml,pmb,l,b]).T
+X=np.array([pml,pmb]).T
 # X=np.array([l,b]).T
 
 X_stad = StandardScaler().fit_transform(X)
@@ -176,7 +178,7 @@ samples_dist=200
 tree=KDTree(X_stad, leaf_size=2) 
 dist, ind = tree.query(X_stad, k=samples_dist) 
 # d_KNN=sorted(dist[:,-1])
-nn=4
+nn=5
 rev=False
 d_KNN=sorted(dist[:,nn],reverse=rev)
 
@@ -222,6 +224,7 @@ for c in u_labels:
 
 fig, ax = plt.subplots(1,2,figsize=(20,10))
 ax[0].set_title('n of cluster = %s,eps=%s,min size=%s'%(n_clusters,epsilon,samples_dist))
+ax[1].set_title('%s'%(choosen_cluster))
 ax[0].invert_xaxis()
 
 for i in range(len(set(l_c))-1):
