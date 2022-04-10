@@ -13,6 +13,7 @@ from matplotlib.ticker import FormatStrFormatter
 import pandas as pd
 from astropy.coordinates import match_coordinates_sky, SkyOffsetFrame, ICRS,offset_by
 from astropy.coordinates import SkyCoord
+import astropy.coordinates as ap_coor
 import astropy.units as u
 from astropy.table import QTable
 from matplotlib import rcParams
@@ -174,36 +175,52 @@ X=np.array([pml,pmb,l,b]).T
 X_stad = StandardScaler().fit_transform(X)
 # X_stad=X
 
-samples_dist=14
+samples_dist=12
 tree=KDTree(X_stad, leaf_size=2) 
 dist, ind = tree.query(X_stad, k=samples_dist) 
 # d_KNN=sorted(dist[:,-1])
-nn=5
+nn= samples_dist- 1
 rev=False
 d_KNN=sorted(dist[:,nn],reverse=rev)
 
 kneedle = KneeLocator(np.arange(0,len(X),1), d_KNN, curve='convex', interp_method = "polynomial",direction='increasing' if rev ==False else 'decreasing')
-rodilla=round(kneedle.elbow_y, 3)
+codillo = KneeLocator(np.arange(0,len(X),1), d_KNN, curve='concave', interp_method = "polynomial",direction='increasing' if rev ==False else 'decreasing')
+rodilla = round(kneedle.elbow_y, 3)
+codo = round(codillo.elbow_y, 3)
 # =============================================================================
 # # Choose the right epsilon is crucial. I didnt figure it out yet...
 # =============================================================================
 # epsilon=rodilla
-epsilon = min(d_KNN)+0.1
+epsilon = codo
+# epsilon = min(d_KNN)+0.06
 
 
 fig, ax = plt.subplots(1,1,figsize=(8,8))
 ax.plot(np.arange(0,len(X),1),d_KNN)
 ax.set_xlabel('Point') 
-ax.set_ylabel('%s-NN distance'%(nn))
-ax.axhline(round(kneedle.elbow_y, 3),linestyle='dashed',color='k') 
-ax.legend(['knee=%s, min=%s, eps=%s, Dim.=%s'%(rodilla,round(min(d_KNN),2),round(epsilon,2),len(X[0]))])
+ax.set_ylabel('%s-NN distance'%(nn+1))
+ax.axhline(rodilla,linestyle='dashed',color='k') 
+ax.axhline(codo,linestyle='dashed',color='k') 
+ax.axhline(epsilon,linestyle='dashed',color='red') 
+ax.text(0,codo, '%s'%(codo))
+ax.text(0,rodilla, '%s'%(rodilla))
+ax.text(len(X)/2,epsilon, '%s'%(round(epsilon,3)),color='red')
+
+ax.legend(['knee=%s,min=%s, eps=%s, Dim.=%s'%(rodilla,round(min(d_KNN),2),round(epsilon,2),len(X[0]))])
 
 
 
 clustering = DBSCAN(eps=epsilon, min_samples=samples_dist).fit(X_stad)
 
 l_c=clustering.labels_
-
+loop=0
+while len(set(l_c)) > 3:
+    loop +=1
+    samples_dist+=1
+    clustering = DBSCAN(eps=epsilon, min_samples=samples_dist).fit(X_stad)
+    l_c=clustering.labels_
+    print('loop %s min size = %s'%(loop,samples_dist))
+    
 n_clusters = len(set(l_c)) - (1 if -1 in l_c else 0)
 n_noise=list(l_c).count(-1)
 
@@ -235,7 +252,7 @@ plotting('mul','mub',pml[colores_index[-1]], pmb[colores_index[-1]],0, color=col
 # plotting_h('mul','mub',X[:,0][colores_index[-1]], X[:,1][colores_index[-1]],0, color=colors[-1],zorder=1)
 plotting('l','b',l[colores_index[-1]], b[colores_index[-1]],1, color=colors[-1],zorder=1)
 
-
+sys.exit()
 # %%
 
 # %%
@@ -285,33 +302,82 @@ fig, ax = plt.subplots(1,2,figsize=(20,10))
 
 
 
-
 rand = np.random.choice(np.arange(0,len(clus_gal)),1)
 
 rand_clus = clus_gal[rand]
 rand_pm = pm_clus[rand]
-radio=10*u.arcsec
-idxc, group, d2d,d3d = clus_gal.search_around_sky(rand_clus, radio)
+radio=20*u.arcsec
 
+# idxc, group, d2d,d3d = clus_gal.search_around_sky(rand_clus, radio)
+id_clus, id_arc, d2d,d3d = ap_coor.search_around_sky(rand_clus,arc_gal, radio)
+
+
+ax[1].set_title('Radio = %s'%(radio))
+ax[0].set_title('%s'%(choosen_cluster))
 plotting('l','b',arc_gal.l, arc_gal.b,1)
 plotting('l','b',clus_gal.l, clus_gal.b,1)
+# plotting('l','b',clus_gal.l[group], clus_gal.b[group],1)
+plotting('l','b',arc_gal.l[id_arc], arc_gal.b[id_arc],1,alpha=0.1)
+
 plotting('mul','mub',pm_gal.pm_l_cosb, pm_gal.pm_b,0)
 plotting('mul','mub',pm_clus.pm_l_cosb, pm_clus.pm_b,0)
+# plotting('mul','mub',pm_clus.pm_l_cosb[group], pm_clus.pm_b[group],0)
+plotting('mul','mub',pml[id_arc], pmb[id_arc],0,alpha=0.1)
 
 
 
 ax[0].invert_xaxis()
 # %%
-print((pm_clus.b[10]))
-print((clus_gal.b[10]))
+def plotting(namex,namey,x,y,ind,**kwargs):
+
+    pl=ax[ind].scatter(x,y,**kwargs)
+    
+    try:
+        ax[ind].set_xlabel('%s(%s)'%(namex,x.unit)) # Set the axis label in the form "Variable description [units]"
+        ax[ind].set_ylabel('%s(%s)'%(namey, y.unit))
+    except:
+        ax[ind].set_xlabel('%s'%(namex)) 
+        ax[ind].set_ylabel('%s'%(namey))
+    if ind ==2:
+        ax[ind].invert_yaxis()
+    return pl
+area_l,area_b = arc_gal.l[id_arc],arc_gal.b[id_arc]
+area_pml,area_pmb = pml[id_arc], pmb[id_arc]
+
+X_area=np.array([area_pml,area_pmb,area_l,area_b]).T
+# X=np.array([area_pml,area_pmb]).T
+# X=np.array([area_l,area_b]).T
+
+X_stad_area = StandardScaler().fit_transform(X_area)
 
 
 
+eps_area = 0.2
+samples_area = 5
+clustering_area = DBSCAN(eps=eps_area, min_samples=samples_area).fit(X_stad_area)
+
+l_area=clustering_area.labels_
+
+n_clusters_area = len(set(l_area)) - (1 if -1 in l_area else 0)
+n_noise_area=list(l_area).count(-1)
+
+u_labels_area = set(l_area)
+colors_area=[plt.cm.rainbow(i) for i in np.linspace(0,1,len(set(l_area)))]# Returns a color for each cluster. Each color consists in four number, RGBA, red, green, blue and alpha. Full opacity black would be then 0,0,0,1
 
 
+for k in range(len(colors_area)): #give noise color black with opacity 0.1
+    if list(u_labels_area)[k] == -1:
+        colors_area[k]=[0,0,0,0.1]
+        
+colores_index_area=[]      
+for c in u_labels_area:
+    cl_color_area=np.where(l_area==c)
+    colores_index_area.append(cl_color_area)
 
 
-
+fig, ax = plt.subplots(1,2,figsize=(20,10))
+plotting('l','b',area_l,area_b ,1,alpha=0.1)
+plotting('mul','mub',area_pml,area_pmb ,0,alpha=0.1)
 
 
 
