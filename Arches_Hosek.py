@@ -175,7 +175,7 @@ X=np.array([pml,pmb,l,b]).T
 X_stad = StandardScaler().fit_transform(X)
 # X_stad=X
 
-samples_dist=12
+samples_dist=5
 tree=KDTree(X_stad, leaf_size=2) 
 dist, ind = tree.query(X_stad, k=samples_dist) 
 # d_KNN=sorted(dist[:,-1])
@@ -205,6 +205,8 @@ ax.axhline(epsilon,linestyle='dashed',color='red')
 ax.text(0,codo, '%s'%(codo))
 ax.text(0,rodilla, '%s'%(rodilla))
 ax.text(len(X)/2,epsilon, '%s'%(round(epsilon,3)),color='red')
+ax.fill_between(np.arange(0,len(X)), codo, rodilla, alpha=0.5, color='grey')
+
 
 ax.legend(['knee=%s,min=%s, eps=%s, Dim.=%s'%(rodilla,round(min(d_KNN),2),round(epsilon,2),len(X[0]))])
 
@@ -214,12 +216,12 @@ clustering = DBSCAN(eps=epsilon, min_samples=samples_dist).fit(X_stad)
 
 l_c=clustering.labels_
 loop=0
-while len(set(l_c)) > 3:
+while len(set(l_c)) > 2:#Choose how many clusters you want to find (e.g 2 mean one cluster, 3 means two cluters, etc (l_c are the labes of each cluster plus one for the noise))
     loop +=1
     samples_dist+=1
     clustering = DBSCAN(eps=epsilon, min_samples=samples_dist).fit(X_stad)
     l_c=clustering.labels_
-    print('loop %s min size = %s'%(loop,samples_dist))
+    print('loop %s min size = %s, cluster found = %s '%(loop,samples_dist, len(set(l_c))-1))
     
 n_clusters = len(set(l_c)) - (1 if -1 in l_c else 0)
 n_noise=list(l_c).count(-1)
@@ -252,7 +254,7 @@ plotting('mul','mub',pml[colores_index[-1]], pmb[colores_index[-1]],0, color=col
 # plotting_h('mul','mub',X[:,0][colores_index[-1]], X[:,1][colores_index[-1]],0, color=colors[-1],zorder=1)
 plotting('l','b',l[colores_index[-1]], b[colores_index[-1]],1, color=colors[-1],zorder=1)
 
-sys.exit()
+
 # %%
 
 # %%
@@ -306,7 +308,7 @@ rand = np.random.choice(np.arange(0,len(clus_gal)),1)
 
 rand_clus = clus_gal[rand]
 rand_pm = pm_clus[rand]
-radio=20*u.arcsec
+radio=35*u.arcsec
 
 # idxc, group, d2d,d3d = clus_gal.search_around_sky(rand_clus, radio)
 id_clus, id_arc, d2d,d3d = ap_coor.search_around_sky(rand_clus,arc_gal, radio)
@@ -352,11 +354,51 @@ X_stad_area = StandardScaler().fit_transform(X_area)
 
 
 
-eps_area = 0.2
-samples_area = 5
-clustering_area = DBSCAN(eps=eps_area, min_samples=samples_area).fit(X_stad_area)
+
+samples_dist_area = 5
+tree=KDTree(X_stad_area, leaf_size=2) 
+dist_area, ind_area = tree.query(X_stad_area, k=samples_dist_area) 
+# d_KNN=sorted(dist[:,-1])
+nn_area= samples_dist_area- 1
+rev=False
+d_KNN_area=sorted(dist_area[:,nn],reverse=rev)
+
+kneedle_area = KneeLocator(np.arange(0,len(X_area),1), d_KNN_area, curve='convex', interp_method = "polynomial",direction='increasing' if rev ==False else 'decreasing')
+codillo_area = KneeLocator(np.arange(0,len(X_area),1), d_KNN_area, curve='concave', interp_method = "polynomial",direction='increasing' if rev ==False else 'decreasing')
+rodilla_area = round(kneedle_area.elbow_y, 3)
+codo_area = round(codillo_area.elbow_y, 3)
+# =============================================================================
+# # Choose the right epsilon is crucial. I didnt figure it out yet...
+# =============================================================================
+# epsilon_area=rodilla_area
+epsilon_area = codo_area
+# epsilon_area = min(d_KNN_area)+0.06
+
+
+fig, ax = plt.subplots(1,1,figsize=(8,8))
+ax.plot(np.arange(0,len(X_area),1),d_KNN_area)
+ax.set_xlabel('Point') 
+ax.set_ylabel('%s-NN distance'%(nn+1))
+ax.axhline(rodilla_area,linestyle='dashed',color='k') 
+ax.axhline(codo_area,linestyle='dashed',color='k') 
+ax.axhline(epsilon_area,linestyle='dashed',color='red') 
+ax.text(0,codo_area, '%s'%(codo_area))
+ax.text(0,rodilla_area, '%s'%(rodilla_area))
+ax.text(len(X_area)/2,epsilon_area, '%s'%(round(epsilon_area,3)),color='red')
+ax.fill_between(np.arange(0,len(X_area)), codo_area, rodilla_area, alpha=0.5, color='grey')
+
+clustering_area = DBSCAN(eps=epsilon_area, min_samples=samples_dist_area).fit(X_stad_area)
 
 l_area=clustering_area.labels_
+
+loop_area=0
+while len(set(l_area)) > 2:#Choose how many clusters you want to find (e.g 2 mean one cluster, 3 means two cluters, etc (l_c are the labes of each cluster plus one for the noise))
+    loop_area +=1
+    samples_dist_area+=1
+    clustering_area = DBSCAN(eps=epsilon_area, min_samples=samples_dist_area).fit(X_stad_area)
+    l_area=clustering_area.labels_
+    print('loop %s min size = %s, cluster found = %s '%(loop_area,samples_dist_area, len(set(l_area))-1))
+    
 
 n_clusters_area = len(set(l_area)) - (1 if -1 in l_area else 0)
 n_noise_area=list(l_area).count(-1)
@@ -376,10 +418,18 @@ for c in u_labels_area:
 
 
 fig, ax = plt.subplots(1,2,figsize=(20,10))
-plotting('l','b',area_l,area_b ,1,alpha=0.1)
-plotting('mul','mub',area_pml,area_pmb ,0,alpha=0.1)
+ax[0].set_title('n of cluster = %s,eps=%s,min size=%s'%(n_clusters_area,round(epsilon_area,2),samples_dist_area))
+ax[1].set_title('%s'%(choosen_cluster))
+ax[0].invert_xaxis()
+# %
 
-
+for i in range(len(set(l_area))-1):
+    plotting('mul','mub',area_pml[colores_index_area[i]], area_pmb[colores_index_area[i]],0, color=colors_area[i],zorder=3)
+    plotting('l','b',area_l[colores_index_area[i]], area_b[colores_index_area[i]],1, color=colors_area[i],zorder=3)
+    print(len(pml[colores_index_area[i]]))
+plotting('mul','mub',pml[colores_index[-1]], pmb[colores_index[-1]],0, color=colors[-1],zorder=1)
+# plotting_h('mul','mub',X[:,0][colores_index[-1]], X[:,1][colores_index[-1]],0, color=colors[-1],zorder=1)
+plotting('l','b',l[colores_index[-1]], b[colores_index[-1]],1, color=colors[-1],zorder=1)
 
 
 
