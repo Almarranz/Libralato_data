@@ -166,16 +166,17 @@ from sklearn.neighbors import NearestNeighbors
 from sklearn.neighbors import KDTree
 from kneed import DataGenerator, KneeLocator
 
-    
+clustering_by = 'vel'#or 'pos' or 'all'
 # %
-X=np.array([pml,pmb,l,b]).T
+X = np.array([pml,pmb,l,b]).T if clustering_by == 'all' else  (np.array([pml,pmb]).T if clustering_by == 'vel' else np.array([l,b]).T )
 # X=np.array([pml,pmb]).T
 # X=np.array([l,b]).T
 
 X_stad = StandardScaler().fit_transform(X)
 # X_stad=X
 
-samples_dist=5
+samples_dist=50
+samples_dist_original=samples_dist
 tree=KDTree(X_stad, leaf_size=2) 
 dist, ind = tree.query(X_stad, k=samples_dist) 
 # d_KNN=sorted(dist[:,-1])
@@ -218,11 +219,11 @@ l_c=clustering.labels_
 loop=0
 while len(set(l_c)) > 2:#Choose how many clusters you want to find (e.g 2 mean one cluster, 3 means two cluters, etc (l_c are the labes of each cluster plus one for the noise))
     loop +=1
-    samples_dist+=1
+    
     clustering = DBSCAN(eps=epsilon, min_samples=samples_dist).fit(X_stad)
     l_c=clustering.labels_
     print('loop %s min size = %s, cluster found = %s '%(loop,samples_dist, len(set(l_c))-1))
-    
+    samples_dist+=1
 n_clusters = len(set(l_c)) - (1 if -1 in l_c else 0)
 n_noise=list(l_c).count(-1)
 
@@ -242,14 +243,16 @@ for c in u_labels:
 
 
 fig, ax = plt.subplots(1,2,figsize=(20,10))
-ax[0].set_title('n of cluster = %s,eps=%s,min size=%s'%(n_clusters,round(epsilon,2),samples_dist))
-ax[1].set_title('%s'%(choosen_cluster))
-ax[0].invert_xaxis()
 
+ax[0].invert_xaxis()
+elements_in_cluster=[]
 for i in range(len(set(l_c))-1):
+    elements_in_cluster.append(len(pml[colores_index[i]]))
     plotting('mul','mub',pml[colores_index[i]], pmb[colores_index[i]],0, color=colors[i],zorder=3)
     plotting('l','b',l[colores_index[i]], b[colores_index[i]],1, color=colors[i],zorder=3)
     print(len(pml[colores_index[i]]))
+ax[0].set_title('n of cluster = %s,eps=%s,min size=%s'%(n_clusters,round(epsilon,2),samples_dist))
+ax[1].set_title('%s. Larger cluster = %s'%(choosen_cluster, max(elements_in_cluster)))
 plotting('mul','mub',pml[colores_index[-1]], pmb[colores_index[-1]],0, color=colors[-1],zorder=1)
 # plotting_h('mul','mub',X[:,0][colores_index[-1]], X[:,1][colores_index[-1]],0, color=colors[-1],zorder=1)
 plotting('l','b',l[colores_index[-1]], b[colores_index[-1]],1, color=colors[-1],zorder=1)
@@ -319,7 +322,7 @@ ax[0].set_title('%s'%(choosen_cluster))
 plotting('l','b',arc_gal.l, arc_gal.b,1)
 plotting('l','b',clus_gal.l, clus_gal.b,1)
 # plotting('l','b',clus_gal.l[group], clus_gal.b[group],1)
-plotting('l','b',arc_gal.l[id_arc], arc_gal.b[id_arc],1,alpha=0.1)
+plotting('l','b',arc_gal.l[id_arc], arc_gal.b[id_arc],1,alpha=0.05)
 
 plotting('mul','mub',pm_gal.pm_l_cosb, pm_gal.pm_b,0)
 plotting('mul','mub',pm_clus.pm_l_cosb, pm_clus.pm_b,0)
@@ -346,7 +349,7 @@ def plotting(namex,namey,x,y,ind,**kwargs):
 area_l,area_b = arc_gal.l[id_arc],arc_gal.b[id_arc]
 area_pml,area_pmb = pml[id_arc], pmb[id_arc]
 
-X_area=np.array([area_pml,area_pmb,area_l,area_b]).T
+X_area=np.array([area_pml,area_pmb,area_l,area_b]).T if clustering_by == 'all' else (np.array([area_pml,area_pmb]).T if clustering_by == 'vel' else np.array([area_l,area_b]).T )
 # X=np.array([area_pml,area_pmb]).T
 # X=np.array([area_l,area_b]).T
 
@@ -355,13 +358,14 @@ X_stad_area = StandardScaler().fit_transform(X_area)
 
 
 
-samples_dist_area = 5
+samples_dist_area = samples_dist # if equals to samples distance choose the size after exiting the while loop. Use this one with the epsilon = codo for copying the condition of the whole data set. Select samples_dist_original and codo_area for working in the reduced date set independtly 
+
 tree=KDTree(X_stad_area, leaf_size=2) 
 dist_area, ind_area = tree.query(X_stad_area, k=samples_dist_area) 
 # d_KNN=sorted(dist[:,-1])
 nn_area= samples_dist_area- 1
 rev=False
-d_KNN_area=sorted(dist_area[:,nn],reverse=rev)
+d_KNN_area=sorted(dist_area[:,nn_area],reverse=rev)
 
 kneedle_area = KneeLocator(np.arange(0,len(X_area),1), d_KNN_area, curve='convex', interp_method = "polynomial",direction='increasing' if rev ==False else 'decreasing')
 codillo_area = KneeLocator(np.arange(0,len(X_area),1), d_KNN_area, curve='concave', interp_method = "polynomial",direction='increasing' if rev ==False else 'decreasing')
@@ -373,7 +377,7 @@ codo_area = round(codillo_area.elbow_y, 3)
 # epsilon_area=rodilla_area
 epsilon_area = codo_area
 # epsilon_area = min(d_KNN_area)+0.06
-
+# epsilon_area = codo
 
 fig, ax = plt.subplots(1,1,figsize=(8,8))
 ax.plot(np.arange(0,len(X_area),1),d_KNN_area)
@@ -392,7 +396,7 @@ clustering_area = DBSCAN(eps=epsilon_area, min_samples=samples_dist_area).fit(X_
 l_area=clustering_area.labels_
 
 loop_area=0
-while len(set(l_area)) > 2:#Choose how many clusters you want to find (e.g 2 mean one cluster, 3 means two cluters, etc (l_c are the labes of each cluster plus one for the noise))
+while len(set(l_area)) > 10000:#Choose how many clusters you want to find (e.g 2 mean one cluster, 3 means two cluters, etc (l_c are the labes of each cluster plus one for the noise))
     loop_area +=1
     samples_dist_area+=1
     clustering_area = DBSCAN(eps=epsilon_area, min_samples=samples_dist_area).fit(X_stad_area)
@@ -418,15 +422,17 @@ for c in u_labels_area:
 
 
 fig, ax = plt.subplots(1,2,figsize=(20,10))
-ax[0].set_title('n of cluster = %s,eps=%s,min size=%s'%(n_clusters_area,round(epsilon_area,2),samples_dist_area))
-ax[1].set_title('%s'%(choosen_cluster))
+
 ax[0].invert_xaxis()
 # %
-
+elements_in_cluster_area=[]
 for i in range(len(set(l_area))-1):
+    elements_in_cluster_area.append(len(area_pml[colores_index_area[i]]))
     plotting('mul','mub',area_pml[colores_index_area[i]], area_pmb[colores_index_area[i]],0, color=colors_area[i],zorder=3)
     plotting('l','b',area_l[colores_index_area[i]], area_b[colores_index_area[i]],1, color=colors_area[i],zorder=3)
     print(len(pml[colores_index_area[i]]))
+ax[0].set_title('n of cluster = %s,eps=%s,min size=%s'%(n_clusters_area,round(epsilon_area,2),samples_dist_area))
+ax[1].set_title('%s. Larger clsuter = %s '%(choosen_cluster, max(elements_in_cluster_area)))
 plotting('mul','mub',pml[colores_index[-1]], pmb[colores_index[-1]],0, color=colors[-1],zorder=1)
 # plotting_h('mul','mub',X[:,0][colores_index[-1]], X[:,1][colores_index[-1]],0, color=colors[-1],zorder=1)
 plotting('l','b',l[colores_index[-1]], b[colores_index[-1]],1, color=colors[-1],zorder=1)
