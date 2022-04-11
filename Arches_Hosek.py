@@ -53,7 +53,7 @@ pruebas='/Users/amartinez/Desktop/PhD/Arches_and_Quintuplet_Hosek/pruebas/'
 # =============================================================================
 # #Choose Arches or Quintuplet
 # =============================================================================
-choosen_cluster = 'Arches'
+choosen_cluster = 'Quintuplet'
 
 center_arc = SkyCoord('17h45m50.4769267s', '-28d49m19.16770s', frame='icrs') if choosen_cluster =='Arches' else SkyCoord('17h46m15.13s', '-28d49m34.7s', frame='icrs')#Quintuplet
 arches=Table.read(catal + 'Arches_cat_H22_Pclust.fits') if choosen_cluster =='Arches' else Table.read(catal + 'Quintuplet_cat_H22_Pclust.fits')
@@ -190,7 +190,7 @@ print('Manually std data %.3f %.3f %.3f %.3f'%(X_std))
 # X_stad = method.fit_transform(X)
 # X_stad=X
 
-samples_dist=5
+samples_dist=15
 samples_dist_original=samples_dist
 tree=KDTree(X_stad, leaf_size=2) 
 dist, ind = tree.query(X_stad, k=samples_dist) 
@@ -372,9 +372,9 @@ radio=15*u.arcsec
 
 #search_around_sky complains when one of the variable is just a singe coordinates (and not an array of coordinates)
 #so in order to go aroun this put the coordinares around brackets work
-id_clus, id_arc, d2d,d3d = ap_coor.search_around_sky(SkyCoord(['17h45m50.4769267s'], ['-28d49m19.16770s'], frame='icrs'),arc_gal, radio)
+id_clus, id_arc, d2d,d3d = ap_coor.search_around_sky(SkyCoord(['17h45m50.4769267s'], ['-28d49m19.16770s'], frame='icrs'),arc_gal, radio) if choosen_cluster =='Arches' else ap_coor.search_around_sky(SkyCoord(['17h46m15.13s'], ['-28d49m34.7s'], frame='icrs'),arc_gal, radio)
 
-dbs_clus, id_arc_dbs, d2d_db, d3d_db = ap_coor.search_around_sky(SkyCoord(['17h45m50.4769267s'], ['-28d49m19.16770s'], frame='icrs'),clus_gal, radio)
+dbs_clus, id_arc_dbs, d2d_db, d3d_db = ap_coor.search_around_sky(SkyCoord(['17h45m50.4769267s'], ['-28d49m19.16770s'], frame='icrs'),clus_gal, radio) if choosen_cluster =='Arches' else ap_coor.search_around_sky(SkyCoord(['17h46m15.13s'], ['-28d49m34.7s'], frame='icrs'),clus_gal, radio)
 
 #
 # %
@@ -463,7 +463,8 @@ except:
 # epsilon_area=rodilla_area
 # epsilon_area = codo_area
 # epsilon_area = min(d_KNN_area)
-epsilon_area = codo if conditions =='same' else codo_area
+# epsilon_area = codo if conditions =='same' else codo_area
+epsilon_area = 0.364
 
 fig, ax = plt.subplots(1,1,figsize=(8,8))
 ax.plot(np.arange(0,len(X_area),1),d_KNN_area)
@@ -482,7 +483,7 @@ ax.legend(['Conditions %s, radio = %s'%(conditions, radio)])
 # =============================================================================
 # Here ser dbscan manually till you get the same fucking cluster you got using the whole set
 # =============================================================================
-clustering_area = DBSCAN(eps=0.44, min_samples=samples_dist_area).fit(X_stad_area)
+clustering_area = DBSCAN(eps=epsilon_area, min_samples=samples_dist_area).fit(X_stad_area)
 
 
 l_area = clustering_area.labels_
