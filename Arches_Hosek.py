@@ -190,7 +190,7 @@ print('Manually std data %.3f %.3f %.3f %.3f'%(X_std))
 # X_stad = method.fit_transform(X)
 # X_stad=X
 
-samples_dist=10
+samples_dist=5
 samples_dist_original=samples_dist
 tree=KDTree(X_stad, leaf_size=2) 
 dist, ind = tree.query(X_stad, k=samples_dist) 
@@ -274,6 +274,37 @@ plotting('l','b',l[colores_index[-1]], b[colores_index[-1]],1, color=colors[-1],
 
 
 # %%
+# =============================================================================
+# SECOND distance plot
+# =============================================================================
+# %%
+# =============================================================================
+# samples_dist_original=samples_dist
+# tree=KDTree(X_stad, leaf_size=2) 
+# dist, ind = tree.query(X_stad, k=samples_dist) 
+# # d_KNN=sorted(dist[:,-1])
+# nn= samples_dist- 1
+# rev=False
+# d_KNN=sorted(dist[:,nn],reverse=rev)
+# 
+# kneedle = KneeLocator(np.arange(0,len(X),1), d_KNN, curve='convex', interp_method = "polynomial",direction='increasing' if rev ==False else 'decreasing')
+# codillo = KneeLocator(np.arange(0,len(X),1), d_KNN, curve='concave', interp_method = "polynomial",direction='increasing' if rev ==False else 'decreasing')
+# rodilla = round(kneedle.elbow_y, 3)
+# codo = round(codillo.elbow_y, 3)
+# epsilon = codo
+# 
+# fig, ax = plt.subplots(1,1,figsize=(8,8))
+# ax.plot(np.arange(0,len(X),1),d_KNN)
+# ax.set_xlabel('Point') 
+# ax.set_ylabel('%s-NN distance'%(nn+1))
+# ax.axhline(rodilla,linestyle='dashed',color='k') 
+# ax.axhline(codo,linestyle='dashed',color='k') 
+# ax.axhline(epsilon,linestyle='dashed',color='red') 
+# ax.text(0,codo, '%s'%(codo))
+# ax.text(0,rodilla, '%s'%(rodilla))
+# ax.text(len(X)/2,epsilon, '%s'%(round(epsilon,3)),color='red')
+# ax.fill_between(np.arange(0,len(X)), codo, rodilla, alpha=0.5, color='grey')
+# =============================================================================
 
 # %%
 # =============================================================================
@@ -437,7 +468,7 @@ epsilon_area = codo if conditions =='same' else codo_area
 fig, ax = plt.subplots(1,1,figsize=(8,8))
 ax.plot(np.arange(0,len(X_area),1),d_KNN_area)
 ax.set_xlabel('Point') 
-ax.set_ylabel('%s-NN distance'%(nn+1))
+ax.set_ylabel('%s-NN distance'%(nn_area+1))
 ax.axhline(rodilla_area,linestyle='dashed',color='k') 
 ax.axhline(codo_area,linestyle='dashed',color='k') 
 ax.axhline(epsilon_area,linestyle='dashed',color='red') 
@@ -448,7 +479,10 @@ ax.fill_between(np.arange(0,len(X_area)), codo_area, rodilla_area, alpha=0.5, co
 ax.legend(['Conditions %s, radio = %s'%(conditions, radio)])
 
 # clustering_area = DBSCAN(eps=epsilon_area, min_samples=samples_dist_area).fit(X_stad_area)
-clustering_area = DBSCAN(eps=0.384, min_samples=samples_dist_area).fit(X_stad_area)
+# =============================================================================
+# Here ser dbscan manually till you get the same fucking cluster you got using the whole set
+# =============================================================================
+clustering_area = DBSCAN(eps=0.44, min_samples=samples_dist_area).fit(X_stad_area)
 
 
 l_area = clustering_area.labels_
