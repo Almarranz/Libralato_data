@@ -177,7 +177,17 @@ X = np.array([pml,pmb,l,b]).T if clustering_by == 'all' else  (np.array([pml,pmb
 # X=np.array([l,b]).T
 from sklearn.preprocessing import QuantileTransformer, StandardScaler, Normalizer, RobustScaler, PowerTransformer
 method = StandardScaler()
-X_stad = method.fit_transform(X)
+# %%
+# lets stanrdarizar the data manually.
+xa,xb,xc,xd=np.std(X[:,0]),np.std(X[:,1]),np.std(X[:,2]),np.std(X[:,3])
+# xc,xd=1,1
+X_stad=np.array([(X[:,0]-np.mean(X[:,0]))/xa,
+                 (X[:,1]-np.mean(X[:,1]))/xb,
+                 (X[:,2]-np.mean(X[:,2]))/xc,
+                 (X[:,3]-np.mean(X[:,3]))/xd]).T
+X_std=(xa,xb,xc,xd)
+print('Manually std data %.3f %.3f %.3f %.3f'%(X_std))
+# X_stad = method.fit_transform(X)
 # X_stad=X
 
 samples_dist=10
@@ -321,7 +331,7 @@ rand = np.random.choice(np.arange(0,len(clus_gal)),1)
 
 rand_clus = clus_gal[rand]
 rand_pm = pm_clus[rand]
-radio=10*u.arcsec
+radio=15*u.arcsec
 
 #Here we can decide if selected the reduced data set around a random value of the cluster.
 # or around the pre-dertermined coordenates for the cluster
@@ -338,7 +348,7 @@ dbs_clus, id_arc_dbs, d2d_db, d3d_db = ap_coor.search_around_sky(SkyCoord(['17h4
 #
 # %
 fig, ax = plt.subplots(1,2,figsize=(20,10))
-ax[1].set_title('Radio = %s, Green = %s'%(radio,len(dbs_clus)))
+ax[1].set_title('Radio = %s, Green = %s'%(radio,len(id_clus)))
 ax[0].set_title('%s, method: %s'%(choosen_cluster,method))
 plotting('l','b',arc_gal.l, arc_gal.b,1)
 plotting('l','b',clus_gal.l, clus_gal.b,1,color='orange')
@@ -355,7 +365,7 @@ plotting('l','b',arc_gal.l, arc_gal.b,1,alpha=0.01,color='k')
 plotting('l','b',clus_gal.l[id_arc_dbs], clus_gal.b[id_arc_dbs],1,color='orange',alpha=0.3,zorder=3)
 
 plotting('mul','mub',pm_gal.pm_l_cosb, pm_gal.pm_b,0,alpha=0.3)
-plotting('mul','mub',pm_clus.pm_l_cosb[id_arc_dbs], pm_clus.pm_b[id_arc_dbs],0)
+plotting('mul','mub',pm_clus.pm_l_cosb[id_arc_dbs], pm_clus.pm_b[id_arc_dbs],0,alpha=0.1)
 
 
 ax[0].invert_xaxis()
@@ -382,12 +392,21 @@ area_pml,area_pmb = pml[id_arc], pmb[id_arc]
 X_area=np.array([area_pml,area_pmb,area_l,area_b]).T if clustering_by == 'all' else (np.array([area_pml,area_pmb]).T if clustering_by == 'vel' else np.array([area_l,area_b]).T )
 # X=np.array([area_pml,area_pmb]).T
 # X=np.array([area_l,area_b]).T
+xa_A,xb_A,xc_A,xd_A=np.std(X_area[:,0]),np.std(X_area[:,1]),np.std(X_area[:,2]),np.std(X_area[:,3]),
+# xc_A,xd_A = 15/83, 15/83
+X_stad_area=np.array([(X_area[:,0]-np.mean(X_area[:,0]))/xa_A,
+                 (X_area[:,1]-np.mean(X_area[:,1]))/xb_A,
+                 (X_area[:,2]-np.mean(X_area[:,2]))/(xc_A*1),
+                 (X_area[:,3]-np.mean(X_area[:,3]))/(xd_A*1)]).T
 
-X_stad_area = method.fit_transform(X_area)
+X_std_area=(xa_A,xb_A,xc_A/0.2,xd_A/0.2)
+print('Manually std data %.3f %.3f %.3f %.3f'%(X_std_area))
+# method_area =StandardScaler()
+# X_stad_area = method_area.fit_transform(X_area)
 # X_stad_area = X_area
 
 
-samples_dist_area = 4
+samples_dist_area = 10
 # samples_dist_area = samples_dist if conditions =='same' else samples_dist_original # if equals to samples distance choose the size after exiting the while loop. Use this one with the epsilon = codo for copying the condition of the whole data set. Select samples_dist_original and codo_area for working in the reduced date set independtly 
 
 tree=KDTree(X_stad_area, leaf_size=2) 
@@ -426,15 +445,16 @@ ax.text(0,codo_area, '%s'%(codo_area))
 ax.text(0,rodilla_area, '%s'%(rodilla_area))
 ax.text(len(X_area)/2,epsilon_area, '%s'%(round(epsilon_area,3)),color='red')
 ax.fill_between(np.arange(0,len(X_area)), codo_area, rodilla_area, alpha=0.5, color='grey')
-ax.legend(['Conditions %s'%(conditions)])
+ax.legend(['Conditions %s, radio = %s'%(conditions, radio)])
 
-clustering_area = DBSCAN(eps=epsilon_area, min_samples=samples_dist_area).fit(X_stad_area)
+# clustering_area = DBSCAN(eps=epsilon_area, min_samples=samples_dist_area).fit(X_stad_area)
+clustering_area = DBSCAN(eps=0.384, min_samples=samples_dist_area).fit(X_stad_area)
 
 
 l_area = clustering_area.labels_
 
 loop_area = 0
-looping = 20000 if conditions == 'same' else 200000
+looping = 20000 if conditions == 'same' else 2
 while len(set(l_area)) > looping:#Choose how many clusters you want to find (e.g 2 mean one cluster, 3 means two cluters, etc (l_c are the labes of each cluster plus one for the noise))
     loop_area +=1
     samples_dist_area+=1
@@ -467,7 +487,7 @@ ax[0].invert_xaxis()
 elements_in_cluster_area=[]
 for i in range(len(set(l_area))-1):
     elements_in_cluster_area.append(len(area_pml[colores_index_area[i]]))
-    plotting('mul','mub',area_pml[colores_index_area[i]], area_pmb[colores_index_area[i]],0, color=colors_area[i],zorder=3)
+    plotting('mul','mub',area_pml[colores_index_area[i]], area_pmb[colores_index_area[i]],0, color=colors_area[i],zorder=3,alpha=0.1)
     plotting('l','b',area_l[colores_index_area[i]], area_b[colores_index_area[i]],1, color=colors_area[i],zorder=3,alpha=0.3)
     print(len(pml[colores_index_area[i]]))
 ax[0].set_title('n of cluster = %s,eps=%s,min size=%s'%(n_clusters_area,round(epsilon_area,2),samples_dist_area))
@@ -501,7 +521,7 @@ plotting('l','b',l[colores_index[-1]], b[colores_index[-1]],1, color=colors[-1],
 # plotting('mul','mub',area_pml,area_pmb,0)
 # plotting('l','b',area_l,area_b,1)
 
-
+# %%
 
 
 
