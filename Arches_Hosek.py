@@ -53,7 +53,7 @@ pruebas='/Users/amartinez/Desktop/PhD/Arches_and_Quintuplet_Hosek/pruebas/'
 # =============================================================================
 # #Choose Arches or Quintuplet
 # =============================================================================
-choosen_cluster = 'Quintuplet'
+choosen_cluster = 'Arches'
 
 center_arc = SkyCoord('17h45m50.4769267s', '-28d49m19.16770s', frame='icrs') if choosen_cluster =='Arches' else SkyCoord('17h46m15.13s', '-28d49m34.7s', frame='icrs')#Quintuplet
 arches=Table.read(catal + 'Arches_cat_H22_Pclust.fits') if choosen_cluster =='Arches' else Table.read(catal + 'Quintuplet_cat_H22_Pclust.fits')
@@ -169,7 +169,7 @@ from sklearn.neighbors import NearestNeighbors
 from sklearn.neighbors import KDTree
 from kneed import DataGenerator, KneeLocator
 
-conditions = 'no_same'# no_same. do I want to have the same condition (epsilon and min_size) when using dbscan in the reduced area?
+conditions = 'same'# no_same. do I want to have the same condition (epsilon and min_size) when using dbscan in the reduced area?
 clustering_by = 'all'#or 'vel' 'pos' or 'all'
 # %
 X = np.array([pml,pmb,l,b]).T if clustering_by == 'all' else  (np.array([pml,pmb]).T if clustering_by == 'vel' else np.array([l,b]).T )
@@ -187,10 +187,13 @@ X_stad=np.array([(X[:,0]-np.mean(X[:,0]))/xa,
                  (X[:,3]-np.mean(X[:,3]))/xd]).T
 X_std=(xa,xb,xc,xd)
 print('Manually std data %.3f %.3f %.3f %.3f'%(X_std))
-# X_stad = method.fit_transform(X)
+X_test= method.fit_transform(X)
+print(method.scale_)
 # X_stad=X
 
-samples_dist=15
+
+
+samples_dist=10
 samples_dist_original=samples_dist
 tree=KDTree(X_stad, leaf_size=2) 
 dist, ind = tree.query(X_stad, k=samples_dist) 
@@ -362,7 +365,7 @@ rand = np.random.choice(np.arange(0,len(clus_gal)),1)
 
 rand_clus = clus_gal[rand]
 rand_pm = pm_clus[rand]
-radio=15*u.arcsec
+radio=25*u.arcsec
 
 #Here we can decide if selected the reduced data set around a random value of the cluster.
 # or around the pre-dertermined coordenates for the cluster
@@ -425,20 +428,27 @@ X_area=np.array([area_pml,area_pmb,area_l,area_b]).T if clustering_by == 'all' e
 # X=np.array([area_l,area_b]).T
 xa_A,xb_A,xc_A,xd_A=np.std(X_area[:,0]),np.std(X_area[:,1]),np.std(X_area[:,2]),np.std(X_area[:,3]),
 # xc_A,xd_A = 15/83, 15/83
-X_stad_area=np.array([(X_area[:,0]-np.mean(X_area[:,0]))/xa_A,
-                 (X_area[:,1]-np.mean(X_area[:,1]))/xb_A,
-                 (X_area[:,2]-np.mean(X_area[:,2]))/(xc_A*1),
-                 (X_area[:,3]-np.mean(X_area[:,3]))/(xd_A*1)]).T
+# X_stad_area=np.array([(X_area[:,0]-np.mean(X_area[:,0]))/xa_A,
+#                  (X_area[:,1]-np.mean(X_area[:,1]))/xb_A,
+#                  (X_area[:,2]-np.mean(X_area[:,2]))/(xc_A*1),
+#                  (X_area[:,3]-np.mean(X_area[:,3]))/(xd_A*1)]).T
 
-X_std_area=(xa_A,xb_A,xc_A/0.2,xd_A/0.2)
-print('Manually std data %.3f %.3f %.3f %.3f'%(X_std_area))
+# Here we standarize the data using the mean and std from the whole data set
+X_stad_area=np.array([(X_area[:,0]-method.mean_[0])/method.scale_[0],
+                 (X_area[:,1]-method.mean_[1])/method.scale_[1],
+                 (X_area[:,2]-method.mean_[2])/method.scale_[2],
+                 (X_area[:,3]-method.mean_[1])/method.scale_[3]]).T
+
+
+
+
 # method_area =StandardScaler()
 # X_stad_area = method_area.fit_transform(X_area)
 # X_stad_area = X_area
 
 
-samples_dist_area = 10
-# samples_dist_area = samples_dist if conditions =='same' else samples_dist_original # if equals to samples distance choose the size after exiting the while loop. Use this one with the epsilon = codo for copying the condition of the whole data set. Select samples_dist_original and codo_area for working in the reduced date set independtly 
+# samples_dist_area = 10
+samples_dist_area = samples_dist if conditions =='same' else int(samples_dist_original) # if equals to samples distance choose the size after exiting the while loop. Use this one with the epsilon = codo for copying the condition of the whole data set. Select samples_dist_original and codo_area for working in the reduced date set independtly 
 
 tree=KDTree(X_stad_area, leaf_size=2) 
 dist_area, ind_area = tree.query(X_stad_area, k=samples_dist_area) 
@@ -463,8 +473,8 @@ except:
 # epsilon_area=rodilla_area
 # epsilon_area = codo_area
 # epsilon_area = min(d_KNN_area)
-# epsilon_area = codo if conditions =='same' else codo_area
-epsilon_area = 0.364
+epsilon_area = codo if conditions =='same' else codo_area
+# epsilon_area = 0.364
 
 fig, ax = plt.subplots(1,1,figsize=(8,8))
 ax.plot(np.arange(0,len(X_area),1),d_KNN_area)
@@ -479,17 +489,17 @@ ax.text(len(X_area)/2,epsilon_area, '%s'%(round(epsilon_area,3)),color='red')
 ax.fill_between(np.arange(0,len(X_area)), codo_area, rodilla_area, alpha=0.5, color='grey')
 ax.legend(['Conditions %s, radio = %s'%(conditions, radio)])
 
-# clustering_area = DBSCAN(eps=epsilon_area, min_samples=samples_dist_area).fit(X_stad_area)
+clustering_area = DBSCAN(eps=epsilon_area, min_samples=samples_dist_area).fit(X_stad_area)
 # =============================================================================
 # Here ser dbscan manually till you get the same fucking cluster you got using the whole set
 # =============================================================================
-clustering_area = DBSCAN(eps=epsilon_area, min_samples=samples_dist_area).fit(X_stad_area)
+# clustering_area = DBSCAN(eps=epsilon_area, min_samples=samples_dist_area).fit(X_stad_area)
 
 
 l_area = clustering_area.labels_
 
 loop_area = 0
-looping = 20000 if conditions == 'same' else 2
+looping = 20000 if conditions == 'same' else 4
 while len(set(l_area)) > looping:#Choose how many clusters you want to find (e.g 2 mean one cluster, 3 means two cluters, etc (l_c are the labes of each cluster plus one for the noise))
     loop_area +=1
     samples_dist_area+=1
