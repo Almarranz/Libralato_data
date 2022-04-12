@@ -9,16 +9,10 @@ Created on Wed Apr  6 17:24:02 2022
 import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib
-from matplotlib.ticker import FormatStrFormatter
-import pandas as pd
-from astropy.coordinates import match_coordinates_sky, SkyOffsetFrame, ICRS,offset_by
 from astropy.coordinates import SkyCoord
 import astropy.coordinates as ap_coor
 import astropy.units as u
-from astropy.table import QTable
 from matplotlib import rcParams
-import os
-import glob
 import sys
 from astropy.table import Table
 from scipy.stats import gaussian_kde
@@ -177,21 +171,9 @@ X = np.array([pml,pmb,l,b]).T if clustering_by == 'all' else  (np.array([pml,pmb
 # X=np.array([l,b]).T
 from sklearn.preprocessing import QuantileTransformer, StandardScaler, Normalizer, RobustScaler, PowerTransformer
 method = StandardScaler()
-# %%
-# lets stanrdarizar the data manually.
-xa,xb,xc,xd=np.std(X[:,0]),np.std(X[:,1]),np.std(X[:,2]),np.std(X[:,3])
-# xc,xd=1,1
-X_stad=np.array([(X[:,0]-np.mean(X[:,0]))/xa,
-                 (X[:,1]-np.mean(X[:,1]))/xb,
-                 (X[:,2]-np.mean(X[:,2]))/xc,
-                 (X[:,3]-np.mean(X[:,3]))/xd]).T
-X_std=(xa,xb,xc,xd)
-print('Manually std data %.3f %.3f %.3f %.3f'%(X_std))
-X_test= method.fit_transform(X)
-print(method.scale_)
+
+X_stad= method.fit_transform(X)
 # X_stad=X
-
-
 
 samples_dist=10
 samples_dist_original=samples_dist
@@ -424,29 +406,12 @@ area_l,area_b = arc_gal.l[id_arc],arc_gal.b[id_arc]
 area_pml,area_pmb = pml[id_arc], pmb[id_arc]
 
 X_area=np.array([area_pml,area_pmb,area_l,area_b]).T if clustering_by == 'all' else (np.array([area_pml,area_pmb]).T if clustering_by == 'vel' else np.array([area_l,area_b]).T )
-# X=np.array([area_pml,area_pmb]).T
-# X=np.array([area_l,area_b]).T
-xa_A,xb_A,xc_A,xd_A=np.std(X_area[:,0]),np.std(X_area[:,1]),np.std(X_area[:,2]),np.std(X_area[:,3]),
-# xc_A,xd_A = 15/83, 15/83
-# X_stad_area=np.array([(X_area[:,0]-np.mean(X_area[:,0]))/xa_A,
-#                  (X_area[:,1]-np.mean(X_area[:,1]))/xb_A,
-#                  (X_area[:,2]-np.mean(X_area[:,2]))/(xc_A*1),
-#                  (X_area[:,3]-np.mean(X_area[:,3]))/(xd_A*1)]).T
 
 # Here we standarize the data using the mean and std from the whole data set
 X_stad_area=np.array([(X_area[:,0]-method.mean_[0])/method.scale_[0],
                  (X_area[:,1]-method.mean_[1])/method.scale_[1],
                  (X_area[:,2]-method.mean_[2])/method.scale_[2],
                  (X_area[:,3]-method.mean_[1])/method.scale_[3]]).T
-
-
-
-
-# method_area =StandardScaler()
-# X_stad_area = method_area.fit_transform(X_area)
-# X_stad_area = X_area
-
-
 # samples_dist_area = 10
 samples_dist_area = samples_dist if conditions =='same' else int(samples_dist_original) # if equals to samples distance choose the size after exiting the while loop. Use this one with the epsilon = codo for copying the condition of the whole data set. Select samples_dist_original and codo_area for working in the reduced date set independtly 
 
@@ -499,7 +464,7 @@ clustering_area = DBSCAN(eps=epsilon_area, min_samples=samples_dist_area).fit(X_
 l_area = clustering_area.labels_
 
 loop_area = 0
-looping = 20000 if conditions == 'same' else 4
+looping = 20000 if conditions == 'same' else 4# if conditions are = same it does not enter the loop
 while len(set(l_area)) > looping:#Choose how many clusters you want to find (e.g 2 mean one cluster, 3 means two cluters, etc (l_c are the labes of each cluster plus one for the noise))
     loop_area +=1
     samples_dist_area+=1
@@ -540,35 +505,6 @@ ax[1].set_title('%s. Larger clsuter = %s '%(choosen_cluster, max(elements_in_clu
 plotting('mul','mub',pml[colores_index[-1]], pmb[colores_index[-1]],0, color=colors[-1],zorder=1)
 # plotting_h('mul','mub',X[:,0][colores_index[-1]], X[:,1][colores_index[-1]],0, color=colors[-1],zorder=1)
 plotting('l','b',l[colores_index[-1]], b[colores_index[-1]],1, color=colors[-1],zorder=1,alpha=0.01)
-
-# %%
-# =============================================================================
-# Checking the reduced area for dbscanning
-# =============================================================================
-# def plotting(namex,namey,x,y,ind,**kwargs):
-
-#     pl=ax[ind].scatter(x,y,**kwargs)
-    
-#     try:
-#         ax[ind].set_xlabel('%s(%s)'%(namex,x.unit)) # Set the axis label in the form "Variable description [units]"
-#         ax[ind].set_ylabel('%s(%s)'%(namey, y.unit))
-#     except:
-#         ax[ind].set_xlabel('%s'%(namex)) 
-#         ax[ind].set_ylabel('%s'%(namey))
-#     if ind ==2:
-#         ax[ind].invert_yaxis()
-#     return pl
-# fig, ax = plt.subplots(1,2,figsize=(20,10))
-# plotting('l','b',arc_gal.l, arc_gal.b,1)
-# plotting('mul','mub',pm_gal.pm_l_cosb, pm_gal.pm_b,0)
-# plotting('mul','mub',area_pml,area_pmb,0)
-# plotting('l','b',area_l,area_b,1)
-# plotting('mul','mub',area_pml,area_pmb,0)
-# plotting('l','b',area_l,area_b,1)
-
-# %%
-
-
 
 
 
