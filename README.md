@@ -18,4 +18,6 @@ Analisis of Libralato et al data
 
 ## Other scripts
 
-Arches_Hosek.py. In this iscript arches (or quintuplet) are dbscaned for clustering. In a first step the whole data set is scanned and withdraw the denser cluster. Afterwards a reduced data set is scanned for comparations. In theroy the results should not depended of the subset size. 
+Arches_Hosek.py. In this iscript arches (or quintuplet) are dbscaned for clustering. 
+In a first step the whole data set is scanned and withdraw the denser cluster.
+Afterwards a reduced data set is scanned for comparations. 
