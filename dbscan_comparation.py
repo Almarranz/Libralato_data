@@ -92,7 +92,7 @@ catal=np.loadtxt(pruebas + '%smatch_GNS_and_%s_refined_galactic.txt'%(pre,name))
 
 
 # %%
-cluster_by='all_pixel'# this varible can be 'pm' or 'pos', indicating if you want cluster by velocities or positions,or all for clustering in 4D
+cluster_by='pos'# this varible can be 'pm' or 'pos', indicating if you want cluster by velocities or positions,or all for clustering in 4D
 
 
 #mul, mub, mua, mud, ra, dec,dmul,dmub,l,b,Ks, H, m139, position in GALCEN_TABLE_D.cat 
@@ -106,21 +106,21 @@ pms=[0,0,0,0]
 
 
 
-# for g in range(len(group_lst)):
-for g in range(0,10):
+for g in range(len(group_lst)):
+# for g in range(0,10):
     seed(g)
     fig, ax = plt.subplots(1,1,figsize=(30,10))
     ax.set_ylim(0,10)
     ax.text(0.0, 5, 'Group %s'%(int(group_lst[g])),fontsize= 400,color=plt.cm.rainbow(random()))
     
     # print(group_lst[g])
-    samples=7# number of minimun objects that defined a cluster
+    samples=5# number of minimun objects that defined a cluster
     samples_dist = samples# the distance to the kth neightbour that will define the frist epsilon for debsacn to star looping
     group=int(group_lst[g])
     #ra,dec,x_c,y_c,mua,dmua,mud,dmud,time,n1,n2,idt,m139,Separation,Ks,H,mul,mub,l,b
     # "'RA_gns','DE_gns','Jmag','Hmag','Ksmag','ra','dec','x_c','y_c','mua','dmua','mud','dmud','time','n1','n2','ID','mul','mub','dmul','dmub','m139','Separation'",
     # r_u=[22,32,43,76]#this are the radios around the MS
-    r_u=[22,32]#this are the radios around the MS
+    r_u=[76]#this are the radios around the MS
 
     for r in  range(len(r_u)):
       
@@ -175,8 +175,12 @@ for g in range(0,10):
         #     eps_for_mean.append(np.mean(dist[i]))
         
         kneedle = KneeLocator(np.arange(0,len(data),1), d_KNN, curve='convex', interp_method = "polynomial",direction="increasing")
+        elbow = KneeLocator(np.arange(0,len(data),1), d_KNN, curve='concave', interp_method = "polynomial",direction="increasing")
         rodilla=round(kneedle.elbow_y, 3)
-       
+        codo = round(elbow.elbow_y, 3)
+        
+        
+        
     
        
     
@@ -186,21 +190,43 @@ for g in range(0,10):
         # %% tutorial at https://scikit-learn.org/stable/auto_examples/cluster/plot_dbscan.html#sphx-glr-auto-examples-cluster-plot-dbscan-py
         
         # epsilon=np.mean(eps_for_mean)
-        # epsilon=rodilla
-        epsilon = round(min(d_KNN),2)
-        # epsilon=0.2
+        # epsilon=codo
+        # epsilon = round(min(d_KNN),3)
+        # sys.exit('salida')
+        epsilon=codo
         clustering = DBSCAN(eps=epsilon, min_samples=samples).fit(X_stad)
         l=clustering.labels_
         loop=0
-        while len(set(l))< 2:
+        while len(set(l))>6:
             loop +=1
             clustering = DBSCAN(eps=epsilon, min_samples=samples).fit(X_stad)
             
             l=clustering.labels_
-            epsilon +=0.01
-            
-            print('DBSCAN loop %s. Trying with eps=%s'%(loop,round(epsilon,3)))
+            # epsilon +=0.001 # if choose epsilon as min d_KNN you loop over epsilo and a < goes in the while loop
+            samples +=1 # if you choose epsilon as codo, you loop over the number of sambles and a > goes in the  while loop
+            print('DBSCAN loop %s. Trying with eps=%s. cluster = %s '%(loop,round(epsilon,3),len(set(l))-1))
         print('This is the number of clusters: %s'%(len(set(l))-1))
+        
+        # =============================================================================
+        fig, ax = plt.subplots(1,1,figsize=(8,8))
+        ax.plot(np.arange(0,len(data),1),d_KNN)
+        # ax.legend(['knee=%s, min=%s, eps=%s, Dim.=%s'%(round(kneedle.elbow_y, 3),round(min(d_KNN),2),round(epsilon,2),len(X[0]))])
+        ax.set_xlabel('Point') 
+        ax.set_ylabel('%s-NN distance'%(samples)) 
+        # print(round(kneedle.knee, 3))
+        # print(round(kneedle.elbow, 3))
+        # print(round(kneedle.knee_y, 3))
+        # print(round(kneedle.elbow_y, 3))
+        ax.axhline(rodilla,linestyle='dashed',color='k')
+        ax.axhline(codo,linestyle='dashed',color='k')
+        ax.axhline(epsilon,linestyle='dashed',color='red') 
+        ax.text(len(X)/2,epsilon, '%s'%(round(epsilon,3)),color='red')
+
+        ax.text(0,codo, '%s'%(codo))
+        ax.text(0,rodilla, '%s'%(rodilla))
+        ax.fill_between(np.arange(0,len(X)), codo, rodilla, alpha=0.5, color='grey')
+        # =============================================================================
+        
         # %%Plots the vector poits plots for all the selected stars
     # =============================================================================
     #     fig, ax = plt.subplots(1,1,figsize=(8,8))
