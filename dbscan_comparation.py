@@ -92,7 +92,7 @@ catal=np.loadtxt(pruebas + '%smatch_GNS_and_%s_refined_galactic.txt'%(pre,name))
 
 
 # %%
-cluster_by='pos'# this varible can be 'pm' or 'pos', indicating if you want cluster by velocities or positions,or all for clustering in 4D
+cluster_by='all'# this varible can be 'pm' or 'pos', indicating if you want cluster by velocities or positions,or all for clustering in 4D
 
 
 #mul, mub, mua, mud, ra, dec,dmul,dmub,l,b,Ks, H, m139, position in GALCEN_TABLE_D.cat 
@@ -106,8 +106,8 @@ pms=[0,0,0,0]
 
 
 
-for g in range(len(group_lst)):
-# for g in range(0,10):
+# for g in range(len(group_lst)):
+for g in range(0,2):
     seed(g)
     fig, ax = plt.subplots(1,1,figsize=(30,10))
     ax.set_ylim(0,10)
@@ -138,20 +138,28 @@ for g in range(len(group_lst)):
         t_gal= QTable([gal_c.l,gal_c.b], names=('l','b'))  
         
     # %%
-        if cluster_by == 'pm':
-            X=np.array([data[:,-6]-pms[2],data[:,-5]-pms[3]]).T #Select pm (galactic)
-        elif cluster_by == 'pm_color':
-            X=np.array([data[:,-6]-pms[2],data[:,-5]-pms[3],data[:,3]-data[:,4]]).T #Select pm (galactic)
-        elif cluster_by == 'pos':
-            # X=np.array([t_gal['l'].value,t_gal['b'].value]).T #Select position (galactic)
-            X=np.array([data[:,7],data[:,8]]).T #Select position (pixels)
+        X=np.array([data[:,-6]-pms[2],data[:,-5]-pms[3],t_gal['l'].value,t_gal['b'].value]).T
+        if cluster_by == 'pos':
+            X_stad = StandardScaler().fit_transform(X[:,[2,3]])
+        elif cluster_by == 'pm':
+            X_stad = StandardScaler().fit_transform(X[:,[0,1]])
         elif cluster_by == 'all':
-            X=np.array([data[:,-6]-pms[2],data[:,-5]-pms[3],t_gal['l'].value,t_gal['b'].value]).T# in Castro-Ginard et al. 2018 they cluster the data in a 5D space: pm,position and paralax    
-        elif cluster_by == 'all_pixel':
-            X=np.array([data[:,-6]-pms[2],data[:,-5]-pms[3],data[:,7],data[:,8]]).T# using pixel position instead of coordinates for the clustering   
-        elif cluster_by == 'all_color':
-            X=np.array([data[:,-6]-pms[2],data[:,-5]-pms[3],t_gal['l'].value,t_gal['b'].value,data[:,3]-data[:,4]]).T#
-        X_stad = StandardScaler().fit_transform(X)
+            X_stad = StandardScaler().fit_transform(X)
+        
+        # if cluster_by == 'pm':
+        #     X=np.array([data[:,-6]-pms[2],data[:,-5]-pms[3]]).T #Select pm (galactic)
+        # elif cluster_by == 'pm_color':
+        #     X=np.array([data[:,-6]-pms[2],data[:,-5]-pms[3],data[:,3]-data[:,4]]).T #Select pm (galactic)
+        # elif cluster_by == 'pos':
+        #     # X=np.array([t_gal['l'].value,t_gal['b'].value]).T #Select position (galactic)
+        #     X=np.array([data[:,7],data[:,8]]).T #Select position (pixels)
+        # elif cluster_by == 'all':
+        #     X=np.array([data[:,-6]-pms[2],data[:,-5]-pms[3],t_gal['l'].value,t_gal['b'].value]).T# in Castro-Ginard et al. 2018 they cluster the data in a 5D space: pm,position and paralax    
+        # elif cluster_by == 'all_pixel':
+        #     X=np.array([data[:,-6]-pms[2],data[:,-5]-pms[3],data[:,7],data[:,8]]).T# using pixel position instead of coordinates for the clustering   
+        # elif cluster_by == 'all_color':
+        #     X=np.array([data[:,-6]-pms[2],data[:,-5]-pms[3],t_gal['l'].value,t_gal['b'].value,data[:,3]-data[:,4]]).T#
+        # X_stad = StandardScaler().fit_transform(X)
         # print('These are the mean and std of X: %s %s'%(round(np.mean(X_stad),1),round(np.std(X_stad),1)))
         #THis is how I do it 
         tree=KDTree(X_stad, leaf_size=2) 
@@ -191,19 +199,19 @@ for g in range(len(group_lst)):
         
         # epsilon=np.mean(eps_for_mean)
         # epsilon=codo
-        # epsilon = round(min(d_KNN),3)
+        epsilon = round(min(d_KNN),3)
         # sys.exit('salida')
-        epsilon=codo
+        # epsilon=codo
         clustering = DBSCAN(eps=epsilon, min_samples=samples).fit(X_stad)
         l=clustering.labels_
         loop=0
-        while len(set(l))>6:
+        while len(set(l))<6:
             loop +=1
             clustering = DBSCAN(eps=epsilon, min_samples=samples).fit(X_stad)
             
             l=clustering.labels_
-            # epsilon +=0.001 # if choose epsilon as min d_KNN you loop over epsilo and a < goes in the while loop
-            samples +=1 # if you choose epsilon as codo, you loop over the number of sambles and a > goes in the  while loop
+            epsilon +=0.001 # if choose epsilon as min d_KNN you loop over epsilo and a < goes in the while loop
+            # samples +=1 # if you choose epsilon as codo, you loop over the number of sambles and a > goes in the  while loop
             print('DBSCAN loop %s. Trying with eps=%s. cluster = %s '%(loop,round(epsilon,3),len(set(l))-1))
         print('This is the number of clusters: %s'%(len(set(l))-1))
         
@@ -341,18 +349,19 @@ for g in range(len(group_lst)):
                     min_c=min(data[:,3][colores_index[i]]-data[:,4][colores_index[i]])
                     max_c=max(data[:,3][colores_index[i]]-data[:,4][colores_index[i]])
                     min_Ks=min(data[:,4][colores_index[i]])
-                    p.arrow(max_c+max_c/5,min_Ks+0.5,-(max_c+max_c/5-max_c),0,head_width=0.05,color=colors[i])
-                    ax[2].scatter(data[:,3][colores_index[i]]-data[:,4][colores_index[i]],data[:,4][colores_index[i]], color=colors[i],s=50,zorder=2)
-                    ax[2].axvline(min_c,color=colors[i],ls='dashed',alpha=0.5)
-                    ax[2].axvline(max_c,color=colors[i],ls='dashed',alpha=0.5)
-                    ax[2].annotate('%s'%(round(max_c-min_c,3)),(max_c+max_c/5,min_Ks+0.5),color=colors[i])
-                    ax[2].scatter((Ms[0,11]-Ms[0,10]),Ms[0,10], color='red',s=100,marker='2',zorder=3)
-                    ax[2].set_xlim(0,)
-                    ax[2].set_xlabel('H$-$Ks') 
-                    ax[2].set_ylabel('Ks') 
+                    if max_c-min_c <0.3:
+                        p.arrow(max_c+max_c/5,min_Ks+0.5,-(max_c+max_c/5-max_c),0,head_width=0.05,color=colors[i])
+                        ax[2].scatter(data[:,3][colores_index[i]]-data[:,4][colores_index[i]],data[:,4][colores_index[i]], color=colors[i],s=50,zorder=2)
+                        ax[2].axvline(min_c,color=colors[i],ls='dashed',alpha=0.5)
+                        ax[2].axvline(max_c,color=colors[i],ls='dashed',alpha=0.5)
+                        ax[2].annotate('%s'%(round(max_c-min_c,3)),(max_c+max_c/5,min_Ks+0.5),color=colors[i])
+                        ax[2].scatter((Ms[0,11]-Ms[0,10]),Ms[0,10], color='red',s=100,marker='2',zorder=3)
+                        ax[2].set_xlim(0,)
+                        ax[2].set_xlabel('H$-$Ks') 
+                        ax[2].set_ylabel('Ks') 
+                        
                     
-                    
 
 
+# %%
 
-   
