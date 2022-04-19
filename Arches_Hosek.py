@@ -140,7 +140,7 @@ def density_plot(a,b,namex, namey, ind, **kwargs):
 fig, ax = plt.subplots(1,3,figsize=(30,10))
 plotting_h('l','b',l,b,0,bins=50,norm=matplotlib.colors.LogNorm())
 plotting_h('mul','mub',pml,pmb,1,bins=50,norm=matplotlib.colors.LogNorm())
-plotting_h('m127-m157','m157',m127-m153,m153,2,norm=matplotlib.colors.LogNorm())
+plotting_h('m127-m153','m153',m127-m153,m153,2,norm=matplotlib.colors.LogNorm())
 
 # %%This density plots are cool but take some time
 
@@ -213,7 +213,7 @@ ax.legend(['knee=%s,min=%s, eps=%s, Dim.=%s'%(rodilla,round(min(d_KNN),2),round(
 
 
 
-clustering = DBSCAN(eps=epsilon, min_samples=samples_dist).fit(X_stad)
+clustering = DBSCAN(eps = epsilon, min_samples=samples_dist).fit(X_stad)
 
 l_c=clustering.labels_
 loop=0
@@ -256,6 +256,7 @@ ax[1].set_title('%s. Larger cluster = %s'%(choosen_cluster, max(elements_in_clus
 plotting('mul','mub',pml[colores_index[-1]], pmb[colores_index[-1]],0, color=colors[-1],zorder=1)
 # plotting_h('mul','mub',X[:,0][colores_index[-1]], X[:,1][colores_index[-1]],0, color=colors[-1],zorder=1)
 plotting('l','b',l[colores_index[-1]], b[colores_index[-1]],1, color=colors[-1],zorder=1)
+# plotting('m127-m153','m153',m127[colores_index[-1]]-m153[colores_index[-1]],m153[colores_index[-1]],2)
 
 
 # %%
@@ -335,9 +336,10 @@ pm_clus=pm_gal[colores_index[0]]
 # # , that is not the same than a Skycoor coord objet. 
 # # The former stores coord and pm and, aparently to acces 
 # # the proper motions coordinate you have to do it separetly
-# # , i.e. pm_clus.pm_l_cob or pm_clu.b(doing pm_clus.pm does not worñ)
+# # , i.e. pm_clus.pm_l_cob or pm_clu.b(doing pm_clus.pm does not work)
 # =============================================================================
 # pm_gal = SkyCoord(ra  = ra ,dec = dec, pm_ra_cosdec = pmra, pm_dec = pmdec,frame = 'icrs').galactic
+
 
 
 
@@ -347,7 +349,7 @@ rand = np.random.choice(np.arange(0,len(clus_gal)),1)
 
 rand_clus = clus_gal[rand]
 rand_pm = pm_clus[rand]
-radio=25*u.arcsec
+radio=10.0*u.arcsec
 
 #Here we can decide if selected the reduced data set around a random value of the cluster.
 # or around the pre-dertermined coordenates for the cluster
@@ -356,7 +358,7 @@ radio=25*u.arcsec
 # =============================================================================
 
 #search_around_sky complains when one of the variable is just a singe coordinates (and not an array of coordinates)
-#so in order to go aroun this put the coordinares around brackets work
+#so in order to go around this put the coordinares in brackets and it woint complain any more
 id_clus, id_arc, d2d,d3d = ap_coor.search_around_sky(SkyCoord(['17h45m50.4769267s'], ['-28d49m19.16770s'], frame='icrs'),arc_gal, radio) if choosen_cluster =='Arches' else ap_coor.search_around_sky(SkyCoord(['17h46m15.13s'], ['-28d49m34.7s'], frame='icrs'),arc_gal, radio)
 
 dbs_clus, id_arc_dbs, d2d_db, d3d_db = ap_coor.search_around_sky(SkyCoord(['17h45m50.4769267s'], ['-28d49m19.16770s'], frame='icrs'),clus_gal, radio) if choosen_cluster =='Arches' else ap_coor.search_around_sky(SkyCoord(['17h46m15.13s'], ['-28d49m34.7s'], frame='icrs'),clus_gal, radio)
@@ -380,8 +382,11 @@ ax[0].set_title('%s, method: %s'%(choosen_cluster,method))
 plotting('l','b',arc_gal.l, arc_gal.b,1,alpha=0.01,color='k')
 plotting('l','b',clus_gal.l[id_arc_dbs], clus_gal.b[id_arc_dbs],1,color='orange',alpha=0.3,zorder=3)
 
+
 plotting('mul','mub',pm_gal.pm_l_cosb, pm_gal.pm_b,0,alpha=0.3)
 plotting('mul','mub',pm_clus.pm_l_cosb[id_arc_dbs], pm_clus.pm_b[id_arc_dbs],0,alpha=0.1)
+
+
 
 
 ax[0].invert_xaxis()
@@ -506,6 +511,53 @@ plotting('mul','mub',pml[colores_index[-1]], pmb[colores_index[-1]],0, color=col
 # plotting_h('mul','mub',X[:,0][colores_index[-1]], X[:,1][colores_index[-1]],0, color=colors[-1],zorder=1)
 plotting('l','b',l[colores_index[-1]], b[colores_index[-1]],1, color=colors[-1],zorder=1,alpha=0.01)
 
+
+# %%
+# Here we ara going to select random samples of the cluster a figure their dispersion in velocity and color
+
+mini_l = area_l[colores_index_area[0]]
+mini_b = area_b[colores_index_area[0]]
+mini_coord=SkyCoord(mini_l,mini_b,frame='icrs')
+mini_pml = area_pml[colores_index_area[0]]
+mini_pmb = area_pmb[colores_index_area[0]]
+# mini_m127 
+# mini_m153
+#%%
+rand_mini= np.random.choice(np.arange(0,len(mini_pml)),1)
+# %
+radio_mini = 1.5*u.arcsec
+
+
+id_rand, id_min, d2d_mini, d3d_mini = ap_coor.search_around_sky(SkyCoord(mini_l[rand_mini],mini_b[rand_mini],frame='icrs'), mini_coord,radio_mini)
+
+
+
+# %
+def plotting(namex,namey,x,y,ind,**kwargs):
+
+    pl=ax[ind].scatter(x,y,**kwargs)
+    
+    try:
+        ax[ind].set_xlabel('%s(%s)'%(namex,x.unit)) # Set the axis label in the form "Variable description [units]"
+        ax[ind].set_ylabel('%s(%s)'%(namey, y.unit))
+    except:
+        ax[ind].set_xlabel('%s'%(namex)) 
+        ax[ind].set_ylabel('%s'%(namey))
+    if ind ==2:
+        ax[ind].invert_yaxis()
+    return pl
+fig,ax = plt.subplots(1,2, figsize=(20,10))
+ax[0].set_title('std pm_l = %.2f, std pm_l = %.2f'%(np.std(mini_pml[id_min].value),np.std(mini_pmb[id_min].value)))
+ax[1].set_title('radio green = %s, stars = %s'%(radio,len(mini_l[id_min])))
+plotting('l','b',arc_gal.l, arc_gal.b,1)
+plotting('mul','mub',pm_gal.pm_l_cosb, pm_gal.pm_b,0)
+plotting('l','b',mini_l,mini_b,1)
+plotting('l','b',mini_l[id_min],mini_b[id_min],1, color = 'green')
+plotting('pml','pmb',mini_pml,mini_pmb,0)
+plotting('pml','pmb',mini_pml[id_min],mini_pmb[id_min],0)
+
+# %%
+print(np.std(mini_pml[id_min].value))
 
 
 
