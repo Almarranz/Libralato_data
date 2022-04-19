@@ -51,7 +51,22 @@ choosen_cluster = 'Arches'
 
 center_arc = SkyCoord('17h45m50.4769267s', '-28d49m19.16770s', frame='icrs') if choosen_cluster =='Arches' else SkyCoord('17h46m15.13s', '-28d49m34.7s', frame='icrs')#Quintuplet
 arches=Table.read(catal + 'Arches_cat_H22_Pclust.fits') if choosen_cluster =='Arches' else Table.read(catal + 'Quintuplet_cat_H22_Pclust.fits')
+# %% Here we are going to trimm the data
+# Only data with valid color and uncertainties in pm smaller than 0.4
+m127_all, m153_all = arches['F127M']*u.mag,arches['F153M']*u.mag
+valid_colors=np.where((np.isnan(m127_all)==False)&(np.isnan(m153_all)==False))
+m127,m153=m127_all[valid_colors],m153_all[valid_colors]
 
+arches=arches[valid_colors]
+epm_gal = SkyCoord(ra  = arches['ra*']*u.arcsec+center_arc.ra,dec = arches['dec']*u.arcsec+ center_arc.dec, pm_ra_cosdec =  arches['e_pm_ra*']*u.mas/u.yr, pm_dec = arches['e_pm_dec']*u.mas/u.yr,frame = 'icrs').galactic
+valid_epm = np.where((epm_gal.pm_l_cosb.value < 0.4)&(epm_gal.pm_b.value < 0.4))
+
+
+# %
+
+arches=arches[valid_epm]
+# sys.exit('line 67')
+# %%
 columnas=str(arches.columns)
 arc_coor=SkyCoord(ra=arches['ra*']*u.arcsec+center_arc.ra,dec=arches['dec']*u.arcsec+ center_arc.dec)
 # %%
@@ -62,9 +77,7 @@ pmra, pmdec = arches['pm_ra*']*u.mas/u.yr, arches['pm_dec']*u.mas/u.yr
 e_pmra, e_pmdec = arches['e_pm_ra*'].value, arches['e_pm_dec'].value
 print(np.std(e_pmra),np.std(e_pmdec))
 # %%
-m127_all, m153_all = arches['F127M']*u.mag,arches['F153M']*u.mag
-valid_colors=np.where((np.isnan(m127_all)==False)&(np.isnan(m153_all)==False))
-m127,m153=m127_all[valid_colors],m153_all[valid_colors]
+m127, m153 = arches['F127M']*u.mag,arches['F153M']*u.mag
 
 # =============================================================================
 # np.savetxt(pruebas + 'arches_for_topcat.txt',np.array([ra.value,dec.value,pmra.value,pmdec.value,m127.value,m153.value]).T,header='ra.value,dec.value,pmra.value,pmdec.value,m127.value,m153.value')
@@ -242,7 +255,7 @@ for c in u_labels:
 
 
 
-fig, ax = plt.subplots(1,2,figsize=(20,10))
+fig, ax = plt.subplots(1,3,figsize=(30,10))
 
 ax[0].invert_xaxis()
 elements_in_cluster=[]
@@ -250,13 +263,15 @@ for i in range(len(set(l_c))-1):
     elements_in_cluster.append(len(pml[colores_index[i]]))
     plotting('mul','mub',pml[colores_index[i]], pmb[colores_index[i]],0, color=colors[i],zorder=3)
     plotting('l','b',l[colores_index[i]], b[colores_index[i]],1, color=colors[i],zorder=3)
+    plotting('m127-m153','m153',m127[colores_index[i]]-m153[colores_index[i]],m153[colores_index[i]],2,color=colors[i], zorder=3)
     print(len(pml[colores_index[i]]))
 ax[0].set_title('n of cluster = %s,eps=%s,min size=%s'%(n_clusters,round(epsilon,2),samples_dist))
 ax[1].set_title('%s. Larger cluster = %s'%(choosen_cluster, max(elements_in_cluster)))
 plotting('mul','mub',pml[colores_index[-1]], pmb[colores_index[-1]],0, color=colors[-1],zorder=1)
 # plotting_h('mul','mub',X[:,0][colores_index[-1]], X[:,1][colores_index[-1]],0, color=colors[-1],zorder=1)
 plotting('l','b',l[colores_index[-1]], b[colores_index[-1]],1, color=colors[-1],zorder=1)
-# plotting('m127-m153','m153',m127[colores_index[-1]]-m153[colores_index[-1]],m153[colores_index[-1]],2)
+ax[2].invert_yaxis()
+plotting('m127-m153','m153',m127[colores_index[-1]]-m153[colores_index[-1]],m153[colores_index[-1]],2,color=colors[-1],zorder=1)
 
 
 # %%
@@ -330,13 +345,15 @@ def plotting(namex,namey,x,y,ind,**kwargs):
 
 clus_gal=arc_gal[colores_index[0]]
 pm_clus=pm_gal[colores_index[0]]
+m153_clus = m153[colores_index[0]]
+m127_clus = m127[colores_index[0]]
 
 # =============================================================================
 # # NOte to myself: pm_clus is a Skycoord pm obeject
 # # , that is not the same than a Skycoor coord objet. 
 # # The former stores coord and pm and, aparently to acces 
 # # the proper motions coordinate you have to do it separetly
-# # , i.e. pm_clus.pm_l_cob or pm_clu.b(doing pm_clus.pm does not work)
+# # , i.e. pm_clus.pm_l_cosb or pm_clu.b(doing pm_clus.pm does not work)
 # =============================================================================
 # pm_gal = SkyCoord(ra  = ra ,dec = dec, pm_ra_cosdec = pmra, pm_dec = pmdec,frame = 'icrs').galactic
 
@@ -349,34 +366,43 @@ rand = np.random.choice(np.arange(0,len(clus_gal)),1)
 
 rand_clus = clus_gal[rand]
 rand_pm = pm_clus[rand]
-radio=10.0*u.arcsec
+radio=5.0*u.arcsec
 
 #Here we can decide if selected the reduced data set around a random value of the cluster.
 # or around the pre-dertermined coordenates for the cluster
-# =============================================================================
-# id_clus, id_arc, d2d,d3d = ap_coor.search_around_sky(rand_clus,arc_gal, radio)
-# =============================================================================
+id_clus, id_arc, d2d,d3d = ap_coor.search_around_sky(rand_clus,arc_gal, radio)
+dbs_clus, id_arc_dbs, d2d_db, d3d_db = ap_coor.search_around_sky(rand_clus,clus_gal, radio)
 
 #search_around_sky complains when one of the variable is just a singe coordinates (and not an array of coordinates)
 #so in order to go around this put the coordinares in brackets and it woint complain any more
-id_clus, id_arc, d2d,d3d = ap_coor.search_around_sky(SkyCoord(['17h45m50.4769267s'], ['-28d49m19.16770s'], frame='icrs'),arc_gal, radio) if choosen_cluster =='Arches' else ap_coor.search_around_sky(SkyCoord(['17h46m15.13s'], ['-28d49m34.7s'], frame='icrs'),arc_gal, radio)
-
-dbs_clus, id_arc_dbs, d2d_db, d3d_db = ap_coor.search_around_sky(SkyCoord(['17h45m50.4769267s'], ['-28d49m19.16770s'], frame='icrs'),clus_gal, radio) if choosen_cluster =='Arches' else ap_coor.search_around_sky(SkyCoord(['17h46m15.13s'], ['-28d49m34.7s'], frame='icrs'),clus_gal, radio)
-
+# =============================================================================
+# id_clus, id_arc, d2d,d3d = ap_coor.search_around_sky(SkyCoord(['17h45m50.4769267s'], ['-28d49m19.16770s'], frame='icrs'),arc_gal, radio) if choosen_cluster =='Arches' else ap_coor.search_around_sky(SkyCoord(['17h46m15.13s'], ['-28d49m34.7s'], frame='icrs'),arc_gal, radio)
+# 
+# dbs_clus, id_arc_dbs, d2d_db, d3d_db = ap_coor.search_around_sky(SkyCoord(['17h45m50.4769267s'], ['-28d49m19.16770s'], frame='icrs'),clus_gal, radio) if choosen_cluster =='Arches' else ap_coor.search_around_sky(SkyCoord(['17h46m15.13s'], ['-28d49m34.7s'], frame='icrs'),clus_gal, radio)
+# 
+# =============================================================================
 #
 # %
-fig, ax = plt.subplots(1,2,figsize=(20,10))
+fig, ax = plt.subplots(1,3,figsize=(30,10))
 ax[1].set_title('Radio = %s, Green = %s'%(radio,len(id_clus)))
 ax[0].set_title('%s, method: %s'%(choosen_cluster,method))
 plotting('l','b',arc_gal.l, arc_gal.b,1)
 plotting('l','b',clus_gal.l, clus_gal.b,1,color='orange')
-plotting('l','b',arc_gal.l[id_arc], arc_gal.b[id_arc],1,alpha=0.05,color='g')
+plotting('l','b',arc_gal.l[id_arc], arc_gal.b[id_arc],1,alpha=0.9,color='g')
 
 plotting('mul','mub',pm_gal.pm_l_cosb, pm_gal.pm_b,0)
 plotting('mul','mub',pm_clus.pm_l_cosb, pm_clus.pm_b,0)
 plotting('mul','mub',pml[id_arc], pmb[id_arc],0,alpha=0.1)
 ax[0].invert_xaxis()
-fig, ax = plt.subplots(1,2,figsize=(20,10))
+
+plotting('m127-m153','m153',m127-m153, m153,2,zorder=1,alpha=0.01)
+plotting('m127-m153','m153',m127_clus-m153_clus, m153_clus,2,alpha=0.3,color='orange')
+plotting('m127-m153','m153',m127[id_arc]-m153[id_arc],m153[id_arc],2,alpha=0.8,color='g')
+
+
+
+
+fig, ax = plt.subplots(1,3,figsize=(30,10))
 ax[1].set_title('Radio = %s, Orange = %s'%(radio,len(dbs_clus)))
 ax[0].set_title('%s, method: %s'%(choosen_cluster,method))
 plotting('l','b',arc_gal.l, arc_gal.b,1,alpha=0.01,color='k')
@@ -384,12 +410,17 @@ plotting('l','b',clus_gal.l[id_arc_dbs], clus_gal.b[id_arc_dbs],1,color='orange'
 
 
 plotting('mul','mub',pm_gal.pm_l_cosb, pm_gal.pm_b,0,alpha=0.3)
-plotting('mul','mub',pm_clus.pm_l_cosb[id_arc_dbs], pm_clus.pm_b[id_arc_dbs],0,alpha=0.1)
+plotting('mul','mub',pm_clus.pm_l_cosb[id_arc_dbs], pm_clus.pm_b[id_arc_dbs],0,alpha=0.8)
 
 
+plotting('m127-m153','m153',m127-m153, m153,2,zorder=1,alpha=0.1)
+plotting('m127-m153','m153',m127_clus[id_arc_dbs]-m153_clus[id_arc_dbs],m153_clus[id_arc_dbs],2,alpha=0.8)
+ax[2].invert_yaxis()
 
 
 ax[0].invert_xaxis()
+
+# sys.exit('line 422')
 # %%
 # =============================================================================
 # DBSCAN in reduced area
@@ -558,6 +589,15 @@ plotting('pml','pmb',mini_pml[id_min],mini_pmb[id_min],0)
 
 # %%
 print(np.std(mini_pml[id_min].value))
+
+
+# %%
+
+
+
+
+
+
 
 
 
