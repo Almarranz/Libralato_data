@@ -47,7 +47,7 @@ pruebas='/Users/amartinez/Desktop/PhD/Arches_and_Quintuplet_Hosek/pruebas/'
 # =============================================================================
 # #Choose Arches or Quintuplet
 # =============================================================================
-choosen_cluster = 'Quintuplet'
+choosen_cluster = 'Arches'
 
 center_arc = SkyCoord('17h45m50.4769267s', '-28d49m19.16770s', frame='icrs') if choosen_cluster =='Arches' else SkyCoord('17h46m15.13s', '-28d49m34.7s', frame='icrs')#Quintuplet
 arches=Table.read(catal + 'Arches_cat_H22_Pclust.fits') if choosen_cluster =='Arches' else Table.read(catal + 'Quintuplet_cat_H22_Pclust.fits')
@@ -179,7 +179,7 @@ from sklearn.neighbors import KDTree
 from kneed import DataGenerator, KneeLocator
 
 conditions = 'same'# no_same. do I want to have the same condition (epsilon and min_size) when using dbscan in the reduced area?
-clustering_by = 'all'#or 'vel' 'pos' or 'all'
+clustering_by = 'vel'#or 'vel' 'pos' or 'all'
 # %
 X = np.array([pml,pmb,l,b]).T if clustering_by == 'all' else  (np.array([pml,pmb]).T if clustering_by == 'vel' else np.array([l,b]).T )
 # X=np.array([pml,pmb]).T
@@ -190,7 +190,7 @@ method = StandardScaler()
 X_stad= method.fit_transform(X)
 # X_stad=X
 
-samples_dist=50
+samples_dist=100
 samples_dist_original=samples_dist
 tree=KDTree(X_stad, leaf_size=2) 
 dist, ind = tree.query(X_stad, k=samples_dist) 
@@ -368,18 +368,18 @@ rand = np.random.choice(np.arange(0,len(clus_gal)),1)
 
 rand_clus = clus_gal[rand]
 rand_pm = pm_clus[rand]
-radio=2.*u.arcsec
+radio=5.*u.arcsec
 
 #Here we can decide if selected the reduced data set around a random value of the cluster.
 
-# =============================================================================
-# id_clus, id_arc, d2d,d3d = ap_coor.search_around_sky(rand_clus,arc_gal, radio)
-# dbs_clus, id_arc_dbs, d2d_db, d3d_db = ap_coor.search_around_sky(rand_clus,clus_gal, radio)
-# =============================================================================
+id_clus, id_arc, d2d,d3d = ap_coor.search_around_sky(rand_clus,arc_gal, radio)
+dbs_clus, id_arc_dbs, d2d_db, d3d_db = ap_coor.search_around_sky(rand_clus,clus_gal, radio)
 
 # or around the pre-dertermined coordenates for the cluster
-id_clus, id_arc, d2d,d3d = ap_coor.search_around_sky(SkyCoord(['17h45m50.4769267s'], ['-28d49m19.16770s'], frame='icrs'),arc_gal, radio) if choosen_cluster =='Arches' else ap_coor.search_around_sky(SkyCoord(['17h46m15.13s'], ['-28d49m34.7s'], frame='icrs'),arc_gal, radio)
-dbs_clus, id_arc_dbs, d2d_db, d3d_db = ap_coor.search_around_sky(SkyCoord(['17h45m50.4769267s'], ['-28d49m19.16770s'], frame='icrs'),clus_gal, radio) if choosen_cluster =='Arches' else ap_coor.search_around_sky(SkyCoord(['17h46m15.13s'], ['-28d49m34.7s'], frame='icrs'),clus_gal, radio)
+# =============================================================================
+# id_clus, id_arc, d2d,d3d = ap_coor.search_around_sky(SkyCoord(['17h45m50.4769267s'], ['-28d49m19.16770s'], frame='icrs'),arc_gal, radio) if choosen_cluster =='Arches' else ap_coor.search_around_sky(SkyCoord(['17h46m15.13s'], ['-28d49m34.7s'], frame='icrs'),arc_gal, radio)
+# dbs_clus, id_arc_dbs, d2d_db, d3d_db = ap_coor.search_around_sky(SkyCoord(['17h45m50.4769267s'], ['-28d49m19.16770s'], frame='icrs'),clus_gal, radio) if choosen_cluster =='Arches' else ap_coor.search_around_sky(SkyCoord(['17h46m15.13s'], ['-28d49m34.7s'], frame='icrs'),clus_gal, radio)
+# =============================================================================
 
 #search_around_sky complains when one of the variable is just a singe coordinates (and not an array of coordinates)
 #so in order to go around this put the coordinares in brackets and it woint complain any more
