@@ -47,7 +47,7 @@ pruebas='/Users/amartinez/Desktop/PhD/Arches_and_Quintuplet_Hosek/pruebas/'
 # =============================================================================
 # #Choose Arches or Quintuplet
 # =============================================================================
-choosen_cluster = 'Arches'
+choosen_cluster = 'Quintuplet'
 
 center_arc = SkyCoord('17h45m50.4769267s', '-28d49m19.16770s', frame='icrs') if choosen_cluster =='Arches' else SkyCoord('17h46m15.13s', '-28d49m34.7s', frame='icrs')#Quintuplet
 arches=Table.read(catal + 'Arches_cat_H22_Pclust.fits') if choosen_cluster =='Arches' else Table.read(catal + 'Quintuplet_cat_H22_Pclust.fits')
@@ -56,15 +56,17 @@ arches=Table.read(catal + 'Arches_cat_H22_Pclust.fits') if choosen_cluster =='Ar
 m127_all, m153_all = arches['F127M']*u.mag,arches['F153M']*u.mag
 valid_colors=np.where((np.isnan(m127_all)==False)&(np.isnan(m153_all)==False))
 m127,m153=m127_all[valid_colors],m153_all[valid_colors]
-
 arches=arches[valid_colors]
+
+center = np.where((m127.value - m153.value > 1.7) &(m127.value - m153.value < 4))
+arches = arches[center]
+
 epm_gal = SkyCoord(ra  = arches['ra*']*u.arcsec+center_arc.ra,dec = arches['dec']*u.arcsec+ center_arc.dec, pm_ra_cosdec =  arches['e_pm_ra*']*u.mas/u.yr, pm_dec = arches['e_pm_dec']*u.mas/u.yr,frame = 'icrs').galactic
-valid_epm = np.where((epm_gal.pm_l_cosb.value < 0.4)&(epm_gal.pm_b.value < 0.4))
-
-
-# %
-
+pme_lim = 0.4
+valid_epm = np.where((epm_gal.pm_l_cosb.value < pme_lim)&(epm_gal.pm_b.value < pme_lim))
 arches=arches[valid_epm]
+
+
 # sys.exit('line 67')
 # %%
 columnas=str(arches.columns)
@@ -366,22 +368,22 @@ rand = np.random.choice(np.arange(0,len(clus_gal)),1)
 
 rand_clus = clus_gal[rand]
 rand_pm = pm_clus[rand]
-radio=1.9*u.arcsec
+radio=2.*u.arcsec
 
 #Here we can decide if selected the reduced data set around a random value of the cluster.
+
+# =============================================================================
+# id_clus, id_arc, d2d,d3d = ap_coor.search_around_sky(rand_clus,arc_gal, radio)
+# dbs_clus, id_arc_dbs, d2d_db, d3d_db = ap_coor.search_around_sky(rand_clus,clus_gal, radio)
+# =============================================================================
+
 # or around the pre-dertermined coordenates for the cluster
-id_clus, id_arc, d2d,d3d = ap_coor.search_around_sky(rand_clus,arc_gal, radio)
-dbs_clus, id_arc_dbs, d2d_db, d3d_db = ap_coor.search_around_sky(rand_clus,clus_gal, radio)
+id_clus, id_arc, d2d,d3d = ap_coor.search_around_sky(SkyCoord(['17h45m50.4769267s'], ['-28d49m19.16770s'], frame='icrs'),arc_gal, radio) if choosen_cluster =='Arches' else ap_coor.search_around_sky(SkyCoord(['17h46m15.13s'], ['-28d49m34.7s'], frame='icrs'),arc_gal, radio)
+dbs_clus, id_arc_dbs, d2d_db, d3d_db = ap_coor.search_around_sky(SkyCoord(['17h45m50.4769267s'], ['-28d49m19.16770s'], frame='icrs'),clus_gal, radio) if choosen_cluster =='Arches' else ap_coor.search_around_sky(SkyCoord(['17h46m15.13s'], ['-28d49m34.7s'], frame='icrs'),clus_gal, radio)
 
 #search_around_sky complains when one of the variable is just a singe coordinates (and not an array of coordinates)
 #so in order to go around this put the coordinares in brackets and it woint complain any more
-# =============================================================================
-# id_clus, id_arc, d2d,d3d = ap_coor.search_around_sky(SkyCoord(['17h45m50.4769267s'], ['-28d49m19.16770s'], frame='icrs'),arc_gal, radio) if choosen_cluster =='Arches' else ap_coor.search_around_sky(SkyCoord(['17h46m15.13s'], ['-28d49m34.7s'], frame='icrs'),arc_gal, radio)
-# 
-# dbs_clus, id_arc_dbs, d2d_db, d3d_db = ap_coor.search_around_sky(SkyCoord(['17h45m50.4769267s'], ['-28d49m19.16770s'], frame='icrs'),clus_gal, radio) if choosen_cluster =='Arches' else ap_coor.search_around_sky(SkyCoord(['17h46m15.13s'], ['-28d49m34.7s'], frame='icrs'),clus_gal, radio)
-# 
-# =============================================================================
-#
+
 # %
 fig, ax = plt.subplots(1,3,figsize=(30,10))
 ax[1].set_title('Radio = %s, Green = %s'%(radio,len(id_clus)))
