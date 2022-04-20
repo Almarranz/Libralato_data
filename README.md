@@ -19,5 +19,8 @@ Analisis of Libralato et al data
 ## Other scripts
 
 Arches_Hosek.py. In this iscript arches (or quintuplet) are dbscaned for clustering. 
-In a first step the whole data set is scanned and withdraw the denser cluster.
-Afterwards a reduced data set is scanned for comparations. 
+>In a first step the whole data set is scanned and withdraw the denser cluster.
+>Afterwards a reduced data set is scanned for comparations. 
+>Selecting a mini cluster at the center of the found cluster we can have an idea of how a almost disolving cluster might look like in the galactic center.
+>Selecting at the center improves the posibilities of choosing  mini cluster without any false cluster member in it.
+>In this mini cluster we can look for de dispersion in velocity and color to have an idean of what we are looking for in Lkbralato data.
