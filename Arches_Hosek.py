@@ -188,7 +188,7 @@ method = StandardScaler()
 X_stad= method.fit_transform(X)
 # X_stad=X
 
-samples_dist=10
+samples_dist=50
 samples_dist_original=samples_dist
 tree=KDTree(X_stad, leaf_size=2) 
 dist, ind = tree.query(X_stad, k=samples_dist) 
@@ -366,7 +366,7 @@ rand = np.random.choice(np.arange(0,len(clus_gal)),1)
 
 rand_clus = clus_gal[rand]
 rand_pm = pm_clus[rand]
-radio=5.0*u.arcsec
+radio=1.9*u.arcsec
 
 #Here we can decide if selected the reduced data set around a random value of the cluster.
 # or around the pre-dertermined coordenates for the cluster
@@ -404,7 +404,10 @@ plotting('m127-m153','m153',m127[id_arc]-m153[id_arc],m153[id_arc],2,alpha=0.8,c
 
 fig, ax = plt.subplots(1,3,figsize=(30,10))
 ax[1].set_title('Radio = %s, Orange = %s'%(radio,len(dbs_clus)))
-ax[0].set_title('%s, method: %s'%(choosen_cluster,method))
+# ax[0].set_title('%s, method: %s'%(choosen_cluster,method))
+ax[0].set_title('%s, std(pml,pmb): %.3f, %.3f'%(choosen_cluster,
+                                           np.std(pm_clus.pm_l_cosb[id_arc_dbs].value),
+                                           np.std(pm_clus.pm_b[id_arc_dbs].value)))
 plotting('l','b',arc_gal.l, arc_gal.b,1,alpha=0.01,color='k')
 plotting('l','b',clus_gal.l[id_arc_dbs], clus_gal.b[id_arc_dbs],1,color='orange',alpha=0.3,zorder=3)
 
@@ -413,6 +416,8 @@ plotting('mul','mub',pm_gal.pm_l_cosb, pm_gal.pm_b,0,alpha=0.3)
 plotting('mul','mub',pm_clus.pm_l_cosb[id_arc_dbs], pm_clus.pm_b[id_arc_dbs],0,alpha=0.8)
 
 
+diff_color = max(m127_clus[id_arc_dbs].value-m153_clus[id_arc_dbs].value)-min(m127_clus[id_arc_dbs].value-m153_clus[id_arc_dbs].value)
+ax[2].set_title('diff color = %.3f, std_color=%.3f'%(diff_color,np.std(m127_clus[id_arc_dbs].value-m153_clus[id_arc_dbs].value)))
 plotting('m127-m153','m153',m127-m153, m153,2,zorder=1,alpha=0.1)
 plotting('m127-m153','m153',m127_clus[id_arc_dbs]-m153_clus[id_arc_dbs],m153_clus[id_arc_dbs],2,alpha=0.8)
 ax[2].invert_yaxis()
@@ -420,7 +425,7 @@ ax[2].invert_yaxis()
 
 ax[0].invert_xaxis()
 
-# sys.exit('line 422')
+sys.exit('line 425')
 # %%
 # =============================================================================
 # DBSCAN in reduced area
@@ -544,58 +549,6 @@ plotting('l','b',l[colores_index[-1]], b[colores_index[-1]],1, color=colors[-1],
 
 
 # %%
-# Here we ara going to select random samples of the cluster a figure their dispersion in velocity and color
-
-mini_l = area_l[colores_index_area[0]]
-mini_b = area_b[colores_index_area[0]]
-mini_coord=SkyCoord(mini_l,mini_b,frame='icrs')
-mini_pml = area_pml[colores_index_area[0]]
-mini_pmb = area_pmb[colores_index_area[0]]
-# mini_m127 
-# mini_m153
-#%%
-rand_mini= np.random.choice(np.arange(0,len(mini_pml)),1)
-# %
-radio_mini = 1.5*u.arcsec
-
-
-id_rand, id_min, d2d_mini, d3d_mini = ap_coor.search_around_sky(SkyCoord(mini_l[rand_mini],mini_b[rand_mini],frame='icrs'), mini_coord,radio_mini)
-
-
-
-# %
-def plotting(namex,namey,x,y,ind,**kwargs):
-
-    pl=ax[ind].scatter(x,y,**kwargs)
-    
-    try:
-        ax[ind].set_xlabel('%s(%s)'%(namex,x.unit)) # Set the axis label in the form "Variable description [units]"
-        ax[ind].set_ylabel('%s(%s)'%(namey, y.unit))
-    except:
-        ax[ind].set_xlabel('%s'%(namex)) 
-        ax[ind].set_ylabel('%s'%(namey))
-    if ind ==2:
-        ax[ind].invert_yaxis()
-    return pl
-fig,ax = plt.subplots(1,2, figsize=(20,10))
-ax[0].set_title('std pm_l = %.2f, std pm_l = %.2f'%(np.std(mini_pml[id_min].value),np.std(mini_pmb[id_min].value)))
-ax[1].set_title('radio green = %s, stars = %s'%(radio,len(mini_l[id_min])))
-plotting('l','b',arc_gal.l, arc_gal.b,1)
-plotting('mul','mub',pm_gal.pm_l_cosb, pm_gal.pm_b,0)
-plotting('l','b',mini_l,mini_b,1)
-plotting('l','b',mini_l[id_min],mini_b[id_min],1, color = 'green')
-plotting('pml','pmb',mini_pml,mini_pmb,0)
-plotting('pml','pmb',mini_pml[id_min],mini_pmb[id_min],0)
-
-# %%
-print(np.std(mini_pml[id_min].value))
-
-
-# %%
-
-
-
-
 
 
 
