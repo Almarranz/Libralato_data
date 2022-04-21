@@ -30,8 +30,11 @@ from astropy.table import QTable
 import pylab as p
 from random import seed
 from random import random
-# %%
+import glob
 from sklearn.preprocessing import StandardScaler
+import os
+# %%
+
 rcParams.update({'xtick.major.pad': '7.0'})
 rcParams.update({'xtick.major.size': '7.5'})
 rcParams.update({'xtick.major.width': '1.5'})
@@ -61,7 +64,7 @@ results='/Users/amartinez/Desktop/PhD/Libralato_data/results/'
 
 name='WFC3IR'
 # name='ACSWFC'
-trimmed_data='yes'
+trimmed_data='no'
 if trimmed_data=='yes':
     pre=''
 elif trimmed_data=='no':
@@ -104,10 +107,11 @@ pms=[0,0,0,0]
 # pms=[0,0,-5.60,-0.20] #this is from the dynesty adjustment
 # pms=np.array(pms)
 
+for file_to_remove in glob.glob(pruebas+'%scluster*.txt'%(pre)):#Remove the files for previpus runs adn radios
+    os.remove(file_to_remove) 
 
-
-# for g in range(len(group_lst)):
-for g in range(0,2):
+for g in range(len(group_lst)):
+# for g in range(0,2):
     seed(g)
     fig, ax = plt.subplots(1,1,figsize=(30,10))
     ax.set_ylim(0,10)
@@ -210,8 +214,8 @@ for g in range(0,2):
             clustering = DBSCAN(eps=epsilon, min_samples=samples).fit(X_stad)
             
             l=clustering.labels_
-            epsilon +=0.001 # if choose epsilon as min d_KNN you loop over epsilo and a < goes in the while loop
-            # samples +=1 # if you choose epsilon as codo, you loop over the number of sambles and a > goes in the  while loop
+            epsilon +=0.001 # if choose epsilon as min d_KNN you loop over epsilon and a "<" simbol goes in the while loop
+            # samples +=1 # if you choose epsilon as codo, you loop over the number of sambles and a ">" goes in the  while loop
             print('DBSCAN loop %s. Trying with eps=%s. cluster = %s '%(loop,round(epsilon,3),len(set(l))-1))
         print('This is the number of clusters: %s'%(len(set(l))-1))
         
@@ -285,83 +289,87 @@ for g in range(0,2):
     #         ax.axhline(round(kneedle.elbow_y, 3),linestyle='dashed',color='k')
     # =============================================================================
             
-            fig, ax = plt.subplots(1,3,figsize=(30,10))
-            
-            ax[2].invert_yaxis()
-            seed(g)
-            ax[0].set_title('Group %s, radio = %s, # of Clusters = %s'%(group,r_u[r], n_clusters),color=plt.cm.rainbow(random()))
-            seed(g)
-            ax[1].set_title('# of stars = #%s, eps=%s'%(len(l),round(epsilon,3)),color=plt.cm.rainbow(random()))
-            t_gal['l'] = t_gal['l'].wrap_at('180d')
-            ax[0].scatter(X[:,0][colores_index[-1]],X[:,1][colores_index[-1]], color=colors[-1],s=50,zorder=1)
-            ax[1].quiver(t_gal['l'][colores_index[-1]].value,t_gal['b'][colores_index[-1]].value, X[:,0][colores_index[-1]]-pms[2], X[:,1][colores_index[-1]]-pms[3], alpha=0.5, color=colors[-1])
 
-            # for i in range(n_clusters):
             for i in range(len(set(l))-1):
-                # fig, ax = plt.subplots(1,1,figsize=(10,10))
-                # ax.set_title('Cluster #%s'%(i+1))
-                ax[0].scatter(X[:,0][colores_index[i]],X[:,1][colores_index[i]], color=colors[i],s=50,zorder=3)
-                ax[0].set_xlim(-10,10)
-                ax[0].set_ylim(-10,10)
-                ax[0].set_xlabel(r'$\mathrm{\mu_{l} (mas\ yr^{-1})}$') 
-                ax[0].set_ylabel(r'$\mathrm{\mu_{b} (mas\ yr^{-1})}$') 
-            
-                ax[0].scatter(Ms[0,0]-pms[2],Ms[0,1]-pms[3],s=50,color='red',marker='2')
-                ax[0].scatter(pms[2],pms[3],s=150, marker='*')
-                ax[0].invert_xaxis()
                 
-                
-                
-                #ra,dec,x_c,y_c,mua,dmua,mud,dmud,time,n1,n2,idt,m139,Separation,Ks,H,mul,mub,l,b
-                #data="'RA_gns','DE_gns','Jmag','Hmag','Ksmag','ra','dec','dmul','dmub','mua','dmua','mud','dmud','time','n1','n2','ID','mul','mub','dmul','dmub','m139','Separation'",
-                
-                # ax[1].scatter(data[:,0][colores_index[i]],data[:,1][colores_index[i]], color=colors[i],s=50)#plots in ecuatorials
-                t_gal['l'] = t_gal['l'].wrap_at('180d')
-                ax[1].scatter(t_gal['l'][colores_index[i]].value,t_gal['b'][colores_index[i]].value, color=colors[i],s=50,zorder=3)#plots in galactic
-        #Ms=mul, mub, mua, mud, ra, dec,dmul,dmub,l,b,Ks, H, m139, position in GALCEN_TABLE_D.cat 
-    
-                ax[1].scatter(Ms[0,8],Ms[0,9],s=100,color='red',marker='2')
-                ax[1].quiver(t_gal['l'][colores_index[i]].value,t_gal['b'][colores_index[i]].value, X[:,0][colores_index[i]]-pms[2], X[:,1][colores_index[i]]-pms[3], alpha=0.5, color=colors[i])
-                # ax[1].quiver(data[:,17][colores_index[i]], data[:,18][colores_index[i]], X[:,0][colores_index[i]], X[:,1][colores_index[i]], alpha=0.5, color=colors[i])#galactic
-        
-                # ax[1].set_xlabel('ra') 
-                # ax[1].set_ylabel('dec') 
-                
-                ax[1].set_xlabel('l') 
-                ax[1].set_ylabel('b') 
-                
-                ax[1].yaxis.set_major_formatter(FormatStrFormatter('%.3f'))
-                ax[1].xaxis.set_major_formatter(FormatStrFormatter('%.3f'))
-                
-                
-                # %%'ra','dec','x_c','y_c','mua','dmua','mud','dmud','time','n1','n2','idt','m139','Separation','Ks','H'
-                # "'RA_gns','DE_gns','Jmag','Hmag','Ksmag','ra','dec','x_c','y_c','mua','dmua','mud','dmud','time','n1','n2','ID','mul','mub','dmul','dmub','m139','Separation'",
-            
-                radio=0.05
-                seed(g)
-                ax[2].set_title('#%s/112,min stars/cluster = %s'%(g, samples),color=plt.cm.rainbow(random()))
-                
-                area=np.where(np.sqrt((catal[:,5]-Ms[0,4])**2 + (catal[:,6]-Ms[0,5])**2)< radio)
-                ax[2].scatter(catal[:,3][area]-catal[:,4][area],catal[:,4][area],color='k',marker='o',alpha=0.01,zorder=1)
-                
-                for i in range(len(set(l))-1):
+                min_c=min(data[:,3][colores_index[i]]-data[:,4][colores_index[i]])
+                max_c=max(data[:,3][colores_index[i]]-data[:,4][colores_index[i]])
+                min_Ks=min(data[:,4][colores_index[i]])
+                if max_c-min_c <0.3:
                     
-                    min_c=min(data[:,3][colores_index[i]]-data[:,4][colores_index[i]])
-                    max_c=max(data[:,3][colores_index[i]]-data[:,4][colores_index[i]])
-                    min_Ks=min(data[:,4][colores_index[i]])
-                    if max_c-min_c <0.3:
-                        p.arrow(max_c+max_c/5,min_Ks+0.5,-(max_c+max_c/5-max_c),0,head_width=0.05,color=colors[i])
-                        ax[2].scatter(data[:,3][colores_index[i]]-data[:,4][colores_index[i]],data[:,4][colores_index[i]], color=colors[i],s=50,zorder=2)
-                        ax[2].axvline(min_c,color=colors[i],ls='dashed',alpha=0.5)
-                        ax[2].axvline(max_c,color=colors[i],ls='dashed',alpha=0.5)
-                        ax[2].annotate('%s'%(round(max_c-min_c,3)),(max_c+max_c/5,min_Ks+0.5),color=colors[i])
-                        ax[2].scatter((Ms[0,11]-Ms[0,10]),Ms[0,10], color='red',s=100,marker='2',zorder=3)
-                        ax[2].set_xlim(0,)
-                        ax[2].set_xlabel('H$-$Ks') 
-                        ax[2].set_ylabel('Ks') 
+                    fig, ax = plt.subplots(1,3,figsize=(30,10))
+                    
+                    ax[2].invert_yaxis()
+                    seed(g)
+                    ax[0].set_title('Group %s, radio = %s, # of Clusters = %s'%(group,r_u[r], n_clusters),color=plt.cm.rainbow(random()))
+                    seed(g)
+                    ax[1].set_title('# of stars = #%s, eps=%s'%(len(l),round(epsilon,3)),color=plt.cm.rainbow(random()))
+                    t_gal['l'] = t_gal['l'].wrap_at('180d')
+                    ax[0].scatter(X[:,0][colores_index[-1]],X[:,1][colores_index[-1]], color=colors[-1],s=50,zorder=1)
+                    ax[1].quiver(t_gal['l'][colores_index[-1]].value,t_gal['b'][colores_index[-1]].value, X[:,0][colores_index[-1]]-pms[2], X[:,1][colores_index[-1]]-pms[3], alpha=0.5, color=colors[-1])
+
+                    ax[0].scatter(X[:,0][colores_index[i]],X[:,1][colores_index[i]], color=colors[i],s=50,zorder=3)
+                    ax[0].set_xlim(-10,10)
+                    ax[0].set_ylim(-10,10)
+                    ax[0].set_xlabel(r'$\mathrm{\mu_{l} (mas\ yr^{-1})}$') 
+                    ax[0].set_ylabel(r'$\mathrm{\mu_{b} (mas\ yr^{-1})}$') 
+                
+                    ax[0].scatter(Ms[0,0]-pms[2],Ms[0,1]-pms[3],s=50,color='red',marker='2')
+                    ax[0].scatter(pms[2],pms[3],s=150, marker='*')
+                    ax[0].invert_xaxis()
+                    # Here we save the coordenates of the posible cluster coordinates for further anlysis if required
+                    
+                    
+                    
+                    #ra,dec,x_c,y_c,mua,dmua,mud,dmud,time,n1,n2,idt,m139,Separation,Ks,H,mul,mub,l,b
+                    #data="'RA_gns','DE_gns','Jmag','Hmag','Ksmag','ra','dec','dmul','dmub','mua','dmua','mud','dmud','time','n1','n2','ID','mul','mub','dmul','dmub','m139','Separation'",
+                    
+                    # ax[1].scatter(data[:,0][colores_index[i]],data[:,1][colores_index[i]], color=colors[i],s=50)#plots in ecuatorials
+                    t_gal['l'] = t_gal['l'].wrap_at('180d')
+                    ax[1].scatter(t_gal['l'][colores_index[i]].value,t_gal['b'][colores_index[i]].value, color=colors[i],s=50,zorder=3)#plots in galactic
+            #Ms=mul, mub, mua, mud, ra, dec,dmul,dmub,l,b,Ks, H, m139, position in GALCEN_TABLE_D.cat 
+        
+                    ax[1].scatter(Ms[0,8],Ms[0,9],s=100,color='red',marker='2')
+                    ax[1].quiver(t_gal['l'][colores_index[i]].value,t_gal['b'][colores_index[i]].value, X[:,0][colores_index[i]]-pms[2], X[:,1][colores_index[i]]-pms[3], alpha=0.5, color=colors[i])
+                    # ax[1].quiver(data[:,17][colores_index[i]], data[:,18][colores_index[i]], X[:,0][colores_index[i]], X[:,1][colores_index[i]], alpha=0.5, color=colors[i])#galactic
+            
+                    # ax[1].set_xlabel('ra') 
+                    # ax[1].set_ylabel('dec') 
+                    
+                    ax[1].set_xlabel('l') 
+                    ax[1].set_ylabel('b') 
+                    
+                    ax[1].yaxis.set_major_formatter(FormatStrFormatter('%.3f'))
+                    ax[1].xaxis.set_major_formatter(FormatStrFormatter('%.3f'))
+                    np.savetxt(pruebas + '%scluster%s_of_group%s.txt'%(pre,i,g),np.array([t_gal['l'][colores_index[i]].value,t_gal['b'][colores_index[i]].value,
+                                                                               X[:,0][colores_index[i]], 
+                                                                               X[:,1][colores_index[i]],
+                                                                               data[:,3][colores_index[i]],data[:,4][colores_index[i]]]).T, header ='l, b, pml, pmb, H, Ks')
+                    
+                    # %%'ra','dec','x_c','y_c','mua','dmua','mud','dmud','time','n1','n2','idt','m139','Separation','Ks','H'
+                    # "'RA_gns','DE_gns','Jmag','Hmag','Ksmag','ra','dec','x_c','y_c','mua','dmua','mud','dmud','time','n1','n2','ID','mul','mub','dmul','dmub','m139','Separation'",
+                
+                    radio=0.05
+                    seed(g)
+                    ax[2].set_title('#%s/112,min stars/cluster = %s, cluster#=%s'%(g, samples,i),color=plt.cm.rainbow(random()))
+                    
+                    area=np.where(np.sqrt((catal[:,5]-Ms[0,4])**2 + (catal[:,6]-Ms[0,5])**2)< radio)
+                    ax[2].scatter(catal[:,3][area]-catal[:,4][area],catal[:,4][area],color='k',marker='o',alpha=0.01,zorder=1)
+                    
+                    
+                    p.arrow(max_c+max_c/5,min_Ks+0.5,-(max_c+max_c/5-max_c),0,head_width=0.05,color=colors[i])
+                    ax[2].scatter(data[:,3][colores_index[i]]-data[:,4][colores_index[i]],data[:,4][colores_index[i]], color=colors[i],s=50,zorder=2)
+                    ax[2].axvline(min_c,color=colors[i],ls='dashed',alpha=0.5)
+                    ax[2].axvline(max_c,color=colors[i],ls='dashed',alpha=0.5)
+                    ax[2].annotate('%s'%(round(max_c-min_c,3)),(max_c+max_c/5,min_Ks+0.5),color=colors[i])
+                    ax[2].scatter((Ms[0,11]-Ms[0,10]),Ms[0,10], color='red',s=100,marker='2',zorder=3)
+                    ax[2].set_xlim(0,)
+                    ax[2].set_xlabel('H$-$Ks') 
+                    ax[2].set_ylabel('Ks') 
                         
                     
 
 
 # %%
+
 
