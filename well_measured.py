@@ -16,8 +16,8 @@ pruebas='/Users/amartinez/Desktop/PhD/Libralato_data/pruebas/'
 results='/Users/amartinez/Desktop/PhD/Libralato_data/results/'
 
 #R.A. Dec. X Y μαcosδ σμαcosδ μδ σμδ  time n1 n2 ID
-name='ACSWFC'
-# name='WFC3IR'
+# name='ACSWFC'
+name='WFC3IR'
 
 # Pm catalog are not used in this scripts, do not know why is this here...
 # =============================================================================
@@ -52,7 +52,7 @@ for epoch in range(1,3):#loop to avoid to run epch 1 and epch 2 separatly
     n,bins_edges,otro=ax.hist(ep1_test[:,0],bins=np.arange(np.round(min(ep1_test[:,0])),np.round(max(ep1_test[:,0])+1),paso),linewidth=2,edgecolor='black') 
     mag_b=np.digitize(ep1_test[:,0], np.arange(np.round(min(ep1_test[:,0])),np.round(max(ep1_test[:,0])+1),paso), right=True)
     # %%
-    trim_data= 'no'
+    trim_data= 'yes'
     # Condition (a): qfit > percentile85 in bins of 1mag width (the width of 1mag i guessed)
     if trim_data == 'yes':
         all_sum=[]

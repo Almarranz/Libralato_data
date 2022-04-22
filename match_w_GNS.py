@@ -41,7 +41,7 @@ libr_coord =  SkyCoord(ra=libr[:,0]*u.degree, dec=libr[:,1]*u.degree)
 idx = libr_coord.match_to_catalog_sky(gns_coord)
 
 # %% I cosider a math if the stars are less than 1 arcsec away 
-valid = np.where(idx[1]<1*u.arcsec)
+valid = np.where(idx[1]<0.5*u.arcsec)
 
 libr_match=libr[valid]
 gns_match=gns_np[idx[0][valid]]

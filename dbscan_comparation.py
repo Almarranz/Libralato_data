@@ -64,7 +64,7 @@ results='/Users/amartinez/Desktop/PhD/Libralato_data/results/'
 
 name='WFC3IR'
 # name='ACSWFC'
-trimmed_data='no'
+trimmed_data='yes'
 if trimmed_data=='yes':
     pre=''
 elif trimmed_data=='no':
@@ -82,7 +82,7 @@ results='/Users/amartinez/Desktop/PhD/Libralato_data/results/'
 # catal_df=pd.read_csv(pruebas+'%s_refined_with_GNS_partner_mag_K_H.txt'%(name),sep=',',names=['ra','dec','x_c','y_c','mua','dmua','mud','dmud','time','n1','n2','idt','m139','Separation','Ks','H'])
 
 # "'RA_gns','DE_gns','Jmag','Hmag','Ksmag','ra','dec','x_c','y_c','mua','dmua','mud','dmud','time','n1','n2','ID','mul','mub','dmul','dmub','m139','Separation'",
-catal=np.loadtxt(pruebas + '%smatch_GNS_and_%s_refined_galactic.txt'%(pre,name))
+catal=np.loadtxt(results + '%smatch_GNS_and_%s_refined_galactic.txt'%(pre,name))
 
 
 
@@ -115,7 +115,7 @@ for g in range(len(group_lst)):
     seed(g)
     fig, ax = plt.subplots(1,1,figsize=(30,10))
     ax.set_ylim(0,10)
-    ax.text(0.0, 5, 'Group %s'%(int(group_lst[g])),fontsize= 400,color=plt.cm.rainbow(random()))
+    ax.text(0.0, 5, 'Group %s %s'%(int(group_lst[g]),pre),fontsize= 400,color=plt.cm.rainbow(random()))
     
     # print(group_lst[g])
     samples=5# number of minimun objects that defined a cluster
@@ -341,10 +341,10 @@ for g in range(len(group_lst)):
                     
                     ax[1].yaxis.set_major_formatter(FormatStrFormatter('%.3f'))
                     ax[1].xaxis.set_major_formatter(FormatStrFormatter('%.3f'))
-                    np.savetxt(pruebas + '%scluster%s_of_group%s.txt'%(pre,i,g),np.array([t_gal['l'][colores_index[i]].value,t_gal['b'][colores_index[i]].value,
+                    np.savetxt(pruebas + '%scluster%s_of_group%s.txt'%(pre,i,g),np.array([data[:,5][colores_index[i]],data[:,6][colores_index[i]],t_gal['l'][colores_index[i]].value,t_gal['b'][colores_index[i]].value,
                                                                                X[:,0][colores_index[i]], 
                                                                                X[:,1][colores_index[i]],
-                                                                               data[:,3][colores_index[i]],data[:,4][colores_index[i]]]).T, header ='l, b, pml, pmb, H, Ks')
+                                                                               data[:,3][colores_index[i]],data[:,4][colores_index[i]]]).T,fmt='%.7f', header ='ra, dec, l, b, pml, pmb, H, Ks')
                     
                     # %%'ra','dec','x_c','y_c','mua','dmua','mud','dmud','time','n1','n2','idt','m139','Separation','Ks','H'
                     # "'RA_gns','DE_gns','Jmag','Hmag','Ksmag','ra','dec','x_c','y_c','mua','dmua','mud','dmud','time','n1','n2','ID','mul','mub','dmul','dmub','m139','Separation'",

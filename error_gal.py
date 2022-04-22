@@ -65,7 +65,7 @@ dmub[noventa]  = 99.99
 
 # np.savetxt(pruebas+'erase_this.txt',np.array([mul_mc,mub_mc,dmul_mc,dmub_mc]).T)
 
-np.savetxt(results+'GALCEN_%s_PM_galactic_skycoord.txt'%(name),np.array([mul,mub,dmul,dmub]).T,fmt='%.7f',header='mul, mub, dmul, dmub')
+np.savetxt(cata+'GALCEN_%s_PM_galactic_skycoord.txt'%(name),np.array([mul,mub,dmul,dmub]).T,fmt='%.7f',header='mul, mub, dmul, dmub')
 
 
 

@@ -75,7 +75,7 @@ elif center_definition =='G_G':
     catal=catal[valid]
     center=np.where(catal[:,3]-catal[:,4]>1.3)
 catal=catal[center]
-dmu_lim = 2
+dmu_lim = 0.5
 vel_lim = np.where((catal[:,19]<=dmu_lim) & (catal[:,20]<=dmu_lim))
 catal=catal[vel_lim]
 # mul_mc,mub_mc,dmul_mc,dmub_mc
@@ -109,8 +109,8 @@ for r in range(len(radio_ls)):
     with open(pruebas+ 'pm_of_Ms_in_%s.txt'%(name), 'w') as f:
             f.write('#mul, mub, mua, mud, ra, dec,dmul,dmub,l,b, Ks, H, m139, position in GALCEN_TABLE_D.cat ')
             f.close
-    # for i in range(len(yso_ra)):
-    for i in range(1):    
+    for i in range(len(yso_ra)):
+    # for i in range(1):    
         print(yso_ra[i],yso_dec[i])
         index=np.where((catal[:,5]==yso_ra[i]) & (catal[:,6]==yso_dec[i]) ) # looping a picking the stars coord on the Ms catalog
         if len(index[0]>0): 
