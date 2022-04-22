@@ -2,10 +2,10 @@
 Analisis of Libralato et al data
 ## on branch: main
 ### Branch main follows the paper of Libralato et al. 2021 for the selection of the good data, and uses the scripts erro_Mc for the transformatipm of the galactic coordenates and errors afterwards
-__
+___
 0. error_Mc.py. Transform proper motions to galactic and apply a MC method for uncertainties . This script is run on the imac becouse it takes forever. 
-> **WARNING** error_MC.py: use only the version in the iMac.
-__
+> **WARNING** error_MC.py: use only the version in the iMac.  
+___
 
 0. error_gal.py. Transform proper motions to galactic and transforms the uncertainties in the same way. This should be enought as an aproximation.
 1. galactic_pm_catalog.py. Adds the galactic proper motions computed in error_Mc.py to the Libralatos´s proper motion catalog. NOt intirely sure why I did a specific script just for this.
