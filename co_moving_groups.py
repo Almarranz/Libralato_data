@@ -44,9 +44,9 @@ rc('font',**{'family':'serif','serif':['Palatino']})
 cata='/Users/amartinez/Desktop/PhD/Libralato_data/CATALOGS/'
 pruebas='/Users/amartinez/Desktop/PhD/Libralato_data/pruebas/'
 results='/Users/amartinez/Desktop/PhD/Libralato_data/results/'
-# name='WFC3IR'
-name='ACSWFC'
-trimmed_data='no'
+name='WFC3IR'
+# name='ACSWFC'
+trimmed_data='yes'
 if trimmed_data=='yes':
     pre=''
 elif trimmed_data=='no':
@@ -64,7 +64,6 @@ catal=np.loadtxt(results + '%smatch_GNS_and_%s_refined_galactic.txt'%(pre,name))
 
 
 
-
 # Definition of center can: m139 - Ks(libralato and GNS) or H - Ks(GNS and GNS)
 center_definition='G_G'#this variable can be L_G or G_G
 if center_definition =='L_G':
@@ -76,7 +75,7 @@ elif center_definition =='G_G':
     catal=catal[valid]
     center=np.where(catal[:,3]-catal[:,4]>1.3)
 catal=catal[center]
-dmu_lim = 5
+dmu_lim = 2
 vel_lim = np.where((catal[:,19]<=dmu_lim) & (catal[:,20]<=dmu_lim))
 catal=catal[vel_lim]
 # mul_mc,mub_mc,dmul_mc,dmub_mc
@@ -84,7 +83,8 @@ gal_coor=catal[:,[17,18,19,20]]#this separation of the galactic pms itsnt really
 # %%
 #Selecting search radio and trasforming it to arcsec for naming differents lists
 #Im doing this in order to compare the clusters found in different groups and check how much they depend of the searching radio 
-radio_ls=[0.003,0.006,0.009,0.012,0.021]
+# radio_ls=[0.003,0.006,0.009,0.012,0.021]
+radio_ls=[0.021]
 for r in range(len(radio_ls)):
     radio=radio_ls[r]
     r_u=radio*u.degree
@@ -99,8 +99,9 @@ for r in range(len(radio_ls)):
     # pms=[0,0,-5.60,0.20] #this is from the dynesty adjustment
     pms=np.array(pms)
     
-    for file_to_remove in glob.glob(pruebas+'group_radio%s_%s*'%(r_u,name)):#Remove the files for previpus runs adn radios
+    for file_to_remove in glob.glob(pruebas+'%sgroup_radio%s*_%s*'%(pre,r_u,name)):#Remove the files for previpus runs adn radios
         os.remove(file_to_remove) 
+   
     with open(pruebas+ 'MS_%s_radio%s.reg'%(name,r_u), 'w') as f:
             f.write('# Region file format: DS9 version 4.1'+"\n"+'global color=green dashlist=8 3 width=1 font="helvetica 10 normal roman" select=1 highlite=1 dash=0 fixed=0 edit=1 move=1 delete=1 include=1 source=1'+"\n"+'fk5'+'\n')
             f.close
@@ -108,8 +109,8 @@ for r in range(len(radio_ls)):
     with open(pruebas+ 'pm_of_Ms_in_%s.txt'%(name), 'w') as f:
             f.write('#mul, mub, mua, mud, ra, dec,dmul,dmub,l,b, Ks, H, m139, position in GALCEN_TABLE_D.cat ')
             f.close
-    for i in range(len(yso_ra)):
-    # for i in range(1):    
+    # for i in range(len(yso_ra)):
+    for i in range(1):    
         print(yso_ra[i],yso_dec[i])
         index=np.where((catal[:,5]==yso_ra[i]) & (catal[:,6]==yso_dec[i]) ) # looping a picking the stars coord on the Ms catalog
         if len(index[0]>0): 
@@ -119,18 +120,17 @@ for r in range(len(radio_ls)):
                 f.write("\n"+'point(%s,%s) # point=x'%(float(catal[index[0],0]),float(catal[index[0],1]))+"\n"+
                         "\n"+ 'circle(%s,%s,%s)'%(float(catal[index[0],0]),float(catal[index[0],1]),radio)+' #text={%s,%s}'%(i,tipo[i]))
                 f.close
-            group=np.where(np.sqrt((catal[:,5]-catal[index[0],5])**2 + (catal[:,6]-catal[index[0],6])**2)< radio)
+                
+# =============================================================================
+#             group1=np.where(np.sqrt((catal[:,5]-catal[index[0],5])**2 + (catal[:,6]-catal[index[0],6])**2)< radio)
+#             print(len(group1[0]))
+# =============================================================================
+            Ms_coor=SkyCoord(catal[index[0],5]*u.degree,catal[index[0],6]*u.degree)
+            catalog = SkyCoord(ra=catal[:,5]*u.degree, dec=catal[:,6]*u.degree)
+            idxc, group, d2d,d3d = catalog.search_around_sky(Ms_coor, r_u*u.arcsec)
+            # print(len(group[0]))
             
-# =============================================================================
-#             Ms_coor=SkyCoord(catal[index[0],5]*u.degree,catal[index[0],6]*u.degree)
-#             catalog = SkyCoord(ra=catal[:,5]*u.degree, dec=catal[:,6]*u.degree)
-#             idxc, group, d2d,d3d = catalog.search_around_sky(Ms_coor, r_u*u.arcsec)
-#             
-# =============================================================================
-            print(len(group[0]))
-# =============================================================================
-#             print(len(group))
-# =============================================================================
+            
             ra_=catal[:,5]
             dec_=catal[:,6]
             # Process needed for the trasnformation to galactic coordinates
@@ -148,25 +148,24 @@ for r in range(len(radio_ls)):
             #This plots pmb vs pml and b vs l
     # =============================================================================
             fig, ax = plt.subplots(1,2,figsize=(20,10))
-            
-            # This will plot the vectors and stars in the galactic frame
             t_gal['l'] = t_gal['l'].wrap_at('180d')#doesnt split the plot when the grpu fall both ways of l,b=0,0
             ax[0].scatter(t_gal['l'][index[0]],t_gal['b'][index[0]],color='red',s=100)
-            ax[0].scatter(t_gal['l'][group[0]],t_gal['b'][group[0]])
-            ax[0].quiver([t_gal['l'][group[0]]],[t_gal['b'][group[0]]],np.array([gal_coor[group[0],0]])-pms[2],np.array([gal_coor[group[0],1]])-pms[3])
+            ax[0].scatter(t_gal['l'][group],t_gal['b'][group])
+            ax[0].quiver([t_gal['l'][group]],[t_gal['b'][group]],np.array([gal_coor[group,0]])-pms[2],np.array([gal_coor[group,1]])-pms[3])
             ax[0].set_xlabel(r'$\mathrm{l}$') 
             ax[0].set_ylabel(r'$\mathrm{b}$') 
-    
+            
+            
     
             ax[0].yaxis.set_major_formatter(FormatStrFormatter('%.3f'))
             ax[0].xaxis.set_major_formatter(FormatStrFormatter('%.3f'))
-            ax[0].legend(['yso #%s, %s, #stars=%s'%(i,tipo[i],len(gal[group[0],0]))],markerscale=1,loc=1,handlelength=1)
+            ax[0].legend(['yso #%s, %s, #stars=%s'%(i,tipo[i],len(gal[group,0]))],markerscale=1,loc=1,handlelength=1)
             
             
             #group_%s_%s.txt are the stars around the Massive one from the list of massive stars, thar are also in the trimmed(or not) Libralato data
             
             ax[1].scatter([gal_coor[index[0],0]]-pms[2],[gal_coor[index[0],1]]-pms[3],color='red',s=100)
-            ax[1].scatter([gal_coor[group[0],0]]-pms[2],[gal_coor[group[0],1]]-pms[3], alpha =0.2)
+            ax[1].scatter([gal_coor[group,0]]-pms[2],[gal_coor[group,1]]-pms[3], alpha =0.2)
             
             
             
@@ -203,6 +202,4 @@ for r in range(len(radio_ls)):
     
 # %%
 
-    
-    
     
