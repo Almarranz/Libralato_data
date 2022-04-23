@@ -58,8 +58,6 @@ dmul, dmub = dpm_gal.pm_l_cosb.value, dpm_gal.pm_b.value
 
 
 # %%
-mul[noventa] = 99.99
-mub[noventa]  = 99.99
 dmul[noventa] = 99.99
 dmub[noventa]  = 99.99
 
