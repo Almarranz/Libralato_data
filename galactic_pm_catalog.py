@@ -17,7 +17,7 @@ name='WFC3IR'
 # ra,dec,x_c ,y_c,mua,dmua,mud,dmud, time, n1, n2, ID = np.loadtxt(cata+'GALCEN_%s_PM.cat'%(name),unpack=True)
 catal=np.loadtxt(cata+'GALCEN_%s_PM.cat'%(name))
 # mul_mc,mub_mc,dmul_mc,dmub_mc
-# catal_pm=np.loadtxt(cata + 'GALCEN_%s_PM_galactic.txt'%(name))
+# catal_pm=np.loadtxt(cata + 'GALCEN_%s_PM_galactic.txt'%(name))# Galactic pm error was computed montecarloing in this catalog
 catal_pm=np.loadtxt(cata + 'GALCEN_%s_PM_galactic_skycoord.txt'%(name))# A different way of transform pm into galactic. See error_gal.py
 
 catal = np.c_[catal,catal_pm]
