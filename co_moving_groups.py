@@ -46,7 +46,7 @@ pruebas='/Users/amartinez/Desktop/PhD/Libralato_data/pruebas/'
 results='/Users/amartinez/Desktop/PhD/Libralato_data/results/'
 name='WFC3IR'
 # name='ACSWFC'
-trimmed_data='yes'
+trimmed_data='no'
 only_match = 'no'
 if trimmed_data=='yes':
     pre=''
@@ -108,11 +108,12 @@ for r in range(len(radio_ls)):
             f.write('# Region file format: DS9 version 4.1'+"\n"+'global color=green dashlist=8 3 width=1 font="helvetica 10 normal roman" select=1 highlite=1 dash=0 fixed=0 edit=1 move=1 delete=1 include=1 source=1'+"\n"+'fk5'+'\n')
             f.close
             
-    with open(pruebas+ 'pm_of_Ms_in_%s.txt'%(name), 'w') as f:
-            f.write('#mul, mub, mua, mud, ra, dec,dmul,dmub,l,b, Ks, H, m139, position in GALCEN_TABLE_D.cat ')
-            f.close
+    
     
     if only_match == 'yes': 
+        with open(pruebas+ 'pm_of_Ms_in_%s.txt'%(name), 'w') as f:
+                f.write('#mul, mub, mua, mud, ra, dec,dmul,dmub,l,b, Ks, H, m139, position in GALCEN_TABLE_D.cat ')
+                f.close
         # for i in range(len(yso_ra)):
         for i in range(2):    
             print(yso_ra[i],yso_dec[i])
@@ -204,15 +205,19 @@ for r in range(len(radio_ls)):
         print('Found %s , missing %s'%(found, missing)+'\n'+30*'#')
         
     elif only_match == 'no':
-        # for i in range(len(yso_ra)):
-        for i in range(5):    
+        with open(pruebas+ 'pm_of_Ms_in_%s.txt'%(name), 'w') as f:
+                f.write('#mul, mub, mua, mud, ra, dec,dmul,dmub,x,y, position in GALCEN_TABLE_D.cat  ')
+                f.close
+        for i in range(len(yso_ra)):
+        # for i in range(5):    
             
             # 'ra dec x_c  y_c mua dmua mud dmud time n1 n2 ID mul mub dmul dmub ' catal_all
             index1=np.where((catal[:,5]==yso_ra[i]) & (catal[:,6]==yso_dec[i]) ) # looping a picking the stars coord on the Ms catalog
             index=np.where((catal_all[:,0]==yso_ra[i]) & (catal_all[:,1]==yso_dec[i]) ) # this finding the MS in the whole libralati data, that is not trimmed, so its contains all the MS (well 96 of then the rest are in the other Libralato catalog)
             if len(index[0]>0): 
                 print(index[0])
-                print(float(catal_all[index[0],0]),catal_all[index[0],1])
+                print(index1[0])
+                
                 print(yso_ra[i],yso_dec[i])
                 with open(pruebas+ 'MS_%s_radio%s.reg'%(name,r_u), 'a') as f:
                     f.write("\n"+'point(%s,%s) # point=x'%(float(yso_ra[i]),float(yso_dec[i]))+"\n"+
@@ -288,9 +293,9 @@ for r in range(len(radio_ls)):
             # =============================================================================
                     found +=1
                     t_gal['l'] = t_gal['l'].wrap_at('180d')#doesnt split the plot when the grpu fall both ways of l,b=0,0
-                    with open(pruebas+ 'pm_of_Ms_in_%s.txt'%(name), 'a') as f:#mul, mub, mua, mud, ra, dec,dmul,dmub, position in GALCEN_TABLE_D.cat 
-                        f.write('\n'+ '%.7f %.7f %.7f %.7f %.7f %.7f %.7f %.7f %.0f'%(float(catal_all[index[0],12]),float(catal_all[index[0],13]),float(catal_all[index[0],4]),
-                                                                                      float(catal_all[index[0],6]),float(catal_all[index[0],0]),float(catal_all[index[0],1]),float(catal_all[index[0],14]),float(catal_all[index[0],15]), i))
+                    with open(pruebas+ 'pm_of_Ms_in_%s.txt'%(name), 'a') as f:#mul, mub, mua, mud, ra, dec,dmul,dmub,x,y, position in GALCEN_TABLE_D.cat 
+                        f.write('\n'+ '%.7f %.7f %.7f %.7f %.7f %.7f %.7f %.7f %.7f %.7f %.0f'%(float(catal_all[index[0],12]),float(catal_all[index[0],13]),float(catal_all[index[0],4]),
+                                                                                      float(catal_all[index[0],6]),float(catal_all[index[0],0]),float(catal_all[index[0],1]),float(catal_all[index[0],14]),float(catal_all[index[0],15]),float(catal_all[index[0],2]),float(catal_all[index[0],3]), i))
                                                                                    
                                                                      # 'ra dec x_c  y_c mua dmua mud dmud time n1 n2 ID mul mub dmul dmub ' catal_all,
             
