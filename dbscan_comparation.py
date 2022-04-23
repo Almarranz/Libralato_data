@@ -64,7 +64,7 @@ results='/Users/amartinez/Desktop/PhD/Libralato_data/results/'
 
 name='WFC3IR'
 # name='ACSWFC'
-trimmed_data='yes'
+trimmed_data='no'
 if trimmed_data=='yes':
     pre=''
 elif trimmed_data=='no':
@@ -124,8 +124,8 @@ pms=[0,0,0,0]
 for file_to_remove in glob.glob(pruebas+'%scluster*.txt'%(pre)):#Remove the files for previpus runs adn radios
     os.remove(file_to_remove) 
 
-# for g in range(len(group_lst)):
-for g in range(0,2):
+for g in range(len(group_lst)):
+# for g in range(0,2):
     seed(g)
     fig, ax = plt.subplots(1,1,figsize=(30,10))
     ax.set_ylim(0,10)
@@ -358,8 +358,11 @@ for g in range(0,2):
                     # ax[1].scatter(data[:,0][colores_index[i]],data[:,1][colores_index[i]], color=colors[i],s=50)#plots in ecuatorials
                     if pixel =='no':
                         t_gal['l'] = t_gal['l'].wrap_at('180d')
+                        
+                       
                         ax[1].quiver(t_gal['l'][colores_index[-1]].value,t_gal['b'][colores_index[-1]].value, X[:,0][colores_index[-1]]-pms[2], X[:,1][colores_index[-1]]-pms[3], alpha=0.5, color=colors[-1])
                         ax[1].scatter(t_gal['l'][colores_index[i]].value,t_gal['b'][colores_index[i]].value, color=colors[i],s=50,zorder=3)#plots in galactic
+                        ax[1].scatter(t_gal['l'].value,t_gal['b'].value, color=colors[-1],s=50,zorder=1,alpha=0.5)#plots in galactic
                         ax[1].quiver(t_gal['l'].value,t_gal['b'].value, X[:,0]-pms[2], X[:,1]-pms[3], alpha=0.5, color=colors[-1])
                         ax[1].scatter(t_gal['l'][colores_index[i]].value,t_gal['b'][colores_index[i]].value, color=colors[i],s=50,zorder=3)#plots in galactic           
                         ax[1].quiver(t_gal['l'][colores_index[i]].value,t_gal['b'][colores_index[i]].value, X[:,0][colores_index[i]]-pms[2], X[:,1][colores_index[i]]-pms[3], alpha=0.5, color=colors[i])

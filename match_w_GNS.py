@@ -17,7 +17,7 @@ results='/Users/amartinez/Desktop/PhD/Libralato_data/results/'
 
 # name='ACSWFC'
 name='WFC3IR'
-trimmed_data = 'yes'
+trimmed_data = 'no'
 if trimmed_data == 'yes':
     pre=''
 elif trimmed_data == 'no':
