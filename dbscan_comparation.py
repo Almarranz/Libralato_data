@@ -64,7 +64,7 @@ results='/Users/amartinez/Desktop/PhD/Libralato_data/results/'
 
 name='WFC3IR'
 # name='ACSWFC'
-trimmed_data='no'
+trimmed_data='yes'
 if trimmed_data=='yes':
     pre=''
 elif trimmed_data=='no':
@@ -124,8 +124,8 @@ pms=[0,0,0,0]
 for file_to_remove in glob.glob(pruebas+'%scluster*.txt'%(pre)):#Remove the files for previpus runs adn radios
     os.remove(file_to_remove) 
 
-for g in range(len(group_lst)):
-# for g in range(0,2):
+# for g in range(len(group_lst)):
+for g in range(17,20):
     seed(g)
     fig, ax = plt.subplots(1,1,figsize=(30,10))
     ax.set_ylim(0,10)
@@ -148,7 +148,7 @@ for g in range(len(group_lst)):
         
         this=np.where(Ms_all[:,-1]==group)
         Ms=Ms_all[this]
-    # %%    
+    # %  
         ra_=data[:,5]
         dec_=data[:,6]
         # Process needed for the trasnformation to galactic coordinates
@@ -345,7 +345,7 @@ for g in range(len(group_lst)):
                     ax[0].set_xlabel(r'$\mathrm{\mu_{l} (mas\ yr^{-1})}$') 
                     ax[0].set_ylabel(r'$\mathrm{\mu_{b} (mas\ yr^{-1})}$') 
                 
-                    ax[0].scatter(Ms[0,0]-pms[2],Ms[0,1]-pms[3],s=50,color='red',marker='2')
+                    ax[0].scatter(Ms[0,0]-pms[2],Ms[0,1]-pms[3],s=50,color='red',marker='2',zorder=3)
                     ax[0].scatter(pms[2],pms[3],s=150, marker='*')
                     ax[0].invert_xaxis()
                     # Here we save the coordenates of the posible cluster coordinates for further anlysis if required
@@ -389,7 +389,7 @@ for g in range(len(group_lst)):
                         ax[1].xaxis.set_major_formatter(FormatStrFormatter('%.0f'))
                         if len(index1[0]) > 0:
                             # mul, mub, mua, mud, ra, dec,dmul,dmub,x,y position in GALCEN_TABLE_D.cat 
-                            ax[1].scatter(Ms[0,-3], Ms[0,-2],s=50, color='red', marker='2')
+                            ax[1].scatter(Ms[0,-3], Ms[0,-2],s=50, color='red', marker='2',zorder=3)
                         else:
                             ax[1].scatter(Ms[0,-3], Ms[0,-2],color='red',s=50,marker='o', facecolors='none', edgecolors='r')
                     

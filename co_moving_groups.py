@@ -46,8 +46,8 @@ pruebas='/Users/amartinez/Desktop/PhD/Libralato_data/pruebas/'
 results='/Users/amartinez/Desktop/PhD/Libralato_data/results/'
 name='WFC3IR'
 # name='ACSWFC'
-trimmed_data='no'
-only_match = 'no'
+trimmed_data='yes'
+only_match = 'yes'
 if trimmed_data=='yes':
     pre=''
 elif trimmed_data=='no':
@@ -112,10 +112,10 @@ for r in range(len(radio_ls)):
     
     if only_match == 'yes': 
         with open(pruebas+ 'pm_of_Ms_in_%s.txt'%(name), 'w') as f:
-                f.write('#mul, mub, mua, mud, ra, dec,dmul,dmub,l,b, Ks, H, m139, position in GALCEN_TABLE_D.cat ')
+                f.write('#mul, mub, mua, mud, ra, dec,dmul,dmub,x,y, position in GALCEN_TABLE_D.cat ')
                 f.close
-        # for i in range(len(yso_ra)):
-        for i in range(2):    
+        for i in range(len(yso_ra)):
+        # for i in range(2):    
             print(yso_ra[i],yso_dec[i])
             index=np.where((catal[:,5]==yso_ra[i]) & (catal[:,6]==yso_dec[i]) ) # looping a picking the stars coord on the Ms catalog
             if len(index[0]>0): 
@@ -186,12 +186,12 @@ for r in range(len(radio_ls)):
                 # ax[1].axhline(pms[3], color='orange',linestyle='dashed', linewidth=1)
                 ax[1].scatter(pms[2],pms[3],s=150, marker='*')
         # =============================================================================
-                found +=1
+                found +=1                                                                           #mul, mub, mua, mud, ra, dec,dmul,dmub,x,y, position in GALCEN_TABLE_D.cat 
                 t_gal['l'] = t_gal['l'].wrap_at('180d')#doesnt split the plot when the grpu fall both ways of l,b=0,0
-                with open(pruebas+ 'pm_of_Ms_in_%s.txt'%(name), 'a') as f:#mul, mub, mua, mud, ra, dec,dmul,dmub,l,b, Ks, H,m139 ,position in GALCEN_TABLE_D.cat 
-                    f.write('\n'+ '%.7f %.7f %.7f %.7f %.7f %.7f %.7f %.7f %.7f %.7f %.4f %.4f %.4f %.0f'%(float(gal_coor[index[0],0]),float(gal_coor[index[0],1]),float(catal[index[0],9]),
-                                                                                  float(catal[index[0],11]),float(catal[index[0],5]),float(catal[index[0],6]),float(catal[index[0],-4]),float(catal[index[0],-3]),t_gal['l'][index[0]].value,t_gal['b'][index[0]].value,
-                                                                                  float(catal[index[0],4]),float(catal[index[0],3]),float(catal[index[0],-2]),i))
+                with open(pruebas+ 'pm_of_Ms_in_%s.txt'%(name), 'a') as f:#mul, mub, mua, mud, ra, dec,dmul,dmub,x,y, position in GALCEN_TABLE_D.cat 
+                    f.write('\n'+ '%.7f %.7f %.7f %.7f %.7f %.7f %.7f %.7f %.7f %.7f %.0f'%(float(gal_coor[index[0],0]),float(gal_coor[index[0],1]),float(catal[index[0],9]),
+                                                                                  float(catal[index[0],11]),float(catal[index[0],5]),float(catal[index[0],6]),float(catal[index[0],-4]),float(catal[index[0],-3]),float(catal[index[0],7]),float(catal[index[0],8])
+                                                                                  ,i))
                                                                  # "'RA_gns','DE_gns','Jmag','Hmag','Ksmag','ra','dec','x_c','y_c','mua','dmua','mud','dmud','time','n1','n2','ID','mul','mub','dmul','dmub','m139','Separation'",
         
                     f.close
