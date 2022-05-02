@@ -47,7 +47,7 @@ results='/Users/amartinez/Desktop/PhD/Libralato_data/results/'
 name='WFC3IR'
 # name='ACSWFC'
 trimmed_data='yes'
-only_match = 'yes'
+only_match = 'no'
 if trimmed_data=='yes':
     pre=''
 elif trimmed_data=='no':
