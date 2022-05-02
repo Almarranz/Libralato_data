@@ -124,8 +124,8 @@ pms=[0,0,0,0]
 for file_to_remove in glob.glob(pruebas+'dbs_%scluster*.txt'%(pre)):#Remove the files for previpus runs adn radios
     os.remove(file_to_remove) 
 
-# for g in range(len(group_lst)):
-for g in range(1,3):
+for g in range(len(group_lst)):
+# for g in range(1,3):
     seed(g)
     fig, ax = plt.subplots(1,1,figsize=(30,10))
     ax.set_ylim(0,10)
@@ -405,15 +405,19 @@ for g in range(1,3):
                     
                     
                     if pixel == 'no':
-                        np.savetxt(pruebas + 'dbs_%scluster%s_of_group%s.txt'%(pre,i,g),np.array([data[:,5][colores_index[i]],data[:,6][colores_index[i]],t_gal['l'][colores_index[i]].value,t_gal['b'][colores_index[i]].value,
+                        clus_array = np.array([data[:,5][colores_index[i]],data[:,6][colores_index[i]],t_gal['l'][colores_index[i]].value,t_gal['b'][colores_index[i]].value,
                                                                                               X[:,0][colores_index[i]], 
                                                                                               X[:,1][colores_index[i]],
-                                                                                              data[:,3][colores_index[i]],data[:,4][colores_index[i]],int(g),int(i)]).T,fmt='%.7f', header ='ra, dec, l, b, pml, pmb, H, Ks, group, cluster')
+                                                                                              data[:,3][colores_index[i]],data[:,4][colores_index[i]],int(g),int(i)]).T
+                        clus_array1= np.c_[clus_array, np.full((len(X[:,0][colores_index[i]]),1),g),np.full((len(X[:,0][colores_index[i]]),1),i)]
+                        np.savetxt(pruebas + 'dbs_%scluster%s_of_group%s.txt'%(pre,i,g),clus_array1,fmt='%.7f '*8 + '%.0f '*2, header ='ra, dec, l, b, pml, pmb, H, Ks, group, cluster')
                     elif pixel == 'yes':
-                        np.savetxt(pruebas + 'dbs_%scluster%s_of_group%s.txt'%(pre,i,g),np.array([data[:,5][colores_index[i]],data[:,6][colores_index[i]],data[:,7][colores_index[i]], data[:,8][colores_index[i]],
+                        clus_array = np.array([data[:,5][colores_index[i]],data[:,6][colores_index[i]],data[:,7][colores_index[i]], data[:,8][colores_index[i]],
                                                                                               X[:,0][colores_index[i]], 
                                                                                               X[:,1][colores_index[i]],
-                                                                                              data[:,3][colores_index[i]],data[:,4][colores_index[i]],int(g),int(i)],).T,fmt='%.7f', header ='ra, dec, x, y, pml, pmb, H, Ks, group, cluster')
+                                                                                              data[:,3][colores_index[i]],data[:,4][colores_index[i]]]).T
+                        clus_array1= np.c_[clus_array, np.full((len(X[:,0][colores_index[i]]),1),g),np.full((len(X[:,0][colores_index[i]]),1),i)]
+                        np.savetxt(pruebas + 'dbs_%scluster%s_of_group%s.txt'%(pre,i,g),clus_array1,fmt='%.7f '*8 + '%.0f '*2, header ='ra, dec, x, y, pml, pmb, H, Ks, group, cluster')
                     
                     # %'ra','dec','x_c','y_c','mua','dmua','mud','dmud','time','n1','n2','idt','m139','Separation','Ks','H'
                     # "'RA_gns','DE_gns','Jmag','Hmag','Ksmag','ra','dec','x_c','y_c','mua','dmua','mud','dmud','time','n1','n2','ID','mul','mub','dmul','dmub','m139','Separation'",
@@ -481,5 +485,20 @@ for g in range(1,3):
             ax[0].scatter(pms[2],pms[3],s=150, marker='*')    
 
 # %%
-print(len(index1[0]))
+test_array = np.array([data[:,5][colores_index[i]],data[:,6][colores_index[i]],data[:,7][colores_index[i]], data[:,8][colores_index[i]],
+                                                                      X[:,0][colores_index[i]], 
+                                                                      X[:,1][colores_index[i]],data[:,3][colores_index[i]],data[:,4][colores_index[i]]]).T
+
+
+test_array1 = np.c_[test_array,np.full((len(X[:,0][colores_index[i]]),1),i)]                                                                    
+print(test_array)
+
+
+
+
+
+
+
+
+
 
