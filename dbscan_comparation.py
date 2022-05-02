@@ -408,12 +408,12 @@ for g in range(1,3):
                         np.savetxt(pruebas + 'dbs_%scluster%s_of_group%s.txt'%(pre,i,g),np.array([data[:,5][colores_index[i]],data[:,6][colores_index[i]],t_gal['l'][colores_index[i]].value,t_gal['b'][colores_index[i]].value,
                                                                                               X[:,0][colores_index[i]], 
                                                                                               X[:,1][colores_index[i]],
-                                                                                              data[:,3][colores_index[i]],data[:,4][colores_index[i]]]).T,fmt='%.7f', header ='ra, dec, l, b, pml, pmb, H, Ks')
+                                                                                              data[:,3][colores_index[i]],data[:,4][colores_index[i]],int(g),int(i)]).T,fmt='%.7f', header ='ra, dec, l, b, pml, pmb, H, Ks, group, cluster')
                     elif pixel == 'yes':
                         np.savetxt(pruebas + 'dbs_%scluster%s_of_group%s.txt'%(pre,i,g),np.array([data[:,5][colores_index[i]],data[:,6][colores_index[i]],data[:,7][colores_index[i]], data[:,8][colores_index[i]],
                                                                                               X[:,0][colores_index[i]], 
                                                                                               X[:,1][colores_index[i]],
-                                                                                              data[:,3][colores_index[i]],data[:,4][colores_index[i]]]).T,fmt='%.7f', header ='ra, dec, x, y, pml, pmb, H, Ks')
+                                                                                              data[:,3][colores_index[i]],data[:,4][colores_index[i]],int(g),int(i)],).T,fmt='%.7f', header ='ra, dec, x, y, pml, pmb, H, Ks, group, cluster')
                     
                     # %'ra','dec','x_c','y_c','mua','dmua','mud','dmud','time','n1','n2','idt','m139','Separation','Ks','H'
                     # "'RA_gns','DE_gns','Jmag','Hmag','Ksmag','ra','dec','x_c','y_c','mua','dmua','mud','dmud','time','n1','n2','ID','mul','mub','dmul','dmub','m139','Separation'",
