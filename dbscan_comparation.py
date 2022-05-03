@@ -125,7 +125,7 @@ for file_to_remove in glob.glob(pruebas+'dbs_%scluster*.txt'%(pre)):#Remove the 
     os.remove(file_to_remove) 
 
 for g in range(len(group_lst)):
-# for g in range(1,3):
+# for g in range(0,2):
     seed(g)
     fig, ax = plt.subplots(1,1,figsize=(30,10))
     ax.set_ylim(0,10)
@@ -319,8 +319,11 @@ for g in range(len(group_lst)):
                 min_c=min(data[:,3][colores_index[i]]-data[:,4][colores_index[i]])
                 max_c=max(data[:,3][colores_index[i]]-data[:,4][colores_index[i]])
                 min_Ks=min(data[:,4][colores_index[i]])
-                if max_c-min_c <0.3:
-                    index1=np.where((catal[:,5]==Ms[0,4]) & (catal[:,6]==Ms[0,5]) ) # looping a picking the stars coord on the Ms catalog
+                min_nth = np.sort(data[:,4][colores_index[i]])
+                index1=np.where((catal[:,5]==Ms[0,4]) & (catal[:,6]==Ms[0,5]) ) # looping a picking the stars coord on the Ms catalog
+
+                if max_c-min_c <0.3 and min_nth[2]<14.5:# the difference in color is smaller than 'max_c-min_c' and at least min_nth[n] stars in the cluster are brighter than 14.5
+                    # index1=np.where((catal[:,5]==Ms[0,4]) & (catal[:,6]==Ms[0,5]) ) # looping a picking the stars coord on the Ms catalog
                     print(Ms[0,4],Ms[0,5])
                     print(catal[:,5][index1],catal[:,6][index1])
                     print(index1)
