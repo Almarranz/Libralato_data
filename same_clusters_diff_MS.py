@@ -26,7 +26,8 @@ cata='/Users/amartinez/Desktop/PhD/Libralato_data/CATALOGS/'
 pruebas='/Users/amartinez/Desktop/PhD/Libralato_data/pruebas/'
 results='/Users/amartinez/Desktop/PhD/Libralato_data/results/'
 name='WFC3IR'
-search = 'dbs_'
+search = 'hdbs_'
+# search = 'hdbs_'
 
 trimmed_data='yes'
 
@@ -39,7 +40,7 @@ else:
     sys.exit("Have to set trimmed_data to either 'yes' or 'no'")
 
 all_cluster = []
-for cluster_file in glob.glob(pruebas+'dbs_%scluster*.txt'%(pre)):
+for cluster_file in glob.glob(pruebas+'%s%scluster*.txt'%(search,pre)):
     each = np.loadtxt(cluster_file)
     for ele in range(len(each)):
         all_cluster.append(each[ele])
