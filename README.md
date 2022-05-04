@@ -1,7 +1,7 @@
 # Libralato_data
 Analisis of Libralato et al data
 ## on branch: main
-### Branch main follows the paper of Libralato et al. 2021 for the selection of the good data, and uses the scripts erro_Mc for the transformatipm of the galactic coordenates and errors afterwards
+### On branch 'main' you can select whatever you want to trimm the data in same fashion Libralato et all do, or not. There is no need for the relexed_selection branch anymore.
 ___
 0. error_Mc.py. Transform proper motions to galactic and apply a MC method for uncertainties . This script is run on the imac becouse it takes forever. 
 > **WARNING** error_MC.py: use only the version in the iMac.  
