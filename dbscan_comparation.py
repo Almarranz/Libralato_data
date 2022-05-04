@@ -124,8 +124,9 @@ pms=[0,0,0,0]
 for file_to_remove in glob.glob(pruebas+'dbs_%scluster*.txt'%(pre)):#Remove the files for previpus runs adn radios
     os.remove(file_to_remove) 
 
-for g in range(len(group_lst)):
-# for g in range(0,2):
+# print(''*len('ACTIVATE ERASE FILES')+'\n'+'ACTIVATE ERASE FILES'+'\n'+''*len('ACTIVATE ERASE FILES'))
+# for g in range(len(group_lst)):
+for g in range(86,87):
     seed(g)
     fig, ax = plt.subplots(1,1,figsize=(30,10))
     ax.set_ylim(0,10)
@@ -218,7 +219,7 @@ for g in range(len(group_lst)):
     
     
     
-        # %% tutorial at https://scikit-learn.org/stable/auto_examples/cluster/plot_dbscan.html#sphx-glr-auto-examples-cluster-plot-dbscan-py
+        # % tutorial at https://scikit-learn.org/stable/auto_examples/cluster/plot_dbscan.html#sphx-glr-auto-examples-cluster-plot-dbscan-py
         
         # epsilon=np.mean(eps_for_mean)
         # epsilon=codo
@@ -228,7 +229,7 @@ for g in range(len(group_lst)):
         clustering = DBSCAN(eps=epsilon, min_samples=samples).fit(X_stad)
         l=clustering.labels_
         loop=0
-        while len(set(l))<6:
+        while len(set(l))<20:
             loop +=1
             clustering = DBSCAN(eps=epsilon, min_samples=samples).fit(X_stad)
             
@@ -263,7 +264,7 @@ for g in range(len(group_lst)):
         ax.fill_between(np.arange(0,len(X)), codo, rodilla, alpha=0.5, color='grey')
         # =============================================================================
         
-        # %%Plots the vector poits plots for all the selected stars
+        # %Plots the vector poits plots for all the selected stars
     # =============================================================================
     #     fig, ax = plt.subplots(1,1,figsize=(8,8))
     #     # ax.scatter(X[:,0],X[:,1],s=10,alpha=0.5)
@@ -281,7 +282,7 @@ for g in range(len(group_lst)):
         n_clusters = len(set(l)) - (1 if -1 in l else 0)
         print('Group %s.Number of cluster, eps=%s and min_sambles=%s: %s'%(group,round(epsilon,2),samples,n_clusters))
         n_noise=list(l).count(-1)
-        # %%
+        # %
         u_labels = set(l)
         colors=[plt.cm.rainbow(i) for i in np.linspace(0,1,len(set(l)))]# Returns a color for each cluster. Each color consists in four number, RGBA, red, green, blue and alpha. Full opacity black would be then 0,0,0,1
         # %
@@ -313,6 +314,7 @@ for g in range(len(group_lst)):
     #         ax.axhline(round(kneedle.elbow_y, 3),linestyle='dashed',color='k')
     # =============================================================================
             
+            # print(''*len('RESTORE CONDITIONS')+'\n'+'RESTORE CONDITIONS'+'\n'+''*len('RESTORE CONDITIONS'))
 
             for i in range(len(set(l))-1):
                 
@@ -322,7 +324,8 @@ for g in range(len(group_lst)):
                 min_nth = np.sort(data[:,4][colores_index[i]])
                 index1=np.where((catal[:,5]==Ms[0,4]) & (catal[:,6]==Ms[0,5]) ) # looping a picking the stars coord on the Ms catalog
 
-                if max_c-min_c <0.3 and min_nth[2]<14.5:# the difference in color is smaller than 'max_c-min_c' and at least min_nth[n] stars in the cluster are brighter than 14.5
+                if max_c-min_c <0.3 and (len(min_nth))>3 and min_nth[2]<14.5:# the difference in color is smaller than 'max_c-min_c' and at least min_nth[n] stars in the cluster are brighter than 14.5
+                # if max_c-min_c <0.3 and min_nth[2]<14.5:# the difference in color is smaller than 'max_c-min_c' and at least min_nth[n] stars in the cluster are brighter than 14.5
                     # index1=np.where((catal[:,5]==Ms[0,4]) & (catal[:,6]==Ms[0,5]) ) # looping a picking the stars coord on the Ms catalog
                     print(Ms[0,4],Ms[0,5])
                     print(catal[:,5][index1],catal[:,6][index1])
@@ -433,17 +436,20 @@ for g in range(len(group_lst)):
                     ax[2].scatter(catal[:,3][area]-catal[:,4][area],catal[:,4][area],color='k',marker='o',alpha=0.01,zorder=1)
                     
                     
-                    p.arrow(max_c+max_c/5,min_Ks+0.5,-(max_c+max_c/5-max_c),0,head_width=0.05,color=colors[i])
+                    # p.arrow(max_c+max_c/5,min_Ks+0.5,-(max_c+max_c/5-max_c),0,head_width=0.05,color=colors[i])
                     ax[2].scatter(data[:,3][colores_index[i]]-data[:,4][colores_index[i]],data[:,4][colores_index[i]], color=colors[i],s=50,zorder=2)
                     if len(index1[0]) > 0:
                             ax[2].scatter((catal[:,3][index1]-catal[:,4][index1]),catal[:,4][index1], color='red',s=100,marker='2',zorder=3)
                     ax[2].axvline(min_c,color=colors[i],ls='dashed',alpha=0.5)
                     ax[2].axvline(max_c,color=colors[i],ls='dashed',alpha=0.5)
                     ax[2].annotate('%s'%(round(max_c-min_c,3)),(max_c+max_c/5,min_Ks+0.5),color=colors[i])
+                    ax[2].annotate('%s'%(round(max_c-min_c,3)),(1,max(catal[:,4][area])-i/2),color=colors[i])
                     # ax[2].scatter((Ms[0,11]-Ms[0,10]),Ms[0,10], color='red',s=100,marker='2',zorder=3)
-                    ax[2].set_xlim(0,)
+                    # ax[2].set_xlim(0,)
+                    ax[2].set_xlim(1.0,2.2)
                     ax[2].set_xlabel('H$-$Ks') 
                     ax[2].set_ylabel('Ks') 
+                    
                         
             radio=0.05
             area=np.where(np.sqrt((catal[:,5]-Ms[0,4])**2 + (catal[:,6]-Ms[0,5])**2)< radio)
@@ -455,14 +461,16 @@ for g in range(len(group_lst)):
                 min_c=min(data[:,3][colores_index[i]]-data[:,4][colores_index[i]])
                 max_c=max(data[:,3][colores_index[i]]-data[:,4][colores_index[i]])
                 min_Ks=min(data[:,4][colores_index[i]])
-                p.arrow(max_c+max_c/5,min_Ks+0.5,-(max_c+max_c/5-max_c),0,head_width=0.05,color=colors[i])
+                # p.arrow(max_c+max_c/5,min_Ks+0.5,-(max_c+max_c/5-max_c),0,head_width=0.05,color=colors[i])
                 ax[2].scatter(data[:,3][colores_index[i]]-data[:,4][colores_index[i]],data[:,4][colores_index[i]], color=colors[i],s=50,zorder=2)
                 ax[0].scatter(X[:,0][colores_index[i]],X[:,1][colores_index[i]], color=colors[i],s=50,zorder=3)
                 ax[1].scatter(X[:,2][colores_index[i]], X[:,3][colores_index[i]], color=colors[i],s=50,zorder=3)#plots in galactic
                 ax[1].quiver(X[:,2][colores_index[i]], X[:,3][colores_index[i]], X[:,0][colores_index[i]]-pms[2], X[:,1][colores_index[i]]-pms[3], alpha=0.5, color=colors[i])
                 ax[2].axvline(min_c,color=colors[i],ls='dashed',alpha=0.5)
                 ax[2].axvline(max_c,color=colors[i],ls='dashed',alpha=0.5)
-                ax[2].annotate('%s'%(round(max_c-min_c,3)),(max_c+max_c/5,min_Ks+0.5),color=colors[i])
+                # ax[2].annotate('%s'%(round(max_c-min_c,3)),(max_c+max_c/5,min_Ks+0.5),color=colors[i])
+                ax[2].annotate('%s'%(round(max_c-min_c,3)),(1,max(catal[:,4][area])-i/2),color=colors[i])
+
             ax[0].set_xlim(-10,10)
             ax[0].set_ylim(-10,10)
             ax[0].set_xlabel(r'$\mathrm{\mu_{l} (mas\ yr^{-1})}$') 
@@ -474,10 +482,11 @@ for g in range(len(group_lst)):
             ax[1].quiver(X[:,2][colores_index[-1]], X[:,3][colores_index[-1]], X[:,0][colores_index[-1]]-pms[2], X[:,1][colores_index[-1]]-pms[3], alpha=0.5, color=colors[-1])
             ax[1].set_xlabel('x') 
             ax[1].set_ylabel('y') 
-            ax[2].set_title('#%s/112,min stars/cluster = %s, cluster#=%s'%(g, samples,i),color=plt.cm.rainbow(random()))
+            ax[2].set_title('#%s/112,min stars/cluster = %s'%(g, samples),color=plt.cm.rainbow(random()))
             ax[2].scatter(catal[:,3][area]-catal[:,4][area],catal[:,4][area],color='k',marker='o',alpha=0.01,zorder=1)
             ax[0].invert_xaxis()  
             ax[2].invert_yaxis()  
+            ax[2].set_xlim(1,2.2)
             if len(index1[0]) > 0:
                 # mul, mub, mua, mud, ra, dec,dmul,dmub,x,y position in GALCEN_TABLE_D.cat 
                 ax[1].scatter(Ms[0,-3], Ms[0,-2],s=50, color='red', marker='2',zorder=3)
@@ -488,14 +497,6 @@ for g in range(len(group_lst)):
             ax[0].scatter(pms[2],pms[3],s=150, marker='*')    
 
 # %%
-test_array = np.array([data[:,5][colores_index[i]],data[:,6][colores_index[i]],data[:,7][colores_index[i]], data[:,8][colores_index[i]],
-                                                                      X[:,0][colores_index[i]], 
-                                                                      X[:,1][colores_index[i]],data[:,3][colores_index[i]],data[:,4][colores_index[i]]]).T
-
-
-test_array1 = np.c_[test_array,np.full((len(X[:,0][colores_index[i]]),1),i)]                                                                    
-print(test_array)
-
 
 
 

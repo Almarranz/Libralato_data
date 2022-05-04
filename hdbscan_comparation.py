@@ -308,13 +308,14 @@ for g in range(len(group_lst)):
                     ax[2].scatter(catal[:,3][area]-catal[:,4][area],catal[:,4][area],color='k',marker='o',alpha=0.01,zorder=1)
                     
                     
-                    p.arrow(max_c+max_c/5,min_Ks+0.5,-(max_c+max_c/5-max_c),0,head_width=0.05,color=colors[i])
+                    # p.arrow(max_c+max_c/5,min_Ks+0.5,-(max_c+max_c/5-max_c),0,head_width=0.05,color=colors[i])
                     ax[2].scatter(data[:,3][colores_index[i]]-data[:,4][colores_index[i]],data[:,4][colores_index[i]], color=colors[i],s=50,zorder=2)
                     if len(index1[0]) > 0:
                             ax[2].scatter((catal[:,3][index1]-catal[:,4][index1]),catal[:,4][index1], color='red',s=100,marker='2',zorder=3)
                     ax[2].axvline(min_c,color=colors[i],ls='dashed',alpha=0.5)
                     ax[2].axvline(max_c,color=colors[i],ls='dashed',alpha=0.5)
-                    ax[2].annotate('%s'%(round(max_c-min_c,3)),(max_c+max_c/5,min_Ks+0.5),color=colors[i])
+                    # ax[2].annotate('%s'%(round(max_c-min_c,3)),(max_c+max_c/5,min_Ks+0.5),color=colors[i])
+                    ax[2].annotate('%s'%(round(max_c-min_c,3)),(1,max(catal[:,4][area])-i/2),color=colors[i])
                     # ax[2].scatter((Ms[0,11]-Ms[0,10]),Ms[0,10], color='red',s=100,marker='2',zorder=3)
                     ax[2].set_xlim(0,)
                     ax[2].set_xlabel('H$-$Ks') 
@@ -339,7 +340,9 @@ for g in range(len(group_lst)):
             ax[1].quiver(X[:,2][colores_index[i]], X[:,3][colores_index[i]], X[:,0][colores_index[i]]-pms[2], X[:,1][colores_index[i]]-pms[3], alpha=0.5, color=colors[i])
             ax[2].axvline(min_c,color=colors[i],ls='dashed',alpha=0.5)
             ax[2].axvline(max_c,color=colors[i],ls='dashed',alpha=0.5)
-            ax[2].annotate('%s'%(round(max_c-min_c,3)),(max_c+max_c/5,min_Ks+0.5),color=colors[i])
+            # ax[2].annotate('%s'%(round(max_c-min_c,3)),(max_c+max_c/5,min_Ks+0.5),color=colors[i])
+            ax[2].annotate('%s'%(round(max_c-min_c,3)),(1,max(catal[:,4][area])-i/2),color=colors[i])
+
         ax[0].set_xlim(-10,10)
         ax[0].set_ylim(-10,10)
         ax[0].set_xlabel(r'$\mathrm{\mu_{l} (mas\ yr^{-1})}$') 
