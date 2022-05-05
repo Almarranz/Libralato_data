@@ -36,4 +36,6 @@ Arches_Hosek.py. In this iscript arches (or quintuplet) are dbscaned for cluster
 >Selecting at the center improves the posibilities of choosing  mini cluster without any false cluster member in it.
 >In this mini cluster we can look for de dispersion in velocity and color to have an idean of what we are looking for in Lkbralato data.
 
-same_cluster_diff_MS.py. Found same cluster around different MS **whithin the same search(dbscan or hdbscan)**. 
+same_cluster_diff_MS.py. Fins same cluster around different MS **whithin the same search(dbscan or hdbscan)**. 
+
+cluster_Aks_gns.py. Looks for each member of the putative cluster in the extintion catalog adn extract the exctintion, if the star if consider to be in the galactic centre. Produces a list with mean AKs and std'
