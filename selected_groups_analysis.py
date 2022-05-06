@@ -4,7 +4,15 @@
 Created on Wed Apr 20 12:07:29 2022
 
 @author: amartinez
+
 """
+# =============================================================================
+# Looks around a selected cluster from dbscan_comparation.py or hdbscan_comparation.py
+# So far yoy have to manually change the parametres of dbsdcan.
+# Then extract the parametres of the new cluster and stores it in a new list
+# 
+# =============================================================================
+
 # %% imports
 import astropy.coordinates as ap_coor
 from sklearn.cluster import DBSCAN
@@ -111,7 +119,7 @@ for g in groups:
     
     t_gal= QTable([gal_c.l,gal_c.b], names=('l','b'))  
     
-    index = np.where((catal[:,5] == ra_[0]) & (catal[:,6] == dec_[0]))
+    index = np.where((catal[:,5] == ra_[0]) & (catal[:,6] == dec_[0]))#Looks for one of the cluster stars in the GNS catalog and uses as a center
     
     id_clus, id_catal, d2d,d3d = ap_coor.search_around_sky(gal_coord[index],gal_coord, radio)
 
@@ -154,7 +162,7 @@ for g in groups:
     # pms=[0,0,-5.60,-0.20] #this is from the dynesty adjustment
     # pms=np.array(pms)
     
-    data = catal[id_catal]#selecteing the stars around the putative cluster
+    data = catal[id_catal]#selecteing the stars around the putative cluster # FIXME
     if pixel == 'no':
         X=np.array([data[:,-6]-pms[2],data[:,-5]-pms[3],t_gal['l'].value,t_gal['b'].value]).T
     elif pixel == 'yes':
@@ -176,25 +184,23 @@ for g in groups:
     elbow = KneeLocator(np.arange(0,len(data),1), d_KNN, curve='concave', interp_method = "polynomial",direction="increasing")
     rodilla=round(kneedle.elbow_y, 3)
     codo = round(elbow.elbow_y, 3)
-    # epsilon = round(min(d_KNN),3)
-    epsilon = 0.4
+    epsilon = round(min(d_KNN),3)
+    # epsilon = 0.4
     
     clustering = DBSCAN(eps=epsilon, min_samples=samples_dist).fit(X_stad)
     l=clustering.labels_
-# =============================================================================
-#     loop=0
-#     while len(set(l))<5:
-#         loop +=1
-#         clustering = DBSCAN(eps=epsilon, min_samples=samples_dist).fit(X_stad)
-#         
-#         l=clustering.labels_
-#         # epsilon +=0.001 # if choose epsilon as min d_KNN you loop over epsilon and a "<" simbol goes in the while loop
-#         samples_dist +=1 # if you choose epsilon as codo, you loop over the number of sambles and a ">" goes in the  while loop
-#         print('DBSCAN loop %s. Trying with eps=%s. cluster = %s '%(loop,round(epsilon,3),len(set(l))-1))
-#         if loop >100:
-#             print('breaking out')
-#             break
-# =============================================================================
+    loop=0
+    while len(set(l))<10:
+        loop +=1
+        clustering = DBSCAN(eps=epsilon, min_samples=samples_dist).fit(X_stad)
+        
+        l=clustering.labels_
+        epsilon +=0.001 # if choose epsilon as min d_KNN you loop over epsilon and a "<" simbol goes in the while loop
+        # samples_dist +=1 # if you choose epsilon as codo, you loop over the number of sambles and a ">" goes in the  while loop
+        print('DBSCAN loop %s. Trying with eps=%s. cluster = %s '%(loop,round(epsilon,3),len(set(l))-1))
+        if loop >100:
+            print('breaking out')
+            break
            
     # print('breaking the loop')
     print('This is the number of clusters: %s'%(len(set(l))-1))
@@ -282,15 +288,22 @@ for g in groups:
         plotting(eje_x_pos,eje_y_pos,X[:,2][colores_index[c]],X[:,3][colores_index[c]],1, color=colors[c],s=50,zorder=3,)
         plotting('H-Ks','Ks',data[colores_index[c]][:,3] -data[colores_index[c]][:,4],data[colores_index[c]][:,4],2,color=colors[c])
         ax[1].quiver(X[:,2][colores_index[c]],X[:,3][colores_index[c]],X[:,0][colores_index[c]],X[:,1][colores_index[c]],color=colors[c])
+        cl_to_save = np.array([data[:,0][colores_index[c]], data[:,1][colores_index[c]],
+                               data[:,7][colores_index[c]], data[:,8][colores_index[c]],
+                               data[:,17][colores_index[c]], data[:,18][colores_index[c]],
+                               data[:,3][colores_index[c]], data[:,4][colores_index[c]],
+                               g, clus_id, c]).T  
+        np.savetxt(pruebas + 'cluster%s_on_gr%s_cl%s.txt'%(c,g,clus_id),cl_to_save)
     
     
     
+    # ra, dec, x, y, pml, pmb, H, Ks, group, cluster, new_cluster
     
+# %%
+# cl_to_save = np.array([data[:,0][colores_index[c]], data[:,1][colores_index[c]]]).T  
     
-    
-    
-    
-    
+ # "'RA_gns','DE_gns','Jmag','Hmag','Ksmag','ra','dec','x_c','y_c','mua','dmua','mud','dmud','time','n1','n2','ID','mul','mub','dmul','dmub','m139','Separation'",
+   
     
     
     
