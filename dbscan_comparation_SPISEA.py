@@ -112,8 +112,6 @@ catal_all = np.loadtxt(cata + '%s_pm_galactic.txt'%(name))
 
 
 # %%
-cluster_by='all'# this varible can be 'pm' or 'pos', indicating if you want cluster by velocities or positions,or all for clustering in 4D
-pixel = 'yes'# yes if you want coordenates in pixels for clustering and plotting positions, insteat of sky coordenates
 
 
 #mul, mub, mua, mud, ra, dec,dmul,dmub, position in GALCEN_TABLE_D.cat 
@@ -125,25 +123,27 @@ pms=[0,0,0,0]
 # pms=[0,0,-5.60,-0.20] #this is from the dynesty adjustment
 # pms=np.array(pms)
 
-
+# %%
 Aks_gns = pd.read_fwf(gns_ext + 'central.txt', sep =' ',header = None)
 
-# %%
+# %
 AKs_np = Aks_gns.to_numpy()#TODO
 center = np.where(AKs_np[:,6]-AKs_np[:,8] > 1.3)#TODO
 AKs_center =AKs_np[center]#TODO
-# %%
+# %
 gns_coord = SkyCoord(ra=AKs_center[:,0]*u.degree, dec=AKs_center[:,2]*u.degree)
-# %%
-# %%
+# %
+# %
 AKs_list =  np.arange(1.6,2.11,0.01)
 # %%
 for file_to_remove in glob.glob(pruebas+'dbs_%scluster*.txt'%(pre)):#Remove the files for previpus runs adn radios
     os.remove(file_to_remove) 
+cluster_by='all'# this varible can be 'pm' or 'pos', indicating if you want cluster by velocities or positions,or all for clustering in 4D
+pixel = 'yes'# yes if you want coordenates in pixels for clustering and plotting positions, insteat of sky coordenates
 
 # print(''*len('ACTIVATE ERASE FILES')+'\n'+'ACTIVATE ERASE FILES'+'\n'+''*len('ACTIVATE ERASE FILES'))
-# for g in range(len(group_lst)):
-for g in range(0,1):
+for g in range(len(group_lst)):
+# for g in range(2,3):
     seed(g)
     fig, ax = plt.subplots(1,1,figsize=(30,10))
     ax.set_ylim(0,10)
@@ -242,11 +242,11 @@ for g in range(0,1):
         # epsilon=codo
         epsilon = round(min(d_KNN),3)
         # sys.exit('salida')
-        # epsilon=codo
+        # epsilon=0.5575
         clustering = DBSCAN(eps=epsilon, min_samples=samples).fit(X_stad)
         l=clustering.labels_
         loop=0
-        while len(set(l))<6: # min number of cluster to find. It star looking at the min values of the Knn distance plot and increases epsilon until the cluster are found. BE careful cose ALL cluster will be found with the lastest (and biggest) value of eps, so it might lost some clusters, becouse of the conditions.
+        while len(set(l))<3: # min number of cluster to find. It star looking at the min values of the Knn distance plot and increases epsilon until the cluster are found. BE careful cose ALL cluster will be found with the lastest (and biggest) value of eps, so it might lost some clusters, becouse of the conditions.
                              # What I mean is that with a small epsilon it may found a cluster that fulfill the condition (max diff of color), but when increasing epsilon some other stars maybe added to the cluster with a bigger diff in color and break the rule.
                              # This does not seem a problem when 'while <6' but it is when 'while <20' for example...
             loop +=1
@@ -343,9 +343,14 @@ for g in range(0,1):
                 min_Ks=min(data[:,4][colores_index[i]])
                 min_nth = np.sort(data[:,4][colores_index[i]])
                 index1=np.where((catal[:,5]==Ms[0,4]) & (catal[:,6]==Ms[0,5]) ) # looping a picking the stars coord on the Ms catalog
+                
+                min_c_J=min(data[:,2][colores_index[i]]-data[:,4][colores_index[i]])
+                max_c_J=max(data[:,2][colores_index[i]]-data[:,4][colores_index[i]])
+                
+
 
                 # if max_c-min_c <0.3 and (len(min_nth))>3 and min_nth[2]<14.5:# the difference in color is smaller than 'max_c-min_c' and at least min_nth[n] stars in the cluster are brighter than 14.5
-                if max_c-min_c <0.3 and any(min_nth<14.5):# the difference in color is smaller than 'max_c-min_c' and at least min_nth[n] stars in the cluster are brighter than 14.5
+                if max_c-min_c <0.5 and any(min_nth<14.5):# the difference in color is smaller than 'max_c-min_c' and at least one star in the cluster are brighter than 14.5
                     # index1=np.where((catal[:,5]==Ms[0,4]) & (catal[:,6]==Ms[0,5]) ) # looping a picking the stars coord on the Ms catalog
                     print(Ms[0,4],Ms[0,5])
                     print(catal[:,5][index1],catal[:,6][index1])
@@ -353,8 +358,8 @@ for g in range(0,1):
                     # index=np.where((catal_all[:,0]==yso_ra[i]) & (catal_all[:,1]==yso_dec[i]) ) # this finding the MS in the whole libralati data, that is not trimmed, so its contains all the MS (well 96 of then the rest are in the other Libralato catalog)
                
                     
+                    # fig, ax = plt.subplots(1,4,figsize=(40,10))
                     fig, ax = plt.subplots(1,3,figsize=(30,10))
-                    
                     ax[2].invert_yaxis()
                     seed(g)
                     ax[0].set_title('Group %s, radio = %s, # of Clusters = %s'%(group,r_u[r], n_clusters),color=plt.cm.rainbow(random()))
@@ -375,9 +380,24 @@ for g in range(0,1):
                     ax[0].scatter(pms[2],pms[3],s=150, marker='*')
                     ax[0].invert_xaxis()
                     # Here we save the coordenates of the posible cluster coordinates for further anlysis if required
+                    mul_sig, mub_sig = np.std(X[:,0][colores_index[i]]), np.std(X[:,1][colores_index[i]])
+                    mul_mean, mub_mean = np.mean(X[:,0][colores_index[i]]), np.mean(X[:,1][colores_index[i]])
+                    
+                    mul_sig_all, mub_sig_all = np.std(X[:,0]), np.std(X[:,1])
+                    mul_mean_all, mub_mean_all = np.mean(X[:,0]), np.mean(X[:,1])
                     
                     
+                    vel_txt = '\n'.join(('mul = %s, mub = %s'%(round(mul_mean,3), round(mub_mean,3)),
+                                         '$\sigma_{mul}$ = %s, $\sigma_{mub}$ = %s'%(round(mul_sig,3), round(mub_sig,3)))) 
+                    vel_txt_all = '\n'.join(('mul = %s, mub = %s'%(round(mul_mean_all,3), round(mub_mean_all,3)),
+                                         '$\sigma_{mul}$ = %s, $\sigma_{mub}$ = %s'%(round(mul_sig_all,3), round(mub_sig_all,3))))
                     
+                    propiedades = dict(boxstyle='round', facecolor=colors[i], alpha=0.2)
+                    propiedades_all = dict(boxstyle='round', facecolor=colors[-1], alpha=0.1)
+                    ax[0].text(0.05, 0.95, vel_txt, transform=ax[0].transAxes, fontsize=14,
+                        verticalalignment='top', bbox=propiedades)
+                    ax[0].text(0.05, 0.85, vel_txt_all, transform=ax[0].transAxes, fontsize=14,
+                        verticalalignment='top', bbox=propiedades_all)
                     #ra,dec,x_c,y_c,mua,dmua,mud,dmud,time,n1,n2,idt,m139,Separation,Ks,H,mul,mub,l,b
                     #data="'RA_gns','DE_gns','Jmag','Hmag','Ksmag','ra','dec','dmul','dmub','mua','dmua','mud','dmud','time','n1','n2','ID','mul','mub','dmul','dmub','m139','Separation'",
                     
@@ -434,7 +454,7 @@ for g in range(0,1):
                         clus_array = np.array([data[:,5][colores_index[i]],data[:,6][colores_index[i]],t_gal['l'][colores_index[i]].value,t_gal['b'][colores_index[i]].value,
                                                                                               X[:,0][colores_index[i]], 
                                                                                               X[:,1][colores_index[i]],
-                                                                                              data[:,3][colores_index[i]],data[:,4][colores_index[i]],int(g),int(i)]).T
+                                                                                              data[:,3][colores_index[i]],data[:,4][colores_index[i]]]).T
                         clus_array1= np.c_[clus_array, np.full((len(X[:,0][colores_index[i]]),1),g),np.full((len(X[:,0][colores_index[i]]),1),i)]
                         np.savetxt(pruebas + 'dbs_%scluster%s_of_group%s.txt'%(pre,i,g),clus_array1,fmt='%.7f '*8 + '%.0f '*2, header ='ra, dec, l, b, pml, pmb, H, Ks, group, cluster')
                     elif pixel == 'yes':
@@ -478,8 +498,9 @@ for g in range(0,1):
                     iso_dir = '/Users/amartinez/Desktop/PhD/Libralato_data/nsd_isochrones/'
                     
                     dist = 8000 # distance in parsec
-                    metallicity = 0.30 # Metallicity in [M/H]
-                    logAge = np.log10(0.61*10**9.)
+                    metallicity = 0.17 # Metallicity in [M/H]
+                    # logAge = np.log10(0.61*10**9.)
+                    logAge = np.log10(0.010*10**9.)
                     
                     evo_model = evolution.MISTv1() 
                     atm_func = atmospheres.get_merged_atmosphere
@@ -512,9 +533,9 @@ for g in range(0,1):
                     #%
                     
                     
-                    mass = 1.5*10**4.
+                    mass = 0.5*10**4.
                     mass = 1 * mass
-                    dAks = 0.05*1
+                    dAks = round(std_AKs*1,3)
                     cluster = synthetic.ResolvedClusterDiffRedden(iso, my_imf, mass,dAks)
                     cluster_ndiff = synthetic.ResolvedCluster(iso, my_imf, mass)
                     clus = cluster.star_systems
@@ -527,7 +548,7 @@ for g in range(0,1):
                     # p.arrow(max_c+max_c/5,min_Ks+0.5,-(max_c+max_c/5-max_c),0,head_width=0.05,color=colors[i])
                     ax[2].scatter(data[:,3][colores_index[i]]-data[:,4][colores_index[i]],data[:,4][colores_index[i]], color=colors[i],s=50,zorder=2)
                     if len(index1[0]) > 0:
-                            ax[2].scatter((catal[:,3][index1]-catal[:,4][index1]),catal[:,4][index1], color='red',s=100,marker='2',zorder=3)
+                            ax[2].scatter((catal[:,3][index1]-catal[:,4][index1]),catal[:,4][index1], color='springgreen',s=100,marker='2',zorder=3)
                     ax[2].axvline(min_c,color=colors[i],ls='dashed',alpha=0.5)
                     ax[2].axvline(max_c,color=colors[i],ls='dashed',alpha=0.5)
                     ax[2].annotate('%s'%(round(max_c-min_c,3)),(max_c+max_c/5,min_Ks+0.5),color=colors[i])
@@ -537,7 +558,7 @@ for g in range(0,1):
                     ax[2].set_xlim(1.0,2.2)
                     ax[2].set_xlabel('H$-$Ks') 
                     ax[2].set_ylabel('Ks') 
-                    txt_srn = '\n'.join(('metallicity = %s'%(metallicity),'dist = %.1f Kpc'%(dist/1000),'mass =%.0f $M_{\odot}$'%(mass),
+                    txt_srn = '\n'.join(('metallicity = %s'%(metallicity),'dist = %.1f Kpc'%(dist/1000),'mass =%.0fx$10^{3}$ $M_{\odot}$'%(mass/1000),
                                          'age = %.0f Myr'%(10**logAge/10**6)))
                     txt_AKs = '\n'.join(('AKs = %.2f'%(AKs_clus),'std_AKs = %.2f'%(std_AKs)))
                     props = dict(boxstyle='round', facecolor='w', alpha=0.5)
@@ -546,18 +567,44 @@ for g in range(0,1):
                         verticalalignment='top', bbox=props)
                     ax[2].text(0.05, 0.85, txt_srn, transform=ax[2].transAxes, fontsize=14,
                         verticalalignment='top', bbox=props)
-
- # %%
-# for i in range(len(gns_match_good[:,18])):
-#     if gns_match_good[i,18] !='-':
-#         print('is not fucking line',gns_match_good[i,18])
-#     else: 
-#         print(type(gns_match_good[i,18]),gns_match_good[i,18])
-# # AKs_clus_all = [float(gns_match_good[i,18]) for i in range(len(gns_match_good[:,18]))]
-                   
-
+                    if len(index1[0]) > 0:
+                            ax[2].scatter((catal[:,3][index1]-catal[:,4][index1]),catal[:,4][index1], color='springgreen',s=400,marker='2',zorder=3)
+# =============================================================================
+#  # %                #This is for J-Ks plot.
+# =============================================================================
+ 
+# =============================================================================
+#                     ax[3].scatter(clus['m_hawki_J']-clus['m_hawki_Ks'],clus['m_hawki_Ks'],color = 'r',label='With dAKs = %s mag'%(dAks))
+#                     ax[3].scatter(clus_ndiff['m_hawki_J']-clus_ndiff['m_hawki_Ks'],clus_ndiff['m_hawki_Ks'],color = 'k',label='With dAKs = %s mag'%(0),alpha=0.3)
+#                     ax[3].legend(loc =3, fontsize = 12)
+#                     
+#                     ax[3].scatter(data[:,2][colores_index[i]]-data[:,4][colores_index[i]],data[:,4][colores_index[i]], color=colors[i],s=50,zorder=2)
+#                     if len(index1[0]) > 0:
+#                             ax[3].scatter((catal[:,2][index1]-catal[:,4][index1]),catal[:,4][index1], color='springgreen',s=100,marker='2',zorder=3)
+#                     ax[3].axvline(min_c_J,color=colors[i],ls='dashed',alpha=0.5)
+#                     ax[3].axvline(max_c_J,color=colors[i],ls='dashed',alpha=0.5)
+#                     ax[3].annotate('%s'%(round(max_c_J-min_c_J,3)),(max_c_J+max_c_J/5,min_Ks+0.5),color=colors[i])
+#                     
+#                     
+#                     # ax[3].set_xlim(1.0,2.2)
+#                     ax[3].set_xlabel('J$-$Ks') 
+#                     ax[3].set_ylabel('Ks') 
+#                     txt_srn = '\n'.join(('metallicity = %s'%(metallicity),'dist = %.1f Kpc'%(dist/1000),'mass =%.0fx$10^{3}$ $M_{\odot}$'%(mass/1000),
+#                                          'age = %.0f Myr'%(10**logAge/10**6)))
+#                     txt_AKs = '\n'.join(('AKs = %.2f'%(AKs_clus),'std_AKs = %.2f'%(std_AKs)))
+#                     props = dict(boxstyle='round', facecolor='w', alpha=0.5)
+#                     # place a text box in upper left in axes coords
+#                     ax[3].text(0.75, 0.95, txt_AKs, transform=ax[3].transAxes, fontsize=14,
+#                         verticalalignment='top', bbox=props)
+#                     ax[3].text(0.75, 0.85, txt_srn, transform=ax[3].transAxes, fontsize=14,
+#                         verticalalignment='top', bbox=props)
+#                     if len(index1[0]) > 0:
+#                             ax[3].scatter((catal[:,2][index1]-catal[:,4][index1]),catal[:,4][index1], color='springgreen',s=400,marker='2',zorder=3)
+#                     ax[3].invert_yaxis()            
+# =============================================================================
             
-
+# %%
+print('$\sigma_{mul}$')
 
 
 
