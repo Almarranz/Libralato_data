@@ -142,8 +142,8 @@ cluster_by='all'# this varible can be 'pm' or 'pos', indicating if you want clus
 pixel = 'yes'# yes if you want coordenates in pixels for clustering and plotting positions, insteat of sky coordenates
 
 # print(''*len('ACTIVATE ERASE FILES')+'\n'+'ACTIVATE ERASE FILES'+'\n'+''*len('ACTIVATE ERASE FILES'))
-for g in range(len(group_lst)):
-# for g in range(2,3):
+# for g in range(len(group_lst)):
+for g in range(0,10):
     seed(g)
     fig, ax = plt.subplots(1,1,figsize=(30,10))
     ax.set_ylim(0,10)
@@ -152,7 +152,7 @@ for g in range(len(group_lst)):
     ax.text(0.5, 2, '\n'+'pixel=%s'%(pixel),fontsize= 200,color=plt.cm.rainbow(random()))
 
     # print(group_lst[g])
-    samples=5# number of minimun objects that defined a cluster
+    samples=10# number of minimun objects that defined a cluster
     samples_dist = samples# the distance to the kth neightbour that will define the frist epsilon for debsacn to star looping
     group=int(group_lst[g])
     #ra,dec,x_c,y_c,mua,dmua,mud,dmud,time,n1,n2,idt,m139,Separation,Ks,H,mul,mub,l,b
@@ -358,8 +358,8 @@ for g in range(len(group_lst)):
                     # index=np.where((catal_all[:,0]==yso_ra[i]) & (catal_all[:,1]==yso_dec[i]) ) # this finding the MS in the whole libralati data, that is not trimmed, so its contains all the MS (well 96 of then the rest are in the other Libralato catalog)
                
                     
-                    # fig, ax = plt.subplots(1,4,figsize=(40,10))
-                    fig, ax = plt.subplots(1,3,figsize=(30,10))
+                    fig, ax = plt.subplots(1,4,figsize=(40,10))
+                    # fig, ax = plt.subplots(1,3,figsize=(30,10))
                     ax[2].invert_yaxis()
                     seed(g)
                     ax[0].set_title('Group %s, radio = %s, # of Clusters = %s'%(group,r_u[r], n_clusters),color=plt.cm.rainbow(random()))
@@ -573,35 +573,33 @@ for g in range(len(group_lst)):
 #  # %                #This is for J-Ks plot.
 # =============================================================================
  
-# =============================================================================
-#                     ax[3].scatter(clus['m_hawki_J']-clus['m_hawki_Ks'],clus['m_hawki_Ks'],color = 'r',label='With dAKs = %s mag'%(dAks))
-#                     ax[3].scatter(clus_ndiff['m_hawki_J']-clus_ndiff['m_hawki_Ks'],clus_ndiff['m_hawki_Ks'],color = 'k',label='With dAKs = %s mag'%(0),alpha=0.3)
-#                     ax[3].legend(loc =3, fontsize = 12)
-#                     
-#                     ax[3].scatter(data[:,2][colores_index[i]]-data[:,4][colores_index[i]],data[:,4][colores_index[i]], color=colors[i],s=50,zorder=2)
-#                     if len(index1[0]) > 0:
-#                             ax[3].scatter((catal[:,2][index1]-catal[:,4][index1]),catal[:,4][index1], color='springgreen',s=100,marker='2',zorder=3)
-#                     ax[3].axvline(min_c_J,color=colors[i],ls='dashed',alpha=0.5)
-#                     ax[3].axvline(max_c_J,color=colors[i],ls='dashed',alpha=0.5)
-#                     ax[3].annotate('%s'%(round(max_c_J-min_c_J,3)),(max_c_J+max_c_J/5,min_Ks+0.5),color=colors[i])
-#                     
-#                     
-#                     # ax[3].set_xlim(1.0,2.2)
-#                     ax[3].set_xlabel('J$-$Ks') 
-#                     ax[3].set_ylabel('Ks') 
-#                     txt_srn = '\n'.join(('metallicity = %s'%(metallicity),'dist = %.1f Kpc'%(dist/1000),'mass =%.0fx$10^{3}$ $M_{\odot}$'%(mass/1000),
-#                                          'age = %.0f Myr'%(10**logAge/10**6)))
-#                     txt_AKs = '\n'.join(('AKs = %.2f'%(AKs_clus),'std_AKs = %.2f'%(std_AKs)))
-#                     props = dict(boxstyle='round', facecolor='w', alpha=0.5)
-#                     # place a text box in upper left in axes coords
-#                     ax[3].text(0.75, 0.95, txt_AKs, transform=ax[3].transAxes, fontsize=14,
-#                         verticalalignment='top', bbox=props)
-#                     ax[3].text(0.75, 0.85, txt_srn, transform=ax[3].transAxes, fontsize=14,
-#                         verticalalignment='top', bbox=props)
-#                     if len(index1[0]) > 0:
-#                             ax[3].scatter((catal[:,2][index1]-catal[:,4][index1]),catal[:,4][index1], color='springgreen',s=400,marker='2',zorder=3)
-#                     ax[3].invert_yaxis()            
-# =============================================================================
+                    ax[3].scatter(clus['m_hawki_J']-clus['m_hawki_Ks'],clus['m_hawki_Ks'],color = 'r',label='With dAKs = %s mag'%(dAks))
+                    ax[3].scatter(clus_ndiff['m_hawki_J']-clus_ndiff['m_hawki_Ks'],clus_ndiff['m_hawki_Ks'],color = 'k',label='With dAKs = %s mag'%(0),alpha=0.3)
+                    ax[3].legend(loc =3, fontsize = 12)
+                    
+                    ax[3].scatter(data[:,2][colores_index[i]]-data[:,4][colores_index[i]],data[:,4][colores_index[i]], color=colors[i],s=50,zorder=2)
+                    if len(index1[0]) > 0:
+                            ax[3].scatter((catal[:,2][index1]-catal[:,4][index1]),catal[:,4][index1], color='springgreen',s=100,marker='2',zorder=3)
+                    ax[3].axvline(min_c_J,color=colors[i],ls='dashed',alpha=0.5)
+                    ax[3].axvline(max_c_J,color=colors[i],ls='dashed',alpha=0.5)
+                    ax[3].annotate('%s'%(round(max_c_J-min_c_J,3)),(max_c_J+max_c_J/5,min_Ks+0.5),color=colors[i])
+                    
+                    
+                    # ax[3].set_xlim(1.0,2.2)
+                    ax[3].set_xlabel('J$-$Ks') 
+                    ax[3].set_ylabel('Ks') 
+                    txt_srn = '\n'.join(('metallicity = %s'%(metallicity),'dist = %.1f Kpc'%(dist/1000),'mass =%.0fx$10^{3}$ $M_{\odot}$'%(mass/1000),
+                                         'age = %.0f Myr'%(10**logAge/10**6)))
+                    txt_AKs = '\n'.join(('AKs = %.2f'%(AKs_clus),'std_AKs = %.2f'%(std_AKs)))
+                    props = dict(boxstyle='round', facecolor='w', alpha=0.5)
+                    # place a text box in upper left in axes coords
+                    ax[3].text(0.75, 0.95, txt_AKs, transform=ax[3].transAxes, fontsize=14,
+                        verticalalignment='top', bbox=props)
+                    ax[3].text(0.75, 0.85, txt_srn, transform=ax[3].transAxes, fontsize=14,
+                        verticalalignment='top', bbox=props)
+                    if len(index1[0]) > 0:
+                            ax[3].scatter((catal[:,2][index1]-catal[:,4][index1]),catal[:,4][index1], color='springgreen',s=400,marker='2',zorder=3)
+                    ax[3].invert_yaxis()            
             
 # %%
 print('$\sigma_{mul}$')
