@@ -2,7 +2,10 @@
 Analisis of Libralato et al data
 ## on branch: main
 ### On branch 'main' you can select whatever you want to trimm the data in same fashion Libralato et all do, or not. There is no need for the relexed_selection branch anymore.
-___
+_
+## Trimming of the data: from 0 to 4 are common steos for all different aproach, since this is just the selection of the data.
+
+__
 0. error_Mc.py. Transform proper motions to galactic and apply a MC method for uncertainties . This script is run on the imac becouse it takes forever. 
 > **WARNING** error_MC.py: use only the version in the iMac.  
 ___
@@ -17,6 +20,9 @@ ___
 4. match_w_GNS.py. Crosses match GNS central region with the lits from Libralato
 > Note: here you can select the limit to cosider two stars as the same. **Check the relevance of this choice**
 
+
+# Aprach A: it consist in looking around MS in the catalog_D from Libralato data. NOT very suscessful aproach so far...
+___
 5. co_mouving_group.py Generates lists and plots of the stars aroun the Ms stars found in the refined data. 
 >NOte: in this scrip you can select stars **under a max pm uncertainty*. For both relaxed and trimmed.  
 
@@ -27,19 +33,7 @@ ___
 >Hdbscan with **'leaf'** configuration (instead of 'eom' configuration) yields to more *realistic* clusters
 6. (C) dbscan_comparation_SPISEA. Same as dbscan_comparation, but plots the CMD of each cluster on the CMD of a symulated cluster with the same AKs of that of the mean AKs of the members of the cluster.
 
-
-## Other scripts
-
-Arches_Hosek.py. In this iscript arches (or quintuplet) are dbscaned for clustering. 
->In a first step the whole data set is scanned and withdraw the denser cluster.
->Afterwards a reduced data set is scanned for comparations. 
->Selecting a mini cluster at the center of the found cluster we can have an idea of how a almost disolving cluster might look like in the galactic center.
->Selecting at the center improves the posibilities of choosing  mini cluster without any false cluster member in it.
->In this mini cluster we can look for de dispersion in velocity and color to have an idean of what we are looking for in Lkbralato data.
-same_cluster_diff_MS.py. Fins same cluster around different MS **whithin the same search(dbscan or hdbscan)**. 
-
-
-# SECOND SECUENCE
+##SECOND SECUENCE
 Afetr running scripts 0 to 6 (A and B) follow this secuece:
 
 
@@ -56,4 +50,24 @@ Afetr running scripts 0 to 6 (A and B) follow this secuece:
 
 5. select_AKs_for_cluster.py. Same of AKs_for cluster.py but for an extended cluster 
 > Note: At this point this in when I decide if I have a cluster or not.
+___
 
+# Aproach B: it consists in dividing the data in 4 bigger section and diviede each section in smaller section and look for the clusters. IN PROGRESS
+___
+5. sections_A_to_D.py. Divide the data in the most obvious 4 sections and stores them in four lists. This are the star the matched the GNS (from match_w_GNS.py.), not yet trimmed in velocity or color
+
+
+
+
+
+
+
+## Other scripts
+
+Arches_Hosek.py. In this iscript arches (or quintuplet) are dbscaned for clustering. 
+>In a first step the whole data set is scanned and withdraw the denser cluster.
+>Afterwards a reduced data set is scanned for comparations. 
+>Selecting a mini cluster at the center of the found cluster we can have an idea of how a almost disolving cluster might look like in the galactic center.
+>Selecting at the center improves the posibilities of choosing  mini cluster without any false cluster member in it.
+>In this mini cluster we can look for de dispersion in velocity and color to have an idean of what we are looking for in Lkbralato data.
+same_cluster_diff_MS.py. Fins same cluster around different MS **whithin the same search(dbscan or hdbscan)**. 
