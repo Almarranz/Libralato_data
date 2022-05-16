@@ -56,7 +56,7 @@ else:
     sys.exit("Have to set trimmed_data to either 'yes' or 'no'")
         
 # "'RA_gns','DE_gns','Jmag','Hmag','Ksmag','ra','dec','x_c','y_c','mua','dmua','mud','dmud','time','n1','n2','ID','mul','mub','dmul','dmub','m139','Separation'",
-df_np=np.loadtxt(pruebas + '%smatch_GNS_and_%s_refined_galactic.txt'%(pre,name))
+df_np=np.loadtxt(results + '%smatch_GNS_and_%s_refined_galactic.txt'%(pre,name))
 
 gal_coor=df_np[:,[17,18,19,20]]#mul,mub,dmul,dmub
 #%%
