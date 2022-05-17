@@ -71,3 +71,13 @@ Arches_Hosek.py. In this iscript arches (or quintuplet) are dbscaned for cluster
 >Selecting at the center improves the posibilities of choosing  mini cluster without any false cluster member in it.
 >In this mini cluster we can look for de dispersion in velocity and color to have an idean of what we are looking for in Lkbralato data.
 same_cluster_diff_MS.py. Fins same cluster around different MS **whithin the same search(dbscan or hdbscan)**. 
+
+
+cluster_to_region.py. Generates a region of the selected cluster to be visualized in DS9.
+
+
+
+
+
+
+
