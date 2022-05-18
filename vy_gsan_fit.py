@@ -261,8 +261,24 @@ for i in range(6):
     print('medin %.2f -+ %.2f %.2f'%(quantiles[i][1],quantiles[i][1]-quantiles[i][0],quantiles[i][2]-quantiles[i][1]))
     print(' mean %.2f -+ %.2f %.2f'%(mean[i],mean[i]-quantiles[i][0],quantiles[i][2]-mean[i])+'\n'+30*'*')
    
+# %%
+fun1= lambda x: (mean[2] * (1 / (mean[1] * (np.sqrt(2 * np.pi)))) * np.exp(-np.power(x - mean[0], 2.) / (2 * np.power(mean[1], 2.))) )
+# result = integrate.quad(gaussian(x, mean[0], mean[1], mean[2]),-15,15)
+gau1=integrate.quad(fun1,-15,15)
 
+fun2= lambda x: (mean[5] * (1 / (mean[4] * (np.sqrt(2 * np.pi)))) * np.exp(-np.power(x - mean[3], 2.) / (2 * np.power(mean[4], 2.))) )
+# result = integrate.quad(gaussian(x, mean[0], mean[1], mean[2]),-15,15)
+gau2=integrate.quad(fun2,-15,15)
 
+# fun3= lambda x: (mean[8] * (1 / (mean[7] * (np.sqrt(2 * np.pi)))) * np.exp(-np.power(x - mean[6], 2.) / (2 * np.power(mean[7], 2.))) )
+# # result = integrate.quad(gaussian(x, mean[0], mean[1], mean[2]),-15,15)
+# gau3=integrate.quad(fun3,-15,15)
+print(len('Area under Gaus1: %.3f')*'&')
+print('Area under Gaus1:%.3f'%(gau1[0]))
+print('Area under Gaus2:%.3f'%(gau2[0]))
+
+print('Total area = %.3f'%(gau1[0]+gau2[0]))
+print(len('Area under Gaus1: %.3f')*'&')
 
 
 

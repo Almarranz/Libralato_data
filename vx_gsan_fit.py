@@ -93,7 +93,7 @@ dmub=gal_coor[:,3]
 #%%
 
 #%
-lim_dmul=10
+lim_dmul=1
 accu=np.where((abs(dmul)<lim_dmul) & (abs(dmub)<lim_dmul))#Are they in the paper selecting by the error of the galactic or equatorial coordintes???
 
 #%
@@ -105,7 +105,7 @@ dmub=dmub[accu]
 #%
 print(min(mul),max(mul))
 binwidth=0.25
-auto='no'
+auto='auto'
 if auto !='auto':
     auto=np.arange(min(mul),max(mul)+ binwidth, binwidth)#also works if running each bing width one by one, for some reason...
     # print(auto)
@@ -270,8 +270,24 @@ for i in range(9):
 
 # %%
 
+fun1= lambda x: (mean[2] * (1 / (mean[1] * (np.sqrt(2 * np.pi)))) * np.exp(-np.power(x - mean[0], 2.) / (2 * np.power(mean[1], 2.))) )
+    # result = integrate.quad(gaussian(x, mean[0], mean[1], mean[2]),-15,15)
+gau1=integrate.quad(fun1,-20,10)
 
+fun2= lambda x: (mean[5] * (1 / (mean[4] * (np.sqrt(2 * np.pi)))) * np.exp(-np.power(x - mean[3], 2.) / (2 * np.power(mean[4], 2.))) )
+# result = integrate.quad(gaussian(x, mean[0], mean[1], mean[2]),-20,10)
+gau2=integrate.quad(fun2,-20,10)
 
+fun3= lambda x: (mean[8] * (1 / (mean[7] * (np.sqrt(2 * np.pi)))) * np.exp(-np.power(x - mean[6], 2.) / (2 * np.power(mean[7], 2.))) )
+# result = integrate.quad(gaussian(x, mean[0], mean[1], mean[2]),-20,10)
+gau3=integrate.quad(fun3,-20,10)
+
+print(len('Area under Gaus1: %.3f')*'&')
+print('Area under Gaus1:%.3f'%(gau1[0]))
+print('Area under Gaus2:%.3f'%(gau2[0]))
+print('Area under Gaus3:%.3f'%(gau3[0]))
+print('Total area = %.3f'%(gau1[0]+gau2[0]+gau3[0]))
+print(len('Area under Gaus1: %.3f')*'&')
 
 # =============================================================================
 # bs = np.arange(min(mul), max(mul), 0.25)
