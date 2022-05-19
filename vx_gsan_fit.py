@@ -41,7 +41,7 @@ from matplotlib import rc
 rc('font',**{'family':'serif','serif':['Palatino']})
 cata='/Users/amartinez/Desktop/PhD/Libralato_data/CATALOGS/'
 pruebas='/Users/amartinez/Desktop/PhD/Libralato_data/pruebas/'
-results='/Users/amartinez/Desktop/PhD/Libralato_data/results/'
+resultados='/Users/amartinez/Desktop/PhD/Libralato_data/results/'
 #R.A. Dec. X Y μαcosδ σμαcosδ μδ σμδ  time n1 n2 ID
 
 # name='ACSWFC'
@@ -54,9 +54,11 @@ elif trimmed_data=='no':
     
 else:
     sys.exit("Have to set trimmed_data to either 'yes' or 'no'")
-        
+
+section = 'A'
 # "'RA_gns','DE_gns','Jmag','Hmag','Ksmag','ra','dec','x_c','y_c','mua','dmua','mud','dmud','time','n1','n2','ID','mul','mub','dmul','dmub','m139','Separation'",
-df_np=np.loadtxt(results + '%smatch_GNS_and_%s_refined_galactic.txt'%(pre,name))
+df_np=np.loadtxt(resultados + 'sec_%s_%smatch_GNS_and_%s_refined_galactic.txt'%(section,pre,name))
+# df_np=np.loadtxt(resultados + '%smatch_GNS_and_%s_refined_galactic.txt'%(pre,name))
 
 gal_coor=df_np[:,[17,18,19,20]]#mul,mub,dmul,dmub
 #%%
@@ -93,7 +95,7 @@ dmub=gal_coor[:,3]
 #%%
 
 #%
-lim_dmul=1
+lim_dmul=10
 accu=np.where((abs(dmul)<lim_dmul) & (abs(dmub)<lim_dmul))#Are they in the paper selecting by the error of the galactic or equatorial coordintes???
 
 #%
@@ -105,7 +107,7 @@ dmub=dmub[accu]
 #%
 print(min(mul),max(mul))
 binwidth=0.25
-auto='auto'
+auto='no'
 if auto !='auto':
     auto=np.arange(min(mul),max(mul)+ binwidth, binwidth)#also works if running each bing width one by one, for some reason...
     # print(auto)
@@ -179,7 +181,7 @@ def prior_transform(utheta):
     amp1 = 1 * uamp1 
    
     mu2 = -5*umu2-5/2 # red
-    sigma2 =4*usigma2   
+    sigma2 =3.5*usigma2   
     amp2 = .5* uamp2   
 
     mu3 = -7*umu3-7/2 # black
@@ -288,7 +290,7 @@ print('Area under Gaus2:%.3f'%(gau2[0]))
 print('Area under Gaus3:%.3f'%(gau3[0]))
 print('Total area = %.3f'%(gau1[0]+gau2[0]+gau3[0]))
 print(len('Area under Gaus1: %.3f')*'&')
-
+np.savetxt(pruebas + 'gaus_mul_sec_%s.txt'%(section),np.array([[mean[0],mean[3],mean[6],mean[1],mean[4],mean[7],gau1[0],gau2[0],gau3[0]]]),fmt='%.3f',header ='mul_e, mul_b, mu_w, sig_e, sig_b, sig_w, area_e, area_b,area_w')
 # =============================================================================
 # bs = np.arange(min(mul), max(mul), 0.25)
 # hist, edges = np.histogram(mul, bs)

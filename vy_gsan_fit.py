@@ -44,7 +44,7 @@ rc('font',**{'family':'serif','serif':['Palatino']})
 # %%
 cata='/Users/amartinez/Desktop/PhD/Libralato_data/CATALOGS/'
 pruebas='/Users/amartinez/Desktop/PhD/Libralato_data/pruebas/'
-results='/Users/amartinez/Desktop/PhD/Libralato_data/results/'
+resultados='/Users/amartinez/Desktop/PhD/Libralato_data/results/'
 #R.A. Dec. X Y μαcosδ σμαcosδ μδ σμδ  time n1 n2 ID
 
 # name='ACSWFC'
@@ -58,8 +58,9 @@ elif trimmed_data=='no':
 else:
     sys.exit("Have to set trimmed_data to either 'yes' or 'no'")
         
+section = 'A'
 # "'RA_gns','DE_gns','Jmag','Hmag','Ksmag','ra','dec','x_c','y_c','mua','dmua','mud','dmud','time','n1','n2','ID','mul','mub','dmul','dmub','m139','Separation'",
-df_np=np.loadtxt(results + '%smatch_GNS_and_%s_refined_galactic.txt'%(pre,name))
+df_np=np.loadtxt(resultados + 'sec_%s_%smatch_GNS_and_%s_refined_galactic.txt'%(section,pre,name))# df_np=np.loadtxt(results + '%smatch_GNS_and_%s_refined_galactic.txt'%(pre,name))
 
 gal_coor=df_np[:,[17,18,19,20]]#mul,mub,dmul,dmub
 #%%
@@ -279,6 +280,7 @@ print('Area under Gaus2:%.3f'%(gau2[0]))
 
 print('Total area = %.3f'%(gau1[0]+gau2[0]))
 print(len('Area under Gaus1: %.3f')*'&')
+np.savetxt(pruebas + 'gaus_mul_sec_%s.txt'%(section),np.array([[mean[0],mean[3],mean[1],mean[4]]]),fmt='%.3f',header ='mub_nsd, mub_b, sig_nsd, sig_b,')
 
 
 
