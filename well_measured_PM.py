@@ -52,7 +52,7 @@ name='WFC3IR'
 # ra,dec,x_c ,y_c,mua,dmua,mud,dmud, time, n1, n2, idt, mul, mub, dmul, dmub= np.loadtxt(cata+'GALCEN_%s_PM.cat'%(name),unpack=True)
 catal=np.loadtxt(cata + '%s_pm_galactic.txt'%(name))# this is the Libralato`s catalog plus the galatic proper motions
 
-trimmed_data = 'no'
+trimmed_data = 'yes'
 # mag, rms, qfit, o, RADXS, nf, nu, Localsky, Local_skyrms
 # mag, rms, qfit, o, RADXS, nf, nu, Localsky, Local_skyrms = np.loadtxt(cata+'GALCEN_%s_GO12915.cat'%(name),unpack=True)
 if trimmed_data == 'yes':
@@ -89,7 +89,7 @@ ax.scatter(all_eps[:,0],pm_wmp[:,5],s=0.1,color='red',alpha=1)
 ax.set_ylim(0,10)
 ax.set_xlim(12,24)
 # %%
-trim_data='no' # WARNNING: trim_data is if you want to trimmed the data you are using. trimmed_data is for uploading trimmed or not data. THEY ARE TWO DIFFERENTS VARIABLES!!!
+trim_data='yes' # WARNNING: trim_data is if you want to trimmed the data you are using. trimmed_data is for uploading trimmed or not data. THEY ARE TWO DIFFERENTS VARIABLES!!!
 if trim_data=='yes':
     # Conditions for the proper motions:
     #     (a) Pm uncertainty better that 85th percentile for any given magnitude
@@ -129,20 +129,22 @@ if trim_data=='yes':
     ax.set_xlim(12,24)
     pm_wmp=np.c_[pm_wmp,all_eps[:,0]]
     
-    
-    # =============================================================================
-    np.savetxt(results+'refined_%s_PM.txt'%(name),pm_wmp,fmt='%.7f %.7f %.4f %.4f %.5f %.5f %.5f %.5f %.0f %.0f %.0f %.0f %.5f %.5f %.5f %.5f %.5f ',
-               header='ra dec x_c  y_c mua dmua mud dmud  time  n1  n2  ID mul mub dmul dmub mF139')
-    np.savetxt(results+'refined_%s_phot.txt'%(name),all_eps,fmt='%.4f %.4f %.4f %.4f %.4f %.0f %.0f %.2f %.2f', header='mag, rms, qfit, o, RADXS, nf, nu, Localsky, Local_skyrms')
-    # =============================================================================
-elif trim_data=='no':
-    pm_wmp=np.c_[pm_wmp,all_eps[:,0]]
-    np.savetxt(results+'relaxed_refined_%s_PM.txt'%(name),pm_wmp,fmt='%.7f %.7f %.4f %.4f %.5f %.5f %.5f %.5f %.0f %.0f %.0f %.0f %.5f %.5f %.5f %.5f %.5f '
-               ,header='ra dec x_c  y_c mua dmua mud dmud  time  n1  n2  ID mul mub dmul dmub mF139')
-    np.savetxt(results+'relaxed_refined_%s_phot.txt'%(name),all_eps,fmt='%.4f %.4f %.4f %.4f %.4f %.0f %.0f %.2f %.2f', header='mag, rms, qfit, o, RADXS, nf, nu, Localsky, Local_skyrms')
-    # %%
 
-
+# =============================================================================
+#     # =============================================================================
+#     np.savetxt(results+'refined_%s_PM.txt'%(name),pm_wmp,fmt='%.7f %.7f %.4f %.4f %.5f %.5f %.5f %.5f %.0f %.0f %.0f %.0f %.5f %.5f %.5f %.5f %.5f ',
+#                header='ra dec x_c  y_c mua dmua mud dmud  time  n1  n2  ID mul mub dmul dmub mF139')
+#     np.savetxt(results+'refined_%s_phot.txt'%(name),all_eps,fmt='%.4f %.4f %.4f %.4f %.4f %.0f %.0f %.2f %.2f', header='mag, rms, qfit, o, RADXS, nf, nu, Localsky, Local_skyrms')
+#     # =============================================================================
+# elif trim_data=='no':
+#     pm_wmp=np.c_[pm_wmp,all_eps[:,0]]
+#     np.savetxt(results+'relaxed_refined_%s_PM.txt'%(name),pm_wmp,fmt='%.7f %.7f %.4f %.4f %.5f %.5f %.5f %.5f %.0f %.0f %.0f %.0f %.5f %.5f %.5f %.5f %.5f '
+#                ,header='ra dec x_c  y_c mua dmua mud dmud  time  n1  n2  ID mul mub dmul dmub mF139')
+#     np.savetxt(results+'relaxed_refined_%s_phot.txt'%(name),all_eps,fmt='%.4f %.4f %.4f %.4f %.4f %.0f %.0f %.2f %.2f', header='mag, rms, qfit, o, RADXS, nf, nu, Localsky, Local_skyrms')
+#     # %%
+# 
+# 
+# =============================================================================
 
 
 

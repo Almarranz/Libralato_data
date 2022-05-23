@@ -55,7 +55,7 @@ elif trimmed_data=='no':
 else:
     sys.exit("Have to set trimmed_data to either 'yes' or 'no'")
 
-section = 'A'
+section = 'All'
 # "'RA_gns','DE_gns','Jmag','Hmag','Ksmag','ra','dec','x_c','y_c','mua','dmua','mud','dmud','time','n1','n2','ID','mul','mub','dmul','dmub','m139','Separation'",
 df_np=np.loadtxt(resultados + 'sec_%s_%smatch_GNS_and_%s_refined_galactic.txt'%(section,pre,name))
 # df_np=np.loadtxt(resultados + '%smatch_GNS_and_%s_refined_galactic.txt'%(pre,name))
@@ -95,7 +95,7 @@ dmub=gal_coor[:,3]
 #%%
 
 #%
-lim_dmul=10
+lim_dmul=1
 accu=np.where((abs(dmul)<lim_dmul) & (abs(dmub)<lim_dmul))#Are they in the paper selecting by the error of the galactic or equatorial coordintes???
 
 #%
@@ -181,7 +181,7 @@ def prior_transform(utheta):
     amp1 = 1 * uamp1 
    
     mu2 = -5*umu2-5/2 # red
-    sigma2 =3.5*usigma2   
+    sigma2 =4*usigma2   #for section 'All' sigma2 is better 4, for section 'A' works better with 3-3.5
     amp2 = .5* uamp2   
 
     mu3 = -7*umu3-7/2 # black
@@ -243,18 +243,17 @@ plt.plot(xplot, gaussian(xplot, mean[0], mean[1], mean[2]) + gaussian(xplot, mea
 plt.plot(xplot, gaussian(xplot, mean[0], mean[1], mean[2])  , color="yellow", linestyle='dashed', linewidth=3, alpha=0.6)
 plt.plot(xplot, gaussian(xplot, mean[3], mean[4], mean[5])  , color="red", linestyle='dashed', linewidth=3, alpha=0.6)
 plt.plot(xplot, gaussian(xplot, mean[6], mean[7], mean[8]) , color='black', linestyle='dashed', linewidth=3, alpha=0.6)
-plt.axvline(mean[3],linestyle='dashed',color='r')
-# list_tick=plt.xticks()[0]
-# list_tick=np.append(0,[mean[3],mean[0],mean[6]])
-# plt.xticks(fontsize=10)
-# plt.xticks(list_tick)
+
 plt.xlim(-20,10)
-plt.text(-10,max(h[0]-0.01),'logz=%.0f'%(results['logz'][-1]),color='b')
+# =============================================================================
+# # plt.text(-10,max(h[0]-0.01),'logz=%.0f'%(results['logz'][-1]),color='b')
+# =============================================================================
 
 plt.gca().invert_xaxis()
 
 plt.ylabel('N')
 plt.xlabel(r'$\mathrm{\mu_{l} (mas\ yr^{-1})}$') 
+# plt.savefig('/Users/amartinez/Desktop/PhD/Charlas/Presentaciones/Brno/' + 'nsd.png', dpi=300,bbox_inches='tight')
 
 #%%
 print(plt.xticks()[0])
@@ -307,21 +306,74 @@ np.savetxt(pruebas + 'gaus_mul_sec_%s.txt'%(section),np.array([[mean[0],mean[3],
 # h_test=plt.hist(l,density=True)
 # plt.show()
 # =============================================================================
+# %%
+
+fig, ax = plt.subplots(1,1,figsize =(10,5))
+h=ax.hist(mul, bins= auto, color='royalblue', alpha = 0.6, density =True, histtype = 'stepfilled')
+
+xplot = np.linspace(min(x), max(x), 1000)
+
+# plt.plot(xplot, gaussian(xplot, mean[0], mean[1], mean[2]) , color="darkorange", linewidth=3, alpha=0.6)
+
+ax.plot(xplot, gaussian(xplot, mean[0], mean[1], mean[2]) + gaussian(xplot, mean[3], mean[4], mean[5])
+         + gaussian(xplot, mean[6], mean[7], mean[8]), color="darkorange", linewidth=3, alpha=1)
+ax.plot(xplot, gaussian(xplot, mean[0], mean[1], mean[2])  , color="yellow", linestyle='dashed', linewidth=3, alpha=0.6)
+ax.plot(xplot, gaussian(xplot, mean[3], mean[4], mean[5])  , color="red", linestyle='dashed', linewidth=3, alpha=0.6)
+ax.plot(xplot, gaussian(xplot, mean[6], mean[7], mean[8]) , color='black', linestyle='dashed', linewidth=3, alpha=0.6)
+propiedades = dict(boxstyle='round', facecolor='r', alpha=0.5)
+texto ='\n'.join(('%s $\mathrm{(mas\ yr^{-1})}$'%(round(mean[3],2)),'            $\downarrow$','      %s Km/s'%(round(mean[3]*40)))) 
+ax.text(0.75, 0.45, texto, transform=ax.transAxes, fontsize=14,
+                        verticalalignment='top', bbox=propiedades)
 
 
 
+plt.xlim(-20,10)
+# =============================================================================
+# # plt.text(-10,max(h[0]-0.01),'logz=%.0f'%(results['logz'][-1]),color='b')
+# =============================================================================
+
+plt.gca().invert_xaxis()
+
+plt.ylabel('N')
+plt.xlabel(r'$\mathrm{\mu_{l} (mas\ yr^{-1})}$') 
+plt.savefig('/Users/amartinez/Desktop/PhD/Charlas/Presentaciones/Brno/' + 'nsd_dyn_bulpm.png', dpi=300,bbox_inches='tight')
+
+# %%
 
 
+fig, ax = plt.subplots(1,1,figsize =(10,5))
+h=ax.hist(mul-mean[3], bins= auto, color='royalblue', alpha = 0.6, density =True, histtype = 'stepfilled')
+
+xplot = np.linspace(min(x), max(x), 1000)
+
+# plt.plot(xplot, gaussian(xplot, mean[0], mean[1], mean[2]) , color="darkorange", linewidth=3, alpha=0.6)
+
+ax.plot(xplot-mean[3], gaussian(xplot, mean[0], mean[1], mean[2]) + gaussian(xplot, mean[3], mean[4], mean[5])
+         + gaussian(xplot, mean[6], mean[7], mean[8]), color="darkorange", linewidth=3, alpha=1)
+ax.plot(xplot-mean[3], gaussian(xplot, mean[0], mean[1], mean[2])  , color="yellow", linestyle='dashed', linewidth=3, alpha=0.6)
+ax.plot(xplot-mean[3], gaussian(xplot, mean[3], mean[4], mean[5])  , color="red", linestyle='dashed', linewidth=3, alpha=0.6)
+ax.plot(xplot-mean[3], gaussian(xplot, mean[6], mean[7], mean[8]) , color='black', linestyle='dashed', linewidth=3, alpha=0.6)
+propiedades_y = dict(boxstyle='round', facecolor='y', alpha=0.5)
+texto_y ='\n'.join(('%s $\mathrm{(mas\ yr^{-1})}$'%(round(mean[0]-mean[3],2)),'            $\downarrow$','      %s Km/s'%(round((mean[0]-mean[3])*40)))) 
+ax.text(0.05, 0.85, texto_y, transform=ax.transAxes, fontsize=14,
+                        verticalalignment='top', bbox=propiedades_y)
+propiedades_b = dict(boxstyle='round', facecolor='k', alpha=0.2)
+texto_b ='\n'.join(('%s $\mathrm{(mas\ yr^{-1})}$'%(round(mean[6]-mean[3],2)),'            $\downarrow$','      %s Km/s'%(round((mean[6]-mean[3])*40)))) 
+ax.text(0.45, 0.45, texto_b, transform=ax.transAxes, fontsize=14,
+                        verticalalignment='top', bbox=propiedades_b)
 
 
+plt.xlim(-20,10)
+# =============================================================================
+# # plt.text(-10,max(h[0]-0.01),'logz=%.0f'%(results['logz'][-1]),color='b')
+# =============================================================================
 
+plt.gca().invert_xaxis()
 
+plt.ylabel('N')
+plt.xlabel(r'$\mathrm{\mu_{l} (mas\ yr^{-1})}$') 
 
-
-
-
-
-
+plt.savefig('/Users/amartinez/Desktop/PhD/Charlas/Presentaciones/Brno/' + 'nsd_dyn_nsdpm.png', dpi=300,bbox_inches='tight')
 
 
 
