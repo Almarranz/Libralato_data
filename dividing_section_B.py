@@ -106,9 +106,11 @@ color = pd.read_csv('/Users/amartinez/Desktop/PhD/python/colors_html.csv')
 strin= color.values.tolist()
 indices = np.arange(0,len(strin),1)
 
-for f_remove in glob.glob(pruebas + 'subsec_%s/subsec*'%(section)):
-    os.remove(f_remove)
-
+# =============================================================================
+# for f_remove in glob.glob(pruebas + 'subsec_%s/subsec*'%(section)):
+#     os.remove(f_remove)
+# 
+# =============================================================================
 missing =0
 fig, ax = plt.subplots(1,1, figsize=(10,10))
 ax.scatter(catal[:,7],catal[:,8])
@@ -128,9 +130,9 @@ yr_down = lim_neg_down + m1*catal[:,7]
 dist_neg = abs((-m1*catal[0,7]+ (lim_neg_down + m1*catal[0,7])-lim_neg_up)/np.sqrt((-1)**2+(1)**2))
 ang = math.degrees(np.arctan(m1))
 
-
-x_box = 10
-y_box = 3
+# [[10,3],[10,4],[6,2],[3,1]]
+x_box = 3
+y_box = 1
 step = dist_pos /x_box
 step_neg =dist_neg/y_box
 

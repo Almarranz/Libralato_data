@@ -128,9 +128,9 @@ yr_down = lim_neg_down + m1*catal[:,7]
 dist_neg = abs((-m1*catal[0,7]+ (lim_neg_down + m1*catal[0,7])-lim_neg_up)/np.sqrt((-1)**2+(1)**2))
 ang = math.degrees(np.arctan(m1))
 
-
-x_box = 8
-y_box = 3
+# [[8,3],[8,4],[5,2],[2,1]]
+x_box = 2
+y_box = 1
 step = dist_pos /x_box
 step_neg =dist_neg/y_box
 

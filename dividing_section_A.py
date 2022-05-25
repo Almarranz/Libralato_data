@@ -106,8 +106,9 @@ color = pd.read_csv('/Users/amartinez/Desktop/PhD/python/colors_html.csv')
 strin= color.values.tolist()
 indices = np.arange(0,len(strin),1)
 
-for f_remove in glob.glob(pruebas + 'subsec_%s/subsec*'%(section)):
-    os.remove(f_remove)
+#This for removin previous subsections
+# for f_remove in glob.glob(pruebas + 'subsec_%s/subsec*'%(section)):
+#     os.remove(f_remove)
 
 missing =0
 fig, ax = plt.subplots(1,1, figsize=(10,10))
@@ -133,7 +134,7 @@ dist_neg = abs((-m1*catal[0,7]+ (lim_neg_down + m1*catal[0,7])-lim_neg_up)/np.sq
 ang = math.degrees(np.arctan(m1))
 
 
-x_box = 3
+x_box = 4
 step = dist_pos /x_box
 step_neg =dist_neg/x_box
 
