@@ -158,12 +158,17 @@ for i in range(x_box):
         
         
         ax.scatter(catal[:,7][good],catal[:,8][good],color =strin[np.random.choice(indices)])
+        
         # ax.plot(catal[:,7],yr_1, color ='r')
         # ax.plot(catal[:,7],yr_2, color ='r')
 # Just fot plotting some cluster on top of the data
 clus = np.loadtxt(pruebas + 'Sec_A_WFC3IR_cluster0_eps0.245.txt')
 ax.scatter(clus[:,-3],clus[:,-2], s =50)
-
+props = dict(boxstyle='round', facecolor='w', alpha=0.5)
+# place a text box in upper left in axes coords
+txt ='central box ~ %.1f arcmin$^{2}$'%(step*step_neg*0.05**2/3600)
+ax.text(0.65, 0.95, txt, transform=ax.transAxes, fontsize=14,
+    verticalalignment='top', bbox=props)
 ax.set_xlabel('x (130 mas/pix)')
 ax.set_ylabel('y (130 mas/pix)')
 # plt.savefig('/Users/amartinez/Desktop/PhD/Charlas/Presentaciones/Brno/' + 'section_A_Libr.png', dpi=300,bbox_inches='tight')

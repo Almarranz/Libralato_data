@@ -160,6 +160,11 @@ for i in range(x_box):
 # ax.plot(catal[:,7],yr_down, color ='r')
 # ax.plot(catal[:,7],yg_up, color ='g')
 # ax.plot(catal[:,7],yg_down, color ='g')
+props = dict(boxstyle='round', facecolor='w', alpha=0.5)
+# place a text box in upper left in axes coords
+txt ='central box ~ %.1f arcmin$^{2}$'%(step*step_neg*0.05**2/3600)
+ax.text(0.65, 0.95, txt, transform=ax.transAxes, fontsize=14,
+    verticalalignment='top', bbox=props)
 
 ax.set_xlabel('x (130 mas/pix)')
 ax.set_ylabel('y (130 mas/pix)')
