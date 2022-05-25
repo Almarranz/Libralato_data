@@ -55,7 +55,7 @@ ___
 # Aproach B: it consists in dividing the data in 4 bigger section and diviede each section in smaller section and look for the clusters. IN PROGRESS
 ___
 5. sections_A_to_D.py. Divide the data in the most obvious 4 sections and stores them in four lists. This are the star the matched the GNS (from match_w_GNS.py.), not yet trimmed in velocity or color
-
+6. dividing_sections_A.py. four scripts (A to B) that divides each section in subsections. You can choose the shape of the subsections by setting x_box and y_box paramtres
 
 
 
