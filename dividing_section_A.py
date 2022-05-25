@@ -150,8 +150,8 @@ for i in range(x_box):
         yr_2 = (lim_neg_up - (j+1)*step_neg/np.cos(ang*u.deg)) +  m1*catal[:,7]
         good = np.where((catal[:,8]<yg_1)&(catal[:,8]>yg_2)
                                 & (catal[:,8]<yr_1)&(catal[:,8]>yr_2))
-        
-        np.savetxt(pruebas + 'subsec_%s/subsec_%s_%s_%s.txt'%(section, section, i, j)
+        area = step*step_neg*0.05**2/3600
+        np.savetxt(pruebas + 'subsec_%s/subsec_%s_%s_%s_%.1fmin.txt'%(section, section, i, j,area)
                                     ,catal[good],fmt='%.7f %.7f %.4f %.4f %.4f %.7f %.7f %.4f %.4f %.5f %.5f %.5f %.5f %.0f %.0f %.0f %.0f %.5f %.5f %.5f %.5f %.5f %.3f',
                                     header ="'RA_gns','DE_gns','Jmag','Hmag','Ksmag','ra','dec','x_c','y_c','mua','dmua','mud','dmud','time','n1','n2','ID','mul','mub','dmul','dmub','m139','Separation'")
         
@@ -161,12 +161,9 @@ for i in range(x_box):
         
         # ax.plot(catal[:,7],yr_1, color ='r')
         # ax.plot(catal[:,7],yr_2, color ='r')
-# Just fot plotting some cluster on top of the data
-clus = np.loadtxt(pruebas + 'Sec_A_WFC3IR_cluster0_eps0.245.txt')
-ax.scatter(clus[:,-3],clus[:,-2], s =50)
 props = dict(boxstyle='round', facecolor='w', alpha=0.5)
 # place a text box in upper left in axes coords
-txt ='central box ~ %.1f arcmin$^{2}$'%(step*step_neg*0.05**2/3600)
+txt ='central box ~ %.1f arcmin$^{2}$'%(area)
 ax.text(0.65, 0.95, txt, transform=ax.transAxes, fontsize=14,
     verticalalignment='top', bbox=props)
 ax.set_xlabel('x (130 mas/pix)')
