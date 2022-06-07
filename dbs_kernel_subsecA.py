@@ -172,16 +172,23 @@ dist_neg = abs((-m1*catal[0,7]+ (lim_neg_down + m1*catal[0,7])-lim_neg_up)/np.sq
 ang = math.degrees(np.arctan(m1))
 
 clus_num = 0
-x_box = 1
-step = dist_pos /x_box
-step_neg =dist_neg/x_box
+# x_box = 3
+
 
 clustered_by = 'all_color'
 # samples_dist = 5
-x_box_lst = [3,2,1]
-samples_lst =[5,7,10]
+# x_box_lst = [3,2,1]
+# samples_lst =[5,7,10]
+x_box_lst = [1,2]
+samples_lst =[8,7,6]
 for x_box in x_box_lst:
+    step = dist_pos /x_box
+    step_neg =dist_neg/x_box
+    if clus_num !=0:
+        clus_num +=1
     for samples_dist in samples_lst:
+        if clus_num !=0:
+            clus_num +=1
         for ic in range(x_box*2-1):
             
             
@@ -218,6 +225,7 @@ for x_box in x_box_lst:
         # =============================================================================
         #         Here is where the party begins
         # =============================================================================
+                datos =[]
                 datos = catal[good]
                 
                 # % coordinates
@@ -363,12 +371,12 @@ for x_box in x_box_lst:
                     
                     propiedades = dict(boxstyle='round', facecolor=colors[i], alpha=0.2)
                     propiedades_all = dict(boxstyle='round', facecolor=colors[-1], alpha=0.1)
-                    ax[0].text(0.05, 0.95, vel_txt, transform=ax[0].transAxes, fontsize=14,
+                    ax[0].text(0.05, 0.95, vel_txt, transform=ax[0].transAxes, fontsize=30,
                         verticalalignment='top', bbox=propiedades)
-                    ax[0].text(0.05, 0.85, vel_txt_all, transform=ax[0].transAxes, fontsize=14,
+                    ax[0].text(0.05, 0.15, vel_txt_all, transform=ax[0].transAxes, fontsize=15,
                         verticalalignment='top', bbox=propiedades_all)
                     
-                    radio = 500*u.arcsec
+                   
                     
                     
                     #This calcualte the maximun distance between cluster members to have a stimation of the cluster radio
@@ -377,9 +385,28 @@ for x_box in x_box_lst:
                     rad = max(sep)/2
                     
                     radio_MS = max(sep)
+                    lista = []
+                    lista =np.zeros([len(c2),3])
+                    for c_memb in range(len(c2)):
+                        distancia = list(c2[c_memb].separation(c2))
+                        print(int(c_memb),int(distancia.index(max(distancia))),max(distancia).value)
+                        a =int(c_memb)
+                        b = int(distancia.index(max(distancia)))
+                        lista[c_memb][0:3]= int(c_memb),int(distancia.index(max(distancia))),max(distancia).value
+                    
+                    coord_max_dist = list(lista[:,2]).index(max(lista[:,2]))
+                    
+
+                    # This search for all the points around the cluster that are no cluster
+                    p1 = c2[int(lista[coord_max_dist][0])]
+                    p2 = c2[int(lista[coord_max_dist][1])]
+
+                    m_point = SkyCoord(ra = [(p2.ra+p1.ra)/2], dec = [(p2.dec +p1.dec)/2])
+                    
+                    idxc, group_md, d2d,d3d =  ap_coor.search_around_sky(m_point,coordenadas, rad)
                     
                     prop = dict(boxstyle='round', facecolor=colors[i], alpha=0.2)
-                    ax[1].text(0.65, 0.95, 'aprox cluster radio = %s"\n cluster stars = %s '%(round(rad.to(u.arcsec).value,2),len(colores_index[i][0])), transform=ax[1].transAxes, fontsize=14,
+                    ax[1].text(0.15, 0.95, 'aprox cluster radio = %s"\n cluster stars = %s '%(round(rad.to(u.arcsec).value,2),len(colores_index[i][0])), transform=ax[1].transAxes, fontsize=30,
                                             verticalalignment='top', bbox=prop)
                     
                     ax[1].scatter(catal[:,7], catal[:,8], color='k',s=50,zorder=1,alpha=0.01)#plots in galactic
@@ -387,11 +414,12 @@ for x_box in x_box_lst:
                     
                     ax[1].scatter(X[:,2][colores_index[i]], X[:,3][colores_index[i]], color='blueviolet',s=50,zorder=3)#plots in galactic
                     ax[1].quiver(X[:,2][colores_index[i]], X[:,3][colores_index[i]], X[:,0][colores_index[i]]*-1, X[:,1][colores_index[i]], alpha=0.5, color='blueviolet')#colors[i]
+                    ax[1].scatter(catal[:,7][group_md],catal[:,8][group_md],s=50,color='r',alpha =0.1)
                     ax[1].set_xlabel('x') 
                     ax[1].set_ylabel('y') 
                     ax[1].yaxis.set_major_formatter(FormatStrFormatter('%.0f'))
                     ax[1].xaxis.set_major_formatter(FormatStrFormatter('%.0f'))
-                    ax[1].set_title('col_row %.0f, %.0f'%(ic/0.5,jr/0.5))
+                    ax[1].set_title('col_row %.0f, %.0f. Area = %.2f'%(ic/0.5,jr/0.5,area))
                     # This is for plotting the cluster and the isochrone with extiontion
                     # here look for the values of extintiction for the cluster stars in the extintion catalog
                     # if does not have a value it will not plot the star in the CMD
@@ -475,8 +503,9 @@ for x_box in x_box_lst:
                     # cluster_ndiff = synthetic.ResolvedCluster(iso, my_imf, mass)
                     # clus = cluster.star_systems
                     # clus_ndiff = cluster_ndiff.star_systems
-                    ax[2].set_title('Cluster %s, eps = %s'%(i,round(eps_av,3)))
+                    ax[2].set_title('Cluster %s, eps = %s'%(clus_num,round(eps_av,3)))
                     ax[2].scatter(datos[:,3]-datos[:,4],datos[:,4],alpha=0.1)
+                    ax[2].scatter(datos[:,3][group_md]-datos[:,4][group_md],datos[:,4][group_md],alpha=0.7,c='r')
                     ax[2].set_xlim(1.3,2.5)
                     # ax[2].scatter(clus['m_hawki_H']-clus['m_hawki_Ks'],clus['m_hawki_Ks'],color = 'lavender',alpha=0.1)
                     # ax[2].scatter(clus_ndiff['m_hawki_H']-clus_ndiff['m_hawki_Ks'],clus_ndiff['m_hawki_Ks'],color = 'k',alpha=0.1,s=1)
@@ -512,27 +541,29 @@ for x_box in x_box_lst:
                                                                                           X[:,1][colores_index[i]],
                                                                                           datos[:,2][colores_index[i]],datos[:,3][colores_index[i]],datos[:,4][colores_index[i]],
                                                                                          datos[:,7][colores_index[i]],datos[:,8][colores_index[i]]]).T
-                    
+                    clus_array = np.c_[clus_array,np.full(len(clus_array),AKs_clus),
+                                       np.full(len(clus_array),std_AKs),
+                                       np.full(len(clus_array),round(rad.to(u.arcsec).value,2)),np.full(len(clus_array),clus_num)]
         # =============================================================================
         #             Here it compare the cluster you want to save wiith the rest of the 
-        #             saved cluster if repited, it saves in the same cluster
+        #             saved cluster if repited, it saves in the same cluster 
         #             
         # =============================================================================
-                    
+                    clus_num +=1    
                     frase = 'Do you want to save this cluster?'
                     print('\n'.join((len(frase)*'π',frase+'\n("yes" or "no")',len(frase)*'π')))
                     save_clus = input('Awnser:')
                     print('You said: %s'%(save_clus))
                     if save_clus =='yes' or save_clus =='y':
                         intersection_lst =[]
-                        clus_num +=1
+                        
                         check_folder = glob.glob(pruebas + 'Sec_%s_clus/'%(section)+'cluster_num*')
                         if len(check_folder) == 0:
                             os.makedirs(pruebas + 'Sec_%s_clus/'%(section) +'cluster_num%s_%s_knn%s_area%.2f/'%(clus_num,i,samples_dist,area))
                             np.savetxt(pruebas + 'Sec_%s_clus/'%(section) +'cluster_num%s_%s_knn%s_area%.2f/'%(clus_num,i,samples_dist,area)+
                                        'cluster%s_%.0f_%.0f_knn_%s_area_%.2f.txt'%(clus_num,ic/0.5,jr/0.5,samples_dist,area),clus_array,
-                                       fmt='%.7f '*6 + ' %.4f'*3 +' %.5f'*2,
-                                       header ='ra, dec, l, b, pml, pmb,J, H, Ks,x, y')
+                                       fmt='%.7f '*6 + ' %.4f'*3 +' %.5f'*2 +' %.3f'*3+ ' %.0f',
+                                       header ='ra, dec, l, b, pml, pmb,J, H, Ks,x, y, AKs_mean, dAks_mean, radio("),cluster_ID')
                         else:
                             for f_check in check_folder:
                                 
@@ -544,23 +575,23 @@ for x_box in x_box_lst:
                                     bset = set([tuple(x) for x in ra_dec])
                                     intersection = np.array([x for x in aset & bset])
                                     intersection_lst.append(len(intersection))
-                                    print('This is intersection',intersection_lst)
+                                    # print('This is intersection',intersection_lst)
                                     if len(intersection)> 0 :
                                         print('Same (or similar) cluster  is in %s'%(f_check))
                                         np.savetxt(f_check+'/'+
                                                    'cluster%s_%.0f_%.0f_knn_%s_area_%.2f.txt'%(clus_num,ic/0.5,jr/0.5,samples_dist,area),clus_array,
-                                                   fmt='%.7f '*6 + ' %.4f'*3 +' %.5f'*2,
-                                                   header ='ra, dec, l, b, pml, pmb,J, H, Ks,x, y')
+                                                   fmt='%.7f '*6 + ' %.4f'*3 +' %.5f'*2+' %.3f'*3+ ' %.0f',
+                                                   header ='ra, dec, l, b, pml, pmb,J, H, Ks,x, y, Aks_mean, dAks_mean, radio("),cluster_ID')
                             if np.all(np.array(intersection_lst)==0):
                                 # clus_num +=1
                                 print('NEW CLUSTER')
                                 os.makedirs(pruebas + 'Sec_%s_clus/'%(section) +'cluster_num%s_%s_knn%s_area%.2f/'%(clus_num,i,samples_dist,area))
                                 np.savetxt(pruebas + 'Sec_%s_clus/'%(section) +'cluster_num%s_%s_knn%s_area%.2f/'%(clus_num,i,samples_dist,area)+
                                            'cluster%s_%.0f_%.0f_knn_%s_area_%.2f.txt'%(clus_num,ic/0.5,jr/0.5,samples_dist,area),clus_array,
-                                           fmt='%.7f '*6 + ' %.4f'*3 +' %.5f'*2,
-                                           header ='ra, dec, l, b, pml, pmb,J, H, Ks,x, y')
+                                           fmt='%.7f '*6 + ' %.4f'*3 +' %.5f'*2+' %.3f'*3 + ' %.0f',
+                                           header ='ra, dec, l, b, pml, pmb,J, H, Ks,x, y, Aks_mean,dAks_mean, radio("), cluster_ID')
                                 
-                                    
+                                   
                                 # read_txt = glob.glob(check_folder[f_check]+'/cluster_*')
                                 # for clust_text in range(len(read_txt)):
                                 #     print(read_txt[clust_text])
@@ -591,9 +622,3 @@ if save_folder == 'yes' or save_folder == 'y':
 else:
     sys.exit('You stoped it')
 sys.exit('Chao')
-      
-      
-      
-      
-      
-
