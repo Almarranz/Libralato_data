@@ -393,9 +393,9 @@ for x_box in x_box_lst:
                     lista =np.zeros([len(c2),3])
                     for c_memb in range(len(c2)):
                         distancia = list(c2[c_memb].separation(c2))
-                        print(int(c_memb),int(distancia.index(max(distancia))),max(distancia).value)
-                        a =int(c_memb)
-                        b = int(distancia.index(max(distancia)))
+                        # print(int(c_memb),int(distancia.index(max(distancia))),max(distancia).value)
+                        # a =int(c_memb)
+                        # b = int(distancia.index(max(distancia)))
                         lista[c_memb][0:3]= int(c_memb),int(distancia.index(max(distancia))),max(distancia).value
                     
                     coord_max_dist = list(lista[:,2]).index(max(lista[:,2]))
@@ -584,8 +584,8 @@ for x_box in x_box_lst:
                                        header ='ra, dec, l, b, pml, pmb,J, H, Ks,x, y, AKs_mean, dAks_mean, radio("),cluster_ID')
                             clus_num +=1   
                         else:
+                            break_out_flag = False
                             for f_check in check_folder:
-                                
                                 clus_lst = os.listdir(f_check)
                                 for n_txt in clus_lst:
                                     ra_dec = np.loadtxt(f_check+'/'+n_txt,usecols=(0,1))
@@ -601,7 +601,12 @@ for x_box in x_box_lst:
                                                    'cluster%s_%.0f_%.0f_knn_%s_area_%.2f.txt'%(clus_num,ic/0.5,jr/0.5,samples_dist,area),clus_array,
                                                    fmt='%.7f '*6 + ' %.4f'*3 +' %.5f'*2+' %.3f'*3+ ' %.0f',
                                                    header ='ra, dec, l, b, pml, pmb,J, H, Ks,x, y, Aks_mean, dAks_mean, radio("),cluster_ID')
-                                        clus_num +=1   
+                                        clus_num +=1 
+                                        break_out_flag = True
+                                        break
+                                if break_out_flag:
+                                    break
+                                
                             if np.all(np.array(intersection_lst)==0):
                                 # clus_num +=1
                                 print('NEW CLUSTER')
