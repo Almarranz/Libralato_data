@@ -38,6 +38,9 @@ from scipy.stats import gaussian_kde
 import shutil
 from datetime import datetime
 import astropy.coordinates as ap_coor
+import spisea
+from spisea import synthetic, evolution, atmospheres, reddening, ifmr
+from spisea.imf import imf, multiplicity
 
 # %%plotting parametres
 rcParams.update({'xtick.major.pad': '7.0'})
@@ -175,20 +178,18 @@ clus_num = 0
 # x_box = 3
 
 
-clustered_by = 'all_color'
+clustered_by = 'all'
 # samples_dist = 5
 # x_box_lst = [3,2,1]
 # samples_lst =[5,7,10]
-x_box_lst = [1,2]
-samples_lst =[8,7,6]
+x_box_lst = [1,2,3]
+samples_lst =[10,9,8,7,6,5]
 for x_box in x_box_lst:
     step = dist_pos /x_box
     step_neg =dist_neg/x_box
-    if clus_num !=0:
-        clus_num +=1
+    
     for samples_dist in samples_lst:
-        if clus_num !=0:
-            clus_num +=1
+       
         for ic in range(x_box*2-1):
             
             
@@ -340,6 +341,7 @@ for x_box in x_box_lst:
                 # %
                 for i in range(len(set(l))-1):
                     fig, ax = plt.subplots(1,3,figsize=(30,10))
+                    color_de_cluster = 'lime'
                     # fig, ax = plt.subplots(1,3,figsize=(30,10))
                     # ax[2].invert_yaxis()
                    
@@ -349,7 +351,7 @@ for x_box in x_box_lst:
                     ax[0].scatter(X[:,0],X[:,1], color=colors[-1],s=50,zorder=1)
                     # ax[1].quiver(t_gal['l'][colores_index[-1]].value,t_gal['b'][colores_index[-1]].value, X[:,0][colores_index[-1]]-pms[2], X[:,1][colores_index[-1]]-pms[3], alpha=0.5, color=colors[-1])
             
-                    ax[0].scatter(X[:,0][colores_index[i]],X[:,1][colores_index[i]], color='fuchsia',s=50,zorder=3)
+                    ax[0].scatter(X[:,0][colores_index[i]],X[:,1][colores_index[i]], color=color_de_cluster ,s=50,zorder=3)
                     ax[0].set_xlim(-10,10)
                     ax[0].set_ylim(-10,10)
                     ax[0].set_xlabel(r'$\mathrm{\mu_{l} (mas\ yr^{-1})}$') 
@@ -369,7 +371,7 @@ for x_box in x_box_lst:
                     vel_txt_all = '\n'.join(('mul = %s, mub = %s'%(round(mul_mean_all,3), round(mub_mean_all,3)),
                                          '$\sigma_{mul}$ = %s, $\sigma_{mub}$ = %s'%(round(mul_sig_all,3), round(mub_sig_all,3))))
                     
-                    propiedades = dict(boxstyle='round', facecolor=colors[i], alpha=0.2)
+                    propiedades = dict(boxstyle='round', facecolor=color_de_cluster , alpha=0.2)
                     propiedades_all = dict(boxstyle='round', facecolor=colors[-1], alpha=0.1)
                     ax[0].text(0.05, 0.95, vel_txt, transform=ax[0].transAxes, fontsize=30,
                         verticalalignment='top', bbox=propiedades)
@@ -385,6 +387,8 @@ for x_box in x_box_lst:
                     rad = max(sep)/2
                     
                     radio_MS = max(sep)
+                    
+                    # This search for all the points around the cluster that are no cluster
                     lista = []
                     lista =np.zeros([len(c2),3])
                     for c_memb in range(len(c2)):
@@ -397,32 +401,34 @@ for x_box in x_box_lst:
                     coord_max_dist = list(lista[:,2]).index(max(lista[:,2]))
                     
 
-                    # This search for all the points around the cluster that are no cluster
+                    
                     p1 = c2[int(lista[coord_max_dist][0])]
                     p2 = c2[int(lista[coord_max_dist][1])]
 
                     m_point = SkyCoord(ra = [(p2.ra+p1.ra)/2], dec = [(p2.dec +p1.dec)/2])
                     
-                    idxc, group_md, d2d,d3d =  ap_coor.search_around_sky(m_point,coordenadas, rad)
+                    idxc, group_md, d2d,d3d =  ap_coor.search_around_sky(m_point,coordenadas, rad*2)
                     
-                    prop = dict(boxstyle='round', facecolor=colors[i], alpha=0.2)
+                    ax[0].scatter(datos[:,-6][group_md],datos[:,-5][group_md], color='red',s=50,zorder=1,marker='x',alpha = 0.7)
+
+                    prop = dict(boxstyle='round', facecolor=color_de_cluster , alpha=0.2)
                     ax[1].text(0.15, 0.95, 'aprox cluster radio = %s"\n cluster stars = %s '%(round(rad.to(u.arcsec).value,2),len(colores_index[i][0])), transform=ax[1].transAxes, fontsize=30,
                                             verticalalignment='top', bbox=prop)
                     
                     ax[1].scatter(catal[:,7], catal[:,8], color='k',s=50,zorder=1,alpha=0.01)#plots in galactic
                     ax[1].scatter(X[:,2], X[:,3], color=colors[-1],s=50,zorder=1,alpha=0.02)#plots in galactic
                     
-                    ax[1].scatter(X[:,2][colores_index[i]], X[:,3][colores_index[i]], color='blueviolet',s=50,zorder=3)#plots in galactic
-                    ax[1].quiver(X[:,2][colores_index[i]], X[:,3][colores_index[i]], X[:,0][colores_index[i]]*-1, X[:,1][colores_index[i]], alpha=0.5, color='blueviolet')#colors[i]
-                    ax[1].scatter(catal[:,7][group_md],catal[:,8][group_md],s=50,color='r',alpha =0.1)
+                    ax[1].scatter(X[:,2][colores_index[i]], X[:,3][colores_index[i]], color=color_de_cluster ,s=50,zorder=3)#plots in galactic
+                    ax[1].quiver(X[:,2][colores_index[i]], X[:,3][colores_index[i]], X[:,0][colores_index[i]]*-1, X[:,1][colores_index[i]], alpha=0.5, color=color_de_cluster )#colors[i]
+                    ax[1].scatter(datos[:,7][group_md],datos[:,8][group_md],s=50,color='r',alpha =0.1,marker ='x')
                     ax[1].set_xlabel('x') 
                     ax[1].set_ylabel('y') 
                     ax[1].yaxis.set_major_formatter(FormatStrFormatter('%.0f'))
                     ax[1].xaxis.set_major_formatter(FormatStrFormatter('%.0f'))
                     ax[1].set_title('col_row %.0f, %.0f. Area = %.2f'%(ic/0.5,jr/0.5,area))
-                    # This is for plotting the cluster and the isochrone with extiontion
-                    # here look for the values of extintiction for the cluster stars in the extintion catalog
-                    # if does not have a value it will not plot the star in the CMD
+                    
+                    
+                    
                     H_Ks_yes = []
                     Ks_yes = []
                     AKs_clus_all =[]
@@ -435,32 +441,36 @@ for x_box in x_box_lst:
                             AKs_clus_all.append(float(gns_match[member,18]))
                             H_Ks_yes.append(datos[:,3][colores_index[i][0][member]]-datos[:,4][colores_index[i][0][member]])
                             Ks_yes.append(datos[:,4][colores_index[i][0][member]])
-                    print(ic, jr, len(mul),n_clusters)   
-                    ax[2].scatter(H_Ks_yes,Ks_yes, color='blueviolet',s=50,zorder=3, alpha=1)
+                    print(ic, jr, len(mul),n_clusters)  
+                    if clustered_by == 'all_color':
+                        ax[2].scatter(H_Ks_yes,Ks_yes, color=color_de_cluster ,s=120,zorder=3, alpha=1)
+                    elif clustered_by == 'all':
+                        ax[2].scatter(datos[:,3][colores_index[i][0]]-datos[:,4][colores_index[i][0]],datos[:,4][colores_index[i][0]], color=color_de_cluster ,s=120,zorder=3, alpha=1)
                     ax[2].invert_yaxis()  
                     
+                    
                     AKs_clus, std_AKs = np.mean(AKs_clus_all),np.std(AKs_clus_all)
-                    # absolute_difference_function = lambda list_value : abs(list_value - AKs_clus)
-                    # AKs = min(AKs_list, key=absolute_difference_function)
+                    absolute_difference_function = lambda list_value : abs(list_value - AKs_clus)
+                    AKs = min(AKs_list, key=absolute_difference_function)
                     
-                    # iso_dir = '/Users/amartinez/Desktop/PhD/Libralato_data/nsd_isochrones/'
+                    iso_dir = '/Users/amartinez/Desktop/PhD/Libralato_data/nsd_isochrones/'
                     
-                    # dist = 8000 # distance in parsec
-                    # metallicity = 0.17 # Metallicity in [M/H]
+                    dist = 8000 # distance in parsec
+                    metallicity = 0.30 # Metallicity in [M/H]
                     # # logAge_600 = np.log10(0.61*10**9.)
-                    # logAge = np.log10(0.010*10**9.)
+                    logAge = np.log10(0.010*10**9.)
                     # logAge_30 = np.log10(0.030*10**9.)
                     # logAge_60 = np.log10(0.060*10**9.)
                     # logAge_90 = np.log10(0.090*10**9.)
-                    # evo_model = evolution.MISTv1() 
-                    # atm_func = atmospheres.get_merged_atmosphere
-                    # red_law = reddening.RedLawNoguerasLara18()
-                    # filt_list = ['hawki,J', 'hawki,H', 'hawki,Ks']
+                    evo_model = evolution.MISTv1() 
+                    atm_func = atmospheres.get_merged_atmosphere
+                    red_law = reddening.RedLawNoguerasLara18()
+                    filt_list = ['hawki,J', 'hawki,H', 'hawki,Ks']
                     
-                    # iso =  synthetic.IsochronePhot(logAge, AKs, dist, metallicity=metallicity,
-                    #                                 evo_model=evo_model, atm_func=atm_func,
-                    #                                 red_law=red_law, filters=filt_list,
-                    #                                     iso_dir=iso_dir)
+                    iso =  synthetic.IsochronePhot(logAge, AKs, dist, metallicity=metallicity,
+                                                    evo_model=evo_model, atm_func=atm_func,
+                                                    red_law=red_law, filters=filt_list,
+                                                        iso_dir=iso_dir)
                     
                     # iso_30 = synthetic.IsochronePhot(logAge_30, AKs, dist, metallicity=metallicity,
                     #                                 evo_model=evo_model, atm_func=atm_func,
@@ -504,28 +514,36 @@ for x_box in x_box_lst:
                     # clus = cluster.star_systems
                     # clus_ndiff = cluster_ndiff.star_systems
                     ax[2].set_title('Cluster %s, eps = %s'%(clus_num,round(eps_av,3)))
-                    ax[2].scatter(datos[:,3]-datos[:,4],datos[:,4],alpha=0.1)
-                    ax[2].scatter(datos[:,3][group_md]-datos[:,4][group_md],datos[:,4][group_md],alpha=0.7,c='r')
-                    ax[2].set_xlim(1.3,2.5)
+                    ax[2].scatter(datos[:,3]-datos[:,4],datos[:,4],alpha=0.1,color ='k')
+                    ax[2].scatter(datos[:,3][group_md]-datos[:,4][group_md],datos[:,4][group_md],alpha=0.7,c='r',marker = 'x')
+                    txt_around = '\n'.join(('H-Ks =%.3f'%(np.mean(datos[:,3][group_md]-datos[:,4][group_md])),
+                                         '$\sigma_{H-Ks}$ = %.3f'%(np.std(datos[:,3][group_md]-datos[:,4][group_md])),
+                                         'diff_color = %.3f'%(max(datos[:,3][group_md]-datos[:,4][group_md])-min(datos[:,3][group_md]-datos[:,4][group_md]))))
+                    props_arou = dict(boxstyle='round', facecolor='r', alpha=0.3)
+                    ax[2].text(0.50, 0.25,txt_around, transform=ax[2].transAxes, fontsize=30,
+                        verticalalignment='top', bbox=props_arou)
                     # ax[2].scatter(clus['m_hawki_H']-clus['m_hawki_Ks'],clus['m_hawki_Ks'],color = 'lavender',alpha=0.1)
                     # ax[2].scatter(clus_ndiff['m_hawki_H']-clus_ndiff['m_hawki_Ks'],clus_ndiff['m_hawki_Ks'],color = 'k',alpha=0.1,s=1)
                     
         
                     # txt_srn = '\n'.join(('metallicity = %s'%(metallicity),'dist = %.1f Kpc'%(dist/1000),'mass =%.0fx$10^{3}$ $M_{\odot}$'%(mass/1000),
                     #                      'age = %.0f Myr'%(10**logAge/10**6)))
-                    txt_AKs = '\n'.join(('H-Ks =%.3f'%(np.mean(datos[:,3][colores_index[i]]-datos[:,4][colores_index[i]])),
+                    txt_color = '\n'.join(('H-Ks =%.3f'%(np.mean(datos[:,3][colores_index[i]]-datos[:,4][colores_index[i]])),
                                          '$\sigma_{H-Ks}$ = %.3f'%(np.std(datos[:,3][colores_index[i]]-datos[:,4][colores_index[i]])),
-                                         'diff_color = %.3f'%(max(datos[:,3][colores_index[i]]-datos[:,4][colores_index[i]])-min(datos[:,3][colores_index[i]]-datos[:,4][colores_index[i]]))
-                                         ,'AKs = %.2f'%(AKs_clus),'std_AKs = %.2f'%(std_AKs)))
-                    props = dict(boxstyle='round', facecolor='w', alpha=0.5)
+                                         'diff_color = %.3f'%(max(datos[:,3][colores_index[i]]-datos[:,4][colores_index[i]])-min(datos[:,3][colores_index[i]]-datos[:,4][colores_index[i]]))))
+                    txt_AKs = '\n'.join(('AKs = %.2f'%(AKs_clus),'std_AKs = %.2f'%(std_AKs)))
+                    ax[2].text(0.75, 0.50, txt_AKs, transform=ax[2].transAxes, fontsize=15,
+                        verticalalignment='top', bbox=propiedades_all)
+                    props = dict(boxstyle='round', facecolor=color_de_cluster, alpha=0.5)
                     # # place a text box in upper left in axes coords
-                    ax[2].text(0.65, 0.95, txt_AKs, transform=ax[2].transAxes, fontsize=14,
+                    ax[2].text(0.50, 0.95, txt_color, transform=ax[2].transAxes, fontsize=30,
                         verticalalignment='top', bbox=props)
                     # ax[2].text(0.65, 0.85, txt_srn, transform=ax[2].transAxes, fontsize=14,
                     #     verticalalignment='top', bbox=props)
-                    # ax[2].plot(iso.points['m_hawki_H'] - iso.points['m_hawki_Ks'], 
-                    #                   iso.points['m_hawki_Ks'], 'b-',  label='10 Myr')
-                    
+                    ax[2].plot(iso.points['m_hawki_H'] - iso.points['m_hawki_Ks'], 
+                                      iso.points['m_hawki_Ks'], 'b-',  label='10 Myr')
+                    ax[2].set_xlim(1.3,2.5)
+                    ax[2].set_ylim(max(datos[:,4]),min(datos[:,4]))
                     # ax[2].plot(iso_30.points['m_hawki_H'] - iso_30.points['m_hawki_Ks'], 
                     #                   iso_30.points['m_hawki_Ks'], 'orange',  label='30 Myr')
                     # ax[2].plot(iso_60.points['m_hawki_H'].value - iso_60.points['m_hawki_Ks'].value, 
@@ -549,7 +567,7 @@ for x_box in x_box_lst:
         #             saved cluster if repited, it saves in the same cluster 
         #             
         # =============================================================================
-                    clus_num +=1    
+                     
                     frase = 'Do you want to save this cluster?'
                     print('\n'.join((len(frase)*'π',frase+'\n("yes" or "no")',len(frase)*'π')))
                     save_clus = input('Awnser:')
@@ -564,6 +582,7 @@ for x_box in x_box_lst:
                                        'cluster%s_%.0f_%.0f_knn_%s_area_%.2f.txt'%(clus_num,ic/0.5,jr/0.5,samples_dist,area),clus_array,
                                        fmt='%.7f '*6 + ' %.4f'*3 +' %.5f'*2 +' %.3f'*3+ ' %.0f',
                                        header ='ra, dec, l, b, pml, pmb,J, H, Ks,x, y, AKs_mean, dAks_mean, radio("),cluster_ID')
+                            clus_num +=1   
                         else:
                             for f_check in check_folder:
                                 
@@ -582,6 +601,7 @@ for x_box in x_box_lst:
                                                    'cluster%s_%.0f_%.0f_knn_%s_area_%.2f.txt'%(clus_num,ic/0.5,jr/0.5,samples_dist,area),clus_array,
                                                    fmt='%.7f '*6 + ' %.4f'*3 +' %.5f'*2+' %.3f'*3+ ' %.0f',
                                                    header ='ra, dec, l, b, pml, pmb,J, H, Ks,x, y, Aks_mean, dAks_mean, radio("),cluster_ID')
+                                        clus_num +=1   
                             if np.all(np.array(intersection_lst)==0):
                                 # clus_num +=1
                                 print('NEW CLUSTER')
@@ -590,7 +610,7 @@ for x_box in x_box_lst:
                                            'cluster%s_%.0f_%.0f_knn_%s_area_%.2f.txt'%(clus_num,ic/0.5,jr/0.5,samples_dist,area),clus_array,
                                            fmt='%.7f '*6 + ' %.4f'*3 +' %.5f'*2+' %.3f'*3 + ' %.0f',
                                            header ='ra, dec, l, b, pml, pmb,J, H, Ks,x, y, Aks_mean,dAks_mean, radio("), cluster_ID')
-                                
+                                clus_num +=1   
                                    
                                 # read_txt = glob.glob(check_folder[f_check]+'/cluster_*')
                                 # for clust_text in range(len(read_txt)):
