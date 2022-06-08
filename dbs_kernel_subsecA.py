@@ -182,8 +182,8 @@ clustered_by = 'all'
 # samples_dist = 5
 # x_box_lst = [3,2,1]
 # samples_lst =[5,7,10]
-x_box_lst = [1,2,3]
-samples_lst =[10,9,8,7,6,5]
+x_box_lst = [2]
+samples_lst =[7]
 for x_box in x_box_lst:
     step = dist_pos /x_box
     step_neg =dist_neg/x_box
@@ -354,8 +354,8 @@ for x_box in x_box_lst:
                     ax[0].scatter(X[:,0][colores_index[i]],X[:,1][colores_index[i]], color=color_de_cluster ,s=50,zorder=3)
                     ax[0].set_xlim(-10,10)
                     ax[0].set_ylim(-10,10)
-                    ax[0].set_xlabel(r'$\mathrm{\mu_{l} (mas\ yr^{-1})}$') 
-                    ax[0].set_ylabel(r'$\mathrm{\mu_{b} (mas\ yr^{-1})}$') 
+                    ax[0].set_xlabel(r'$\mathrm{\mu_{l} (mas\ yr^{-1})}$',fontsize =30) 
+                    ax[0].set_ylabel(r'$\mathrm{\mu_{b} (mas\ yr^{-1})}$',fontsize =30) 
                     ax[0].invert_xaxis()
                     ax[0].hlines(0,-10,10,linestyle = 'dashed', color ='red')
                     
@@ -375,7 +375,7 @@ for x_box in x_box_lst:
                     propiedades_all = dict(boxstyle='round', facecolor=colors[-1], alpha=0.1)
                     ax[0].text(0.05, 0.95, vel_txt, transform=ax[0].transAxes, fontsize=30,
                         verticalalignment='top', bbox=propiedades)
-                    ax[0].text(0.05, 0.15, vel_txt_all, transform=ax[0].transAxes, fontsize=15,
+                    ax[0].text(0.05, 0.15, vel_txt_all, transform=ax[0].transAxes, fontsize=20,
                         verticalalignment='top', bbox=propiedades_all)
                     
                    
@@ -391,21 +391,21 @@ for x_box in x_box_lst:
                     # This search for all the points around the cluster that are no cluster
                     lista = []
                     lista =np.zeros([len(c2),3])
-                    for c_memb in range(len(c2)):
-                        distancia = list(c2[c_memb].separation(c2))
-                        # print(int(c_memb),int(distancia.index(max(distancia))),max(distancia).value)
-                        # a =int(c_memb)
-                        # b = int(distancia.index(max(distancia)))
-                        lista[c_memb][0:3]= int(c_memb),int(distancia.index(max(distancia))),max(distancia).value
+                    # for c_memb in range(len(c2)):
+                    #     distancia = list(c2[c_memb].separation(c2))
+                    #     # print(int(c_memb),int(distancia.index(max(distancia))),max(distancia).value)
+                    #     # a =int(c_memb)
+                    #     # b = int(distancia.index(max(distancia)))
+                    #     lista[c_memb][0:3]= int(c_memb),int(distancia.index(max(distancia))),max(distancia).value
                     
-                    coord_max_dist = list(lista[:,2]).index(max(lista[:,2]))
-                    
+                    # coord_max_dist = list(lista[:,2]).index(max(lista[:,2]))
+           
+                    # p1 = c2[int(lista[coord_max_dist][0])]
+                    # p2 = c2[int(lista[coord_max_dist][1])]
 
+                    # m_point = SkyCoord(ra = [(p2.ra+p1.ra)/2], dec = [(p2.dec +p1.dec)/2])
                     
-                    p1 = c2[int(lista[coord_max_dist][0])]
-                    p2 = c2[int(lista[coord_max_dist][1])]
-
-                    m_point = SkyCoord(ra = [(p2.ra+p1.ra)/2], dec = [(p2.dec +p1.dec)/2])
+                    m_point = SkyCoord(ra =[np.mean(c2.ra)], dec = [np.mean(c2.dec)])
                     
                     idxc, group_md, d2d,d3d =  ap_coor.search_around_sky(m_point,coordenadas, rad*2)
                     
@@ -419,13 +419,13 @@ for x_box in x_box_lst:
                     ax[1].scatter(X[:,2], X[:,3], color=colors[-1],s=50,zorder=1,alpha=0.02)#plots in galactic
                     
                     ax[1].scatter(X[:,2][colores_index[i]], X[:,3][colores_index[i]], color=color_de_cluster ,s=50,zorder=3)#plots in galactic
-                    ax[1].quiver(X[:,2][colores_index[i]], X[:,3][colores_index[i]], X[:,0][colores_index[i]]*-1, X[:,1][colores_index[i]], alpha=0.5, color=color_de_cluster )#colors[i]
+                    # ax[1].quiver(X[:,2][colores_index[i]], X[:,3][colores_index[i]], X[:,0][colores_index[i]]*-1, X[:,1][colores_index[i]], alpha=0.5, color=color_de_cluster )#colors[i]
                     ax[1].scatter(datos[:,7][group_md],datos[:,8][group_md],s=50,color='r',alpha =0.1,marker ='x')
-                    ax[1].set_xlabel('x') 
-                    ax[1].set_ylabel('y') 
+                    ax[1].set_xlabel('x',fontsize =30) 
+                    ax[1].set_ylabel('y',fontsize =30) 
                     ax[1].yaxis.set_major_formatter(FormatStrFormatter('%.0f'))
                     ax[1].xaxis.set_major_formatter(FormatStrFormatter('%.0f'))
-                    ax[1].set_title('col_row %.0f, %.0f. Area = %.2f'%(ic/0.5,jr/0.5,area))
+                    ax[1].set_title('col_row %.0f, %.0f. Area = %.2f"$^{2}$'%(ic/0.5,jr/0.5,area))
                     
                     
                     
@@ -447,15 +447,16 @@ for x_box in x_box_lst:
                     elif clustered_by == 'all':
                         ax[2].scatter(datos[:,3][colores_index[i][0]]-datos[:,4][colores_index[i][0]],datos[:,4][colores_index[i][0]], color=color_de_cluster ,s=120,zorder=3, alpha=1)
                     ax[2].invert_yaxis()  
+                    ax[2].set_xlabel('$H-Ks$',fontsize =30)
+                    ax[2].set_ylabel('$Ks$',fontsize =30)
                     
-                    
-                    AKs_clus, std_AKs = np.mean(AKs_clus_all),np.std(AKs_clus_all)
+                    AKs_clus, std_AKs = np.median(AKs_clus_all),np.std(AKs_clus_all)
                     absolute_difference_function = lambda list_value : abs(list_value - AKs_clus)
                     AKs = min(AKs_list, key=absolute_difference_function)
                     
                     iso_dir = '/Users/amartinez/Desktop/PhD/Libralato_data/nsd_isochrones/'
                     
-                    dist = 8000 # distance in parsec
+                    dist = 8200 # distance in parsec
                     metallicity = 0.30 # Metallicity in [M/H]
                     # # logAge_600 = np.log10(0.61*10**9.)
                     logAge = np.log10(0.010*10**9.)
@@ -516,7 +517,7 @@ for x_box in x_box_lst:
                     ax[2].set_title('Cluster %s, eps = %s'%(clus_num,round(eps_av,3)))
                     ax[2].scatter(datos[:,3]-datos[:,4],datos[:,4],alpha=0.1,color ='k')
                     ax[2].scatter(datos[:,3][group_md]-datos[:,4][group_md],datos[:,4][group_md],alpha=0.7,c='r',marker = 'x')
-                    txt_around = '\n'.join(('H-Ks =%.3f'%(np.mean(datos[:,3][group_md]-datos[:,4][group_md])),
+                    txt_around = '\n'.join(('H-Ks =%.3f'%(np.median(datos[:,3][group_md]-datos[:,4][group_md])),
                                          '$\sigma_{H-Ks}$ = %.3f'%(np.std(datos[:,3][group_md]-datos[:,4][group_md])),
                                          'diff_color = %.3f'%(max(datos[:,3][group_md]-datos[:,4][group_md])-min(datos[:,3][group_md]-datos[:,4][group_md]))))
                     props_arou = dict(boxstyle='round', facecolor='r', alpha=0.3)
@@ -528,13 +529,13 @@ for x_box in x_box_lst:
         
                     # txt_srn = '\n'.join(('metallicity = %s'%(metallicity),'dist = %.1f Kpc'%(dist/1000),'mass =%.0fx$10^{3}$ $M_{\odot}$'%(mass/1000),
                     #                      'age = %.0f Myr'%(10**logAge/10**6)))
-                    txt_color = '\n'.join(('H-Ks =%.3f'%(np.mean(datos[:,3][colores_index[i]]-datos[:,4][colores_index[i]])),
+                    txt_color = '\n'.join(('H-Ks =%.3f'%(np.median(datos[:,3][colores_index[i]]-datos[:,4][colores_index[i]])),
                                          '$\sigma_{H-Ks}$ = %.3f'%(np.std(datos[:,3][colores_index[i]]-datos[:,4][colores_index[i]])),
                                          'diff_color = %.3f'%(max(datos[:,3][colores_index[i]]-datos[:,4][colores_index[i]])-min(datos[:,3][colores_index[i]]-datos[:,4][colores_index[i]]))))
                     txt_AKs = '\n'.join(('AKs = %.2f'%(AKs_clus),'std_AKs = %.2f'%(std_AKs)))
-                    ax[2].text(0.75, 0.50, txt_AKs, transform=ax[2].transAxes, fontsize=15,
+                    ax[2].text(0.65, 0.50, txt_AKs, transform=ax[2].transAxes, fontsize=20,
                         verticalalignment='top', bbox=propiedades_all)
-                    props = dict(boxstyle='round', facecolor=color_de_cluster, alpha=0.5)
+                    props = dict(boxstyle='round', facecolor=color_de_cluster, alpha=0.3)
                     # # place a text box in upper left in axes coords
                     ax[2].text(0.50, 0.95, txt_color, transform=ax[2].transAxes, fontsize=30,
                         verticalalignment='top', bbox=props)
@@ -553,7 +554,9 @@ for x_box in x_box_lst:
                     # ax[2].set_xlabel('H$-$Ks')
                     # ax[2].set_ylabel('Ks')
                     # ax[2].legend(loc =3, fontsize = 12)
+                    plt.savefig(pruebas + 'cluster_for_R.png', dpi=300,bbox_inches='tight')
                     plt.show()
+                    
                     clus_array = np.array([datos[:,5][colores_index[i]],datos[:,6][colores_index[i]],t_gal['l'][colores_index[i]].value,t_gal['b'][colores_index[i]].value,
                                                                                           X[:,0][colores_index[i]], 
                                                                                           X[:,1][colores_index[i]],
@@ -573,6 +576,7 @@ for x_box in x_box_lst:
                     save_clus = input('Awnser:')
                     print('You said: %s'%(save_clus))
                     if save_clus =='yes' or save_clus =='y':
+                        
                         intersection_lst =[]
                         
                         check_folder = glob.glob(pruebas + 'Sec_%s_clus/'%(section)+'cluster_num*')
@@ -647,3 +651,14 @@ if save_folder == 'yes' or save_folder == 'y':
 else:
     sys.exit('You stoped it')
 sys.exit('Chao')
+
+
+# %%
+
+print(np.mean(c2.ra))
+
+
+
+
+
+
