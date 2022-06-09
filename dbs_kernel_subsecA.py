@@ -450,7 +450,7 @@ for x_box in x_box_lst:
                     ax[2].set_xlabel('$H-Ks$',fontsize =30)
                     ax[2].set_ylabel('$Ks$',fontsize =30)
                     
-                    AKs_clus, std_AKs = np.median(AKs_clus_all),np.std(AKs_clus_all)
+                    AKs_clus, std_AKs = np.median(AKs_clus_all)+0.05,np.std(AKs_clus_all)
                     absolute_difference_function = lambda list_value : abs(list_value - AKs_clus)
                     AKs = min(AKs_list, key=absolute_difference_function)
                     
@@ -554,7 +554,7 @@ for x_box in x_box_lst:
                     # ax[2].set_xlabel('H$-$Ks')
                     # ax[2].set_ylabel('Ks')
                     # ax[2].legend(loc =3, fontsize = 12)
-                    plt.savefig(pruebas + 'cluster_for_R.png', dpi=300,bbox_inches='tight')
+                    # plt.savefig(pruebas + 'cluster_for_R.png', dpi=300,bbox_inches='tight')
                     plt.show()
                     
                     clus_array = np.array([datos[:,5][colores_index[i]],datos[:,6][colores_index[i]],t_gal['l'][colores_index[i]].value,t_gal['b'][colores_index[i]].value,
