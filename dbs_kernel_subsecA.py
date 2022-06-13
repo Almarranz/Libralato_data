@@ -177,13 +177,13 @@ ang = math.degrees(np.arctan(m1))
 clus_num = 0
 # x_box = 3
 
-
+# clustered_by = 'all'
 clustered_by = 'all'
 # samples_dist = 5
-# x_box_lst = [3,2,1]
-# samples_lst =[5,7,10]
-x_box_lst = [2]
-samples_lst =[7]
+x_box_lst = [2,3]
+samples_lst =[7,10]
+# x_box_lst = [2]
+# samples_lst =[7]
 for x_box in x_box_lst:
     step = dist_pos /x_box
     step_neg =dist_neg/x_box
@@ -425,7 +425,7 @@ for x_box in x_box_lst:
                     ax[1].set_ylabel('y',fontsize =30) 
                     ax[1].yaxis.set_major_formatter(FormatStrFormatter('%.0f'))
                     ax[1].xaxis.set_major_formatter(FormatStrFormatter('%.0f'))
-                    ax[1].set_title('col_row %.0f, %.0f. Area = %.2f"$^{2}$'%(ic/0.5,jr/0.5,area))
+                    ax[1].set_title('col_row %.0f, %.0f. Area = %.2farcmin$^{2}$'%(ic/0.5,jr/0.5,area))
                     
                     
                     
@@ -450,7 +450,7 @@ for x_box in x_box_lst:
                     ax[2].set_xlabel('$H-Ks$',fontsize =30)
                     ax[2].set_ylabel('$Ks$',fontsize =30)
                     
-                    AKs_clus, std_AKs = np.median(AKs_clus_all)+0.05,np.std(AKs_clus_all)
+                    AKs_clus, std_AKs = np.median(AKs_clus_all),np.std(AKs_clus_all)
                     absolute_difference_function = lambda list_value : abs(list_value - AKs_clus)
                     AKs = min(AKs_list, key=absolute_difference_function)
                     
@@ -490,7 +490,7 @@ for x_box in x_box_lst:
                     # #%
                     
                     
-                    # imf_multi = multiplicity.MultiplicityUnresolved()
+                    imf_multi = multiplicity.MultiplicityUnresolved()
                     
                     # # Make IMF object; we'll use a broken power law with the parameters from Kroupa+01
                     
@@ -498,10 +498,10 @@ for x_box in x_box_lst:
                     # # the entire exponent, including the negative sign. For example, if dN/dm $\propto$ m^-alpha,
                     # # then you would use the value "-2.3" to specify an IMF with alpha = 2.3. 
                     
-                    # massLimits = np.array([0.2, 0.5, 1, 120]) # Define boundaries of each mass segement
-                    # powers = np.array([-1.3, -2.3, -2.3]) # Power law slope associated with each mass segment
-                    # # my_imf = imf.IMF_broken_powerlaw(massLimits, powers, imf_multi)
-                    # my_imf = imf.IMF_broken_powerlaw(massLimits, powers,multiplicity = None)
+                    massLimits = np.array([0.2, 0.5, 1, 120]) # Define boundaries of each mass segement
+                    powers = np.array([-1.3, -2.3, -2.3]) # Power law slope associated with each mass segment
+                    # my_imf = imf.IMF_broken_powerlaw(massLimits, powers, imf_multi)
+                    my_imf = imf.IMF_broken_powerlaw(massLimits, powers,multiplicity = None)
                     
                     
                     # #%
@@ -624,6 +624,11 @@ for x_box in x_box_lst:
                                 # read_txt = glob.glob(check_folder[f_check]+'/cluster_*')
                                 # for clust_text in range(len(read_txt)):
                                 #     print(read_txt[clust_text])
+                        fig, ax = plt.subplots(1,1,figsize =(10,10))
+                        
+                    
+                    
+                    
                     elif save_clus =='stop':
                         frase = 'Do you want to copy the folder with the clusters into the morralla directory?\n("yes" or "no")'
                         print('\n'.join((len(frase)*'',frase,len(frase)*'')))
@@ -655,7 +660,7 @@ sys.exit('Chao')
 
 # %%
 
-print(np.mean(c2.ra))
+print(ra_dec_clus)
 
 
 
