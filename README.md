@@ -70,6 +70,8 @@ Arches_Hosek.py. In this iscript arches (or quintuplet) are dbscaned for cluster
 >Selecting a mini cluster at the center of the found cluster we can have an idea of how a almost disolving cluster might look like in the galactic center.
 >Selecting at the center improves the posibilities of choosing  mini cluster without any false cluster member in it.
 >In this mini cluster we can look for de dispersion in velocity and color to have an idean of what we are looking for in Lkbralato data.
+Arches_Hosek_Kernel.py 
+>Finds cluster with dbsacn usin the kernel simulation for the epsilon. Then selecte a small group of stars from the  middle of the cluster and plots then. This is for comparation of how a cluster in the NSD with only a few stars should look like
 same_cluster_diff_MS.py. Fins same cluster around different MS **whithin the same search(dbscan or hdbscan)**. 
 
 
