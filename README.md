@@ -72,12 +72,15 @@ Arches_Hosek.py. In this iscript arches (or quintuplet) are dbscaned for cluster
 >In this mini cluster we can look for de dispersion in velocity and color to have an idean of what we are looking for in Lkbralato data.
 Arches_Hosek_Kernel.py 
 >Finds cluster with dbsacn usin the kernel simulation for the epsilon. Then selecte a small group of stars from the  middle of the cluster and plots then. This is for comparation of how a cluster in the NSD with only a few stars should look like
-same_cluster_diff_MS.py. Fins same cluster around different MS **whithin the same search(dbscan or hdbscan)**. 
+same_cluster_diff_MS.py. 
+>Fins same cluster around different MS **whithin the same search(dbscan or hdbscan)**. 
 
 
-cluster_to_region.py. Generates a region of the selected cluster to be visualized in DS9.
+cluster_to_region.py. 
+>Generates a region of the selected cluster to be visualized in DS9.
 
-
+candidates_plotting.py.
+>You have to select a folder with all the cluster found in the different scanners, then this scrips deselects the repited stars and plotting the resulting cluster. It throws a sentence saying if all the star were the same for all the scanner or not
 
 
 
