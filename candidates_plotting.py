@@ -163,7 +163,8 @@ for clus_f in glob.glob(folder +'cluster_num3_0_knn7_area2.12'):
         verticalalignment='top', bbox=propiedades)
     ax[0].text(0.05, 0.15, vel_txt_all, transform=ax[0].transAxes, fontsize=20,
         verticalalignment='top', bbox=propiedades_all)
-    
+    ax[0].set_xlabel(r'$\mathrm{\mu_{l} (mas\ yr^{-1})}$',fontsize =30) 
+    ax[0].set_ylabel(r'$\mathrm{\mu_{b} (mas\ yr^{-1})}$',fontsize =30) 
     
     c2 = SkyCoord(ra = cluster_unique[:,0]*u.deg,dec = cluster_unique[:,1]*u.deg)
     sep = [max(c2[c_mem].separation(c2)) for c_mem in range(len(c2))]
@@ -171,7 +172,7 @@ for clus_f in glob.glob(folder +'cluster_num3_0_knn7_area2.12'):
     
     m_point = SkyCoord(ra =[np.mean(c2.ra)], dec = [np.mean(c2.dec)])
     
-    idxc, group_md, d2d,d3d =  ap_coor.search_around_sky(m_point,coordenadas, rad*3)
+    idxc, group_md, d2d,d3d =  ap_coor.search_around_sky(m_point,coordenadas, rad*2)
     
     ax[0].scatter(catal[:,-6][group_md],catal[:,-5][group_md], color='red',s=50,zorder=1,marker='x',alpha = 0.7)
 
@@ -183,9 +184,12 @@ for clus_f in glob.glob(folder +'cluster_num3_0_knn7_area2.12'):
 
     ax[1].scatter(catal[:,7],catal[:,8],color ='k',alpha = 0.1)
     ax[1].scatter(cluster_unique[:,9], cluster_unique[:,10], color = color_de_cluster,s=100)
-    
+    ax[1].set_xlabel('x',fontsize =30) 
+    ax[1].set_ylabel('y',fontsize =30) 
     
     ax[2].scatter(catal[:,3]-catal[:,4],catal[:,4], color='k' ,s=50,zorder=1, alpha=0.03)
+    ax[2].scatter(catal[:,3][group_md]-catal[:,4][group_md],catal[:,4][group_md], color='r' ,s=50,zorder=1, alpha=0.5,marker='x')
+
     ax[2].scatter(cluster_unique[:,7]-cluster_unique[:,8],cluster_unique[:,8], color=color_de_cluster ,s=120,zorder=3, alpha=1)
     ax[2].invert_yaxis()  
     ax[2].set_xlim(1.3,3)
@@ -193,13 +197,21 @@ for clus_f in glob.glob(folder +'cluster_num3_0_knn7_area2.12'):
     ax[2].set_ylabel('$Ks$',fontsize =30)
     
     # ax[2].set_title('Cluster %s, eps = %s'%(clus_num,round(eps_av,3)))
-    txt_around = '\n'.join(('H-Ks =%.3f'%(cluster_unique[:,7]-cluster_unique[:,8]),
+    txt_clus = '\n'.join(('H-Ks =%.3f'%(np.mean(cluster_unique[:,7]-cluster_unique[:,8])),
                          '$\sigma_{H-Ks}$ = %.3f'%(np.std(cluster_unique[:,7]-cluster_unique[:,8])),
                          'diff_color = %.3f'%(max(cluster_unique[:,7]-cluster_unique[:,8])-min(cluster_unique[:,7]-cluster_unique[:,8]))))
+    props_arou = dict(boxstyle='round', facecolor=color_de_cluster, alpha=0.3)
+    ax[2].text(0.45, 0.90,txt_clus, transform=ax[2].transAxes, fontsize=30,
+        verticalalignment='top', bbox=props_arou)
+    
+    txt_around= '\n'.join(('H-Ks =%.3f'%(np.mean(catal[:,3][group_md]-catal[:,4][group_md])),
+                         '$\sigma_{H-Ks}$ = %.3f'%(np.std(catal[:,3][group_md]-catal[:,4][group_md])),
+                         'diff_color = %.3f'%(max(catal[:,3][group_md]-catal[:,4][group_md])-min(catal[:,3][group_md]-catal[:,4][group_md]))))
     props_arou = dict(boxstyle='round', facecolor='r', alpha=0.3)
-    ax[2].text(0.50, 0.25,txt_around, transform=ax[2].transAxes, fontsize=30,
+    ax[2].text(0.45, 0.30,txt_around, transform=ax[2].transAxes, fontsize=30,
         verticalalignment='top', bbox=props_arou)
 
 
-
+# %%
+print(np.mean(cluster_unique[:,7]-cluster_unique[:,8]))
 
