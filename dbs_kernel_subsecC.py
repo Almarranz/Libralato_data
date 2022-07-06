@@ -127,7 +127,7 @@ color = pd.read_csv('/Users/amartinez/Desktop/PhD/python/colors_html.csv')
 strin= color.values.tolist()
 indices = np.arange(0,len(strin),1)
 # %%
-sec_clus = pruebas +'Sec_B_clus/'
+sec_clus = pruebas +'Sec_C_clus/'
 ifE_sec = os.path.exists(sec_clus)
 if not ifE_sec:
     os.makedirs(pruebas + 'Sec_%s_clus/'%(section))
@@ -156,7 +156,7 @@ missing =0
 # ax.scatter(catal[:,7],catal[:,8])
 fila =-1
 lim_pos_up, lim_pos_down = 1000, -18000 #intersection of the positives slopes lines with y axis,
-lim_neg_up, lim_neg_down =31500,22500 #intersection of the negayives slopes lines with y axis,
+lim_neg_up, lim_neg_down =30500,22500 #intersection of the negayives slopes lines with y axis,
 
 # =============================================================================
 # yg_up =  lim_pos_up + m*catal[:,7]
@@ -178,7 +178,8 @@ clus_num = 0
 # x_box = 3
 
 
-clustered_by = 'all_color'
+# clustered_by = 'all_color'
+clustered_by = 'all'
 
 
 # xy_box_lst = [[3,1],[4,2],[6,2]]
@@ -197,8 +198,8 @@ for elegant_loop in range(1):
             for samples_dist in samples_lst:
                 for ic in range(x_box*2-1):
                     
-                    # fig, ax = plt.subplots(1,1,figsize=(10,10))
-                    # ax.scatter(catal[:,7],catal[:,8],alpha =0.01)
+                    fig, ax = plt.subplots(1,1,figsize=(10,10))
+                    ax.scatter(catal[:,7],catal[:,8],alpha =0.01)
                     ic *= 0.5
                     yg_1 = (lim_pos_up - (ic)*step/np.cos(45*u.deg)) +  m*catal[:,7]
                     # yg_2 = (lim_pos_up - (ic+1)*step*np.cos(45*u.deg)) +  m*catal[:,7]
@@ -224,8 +225,8 @@ for elegant_loop in range(1):
                         
                         ax.scatter(catal[:,7][good],catal[:,8][good],color =strin[np.random.choice(indices)],alpha = 0.1)
                         
-                        # ax.plot(catal[:,7],yr_1, color ='r')
-                        # ax.plot(catal[:,7],yr_2, color ='r')
+                        ax.plot(catal[:,7],yr_1, color ='r')
+                        ax.plot(catal[:,7],yr_2, color ='r')
                         props = dict(boxstyle='round', facecolor='w', alpha=0.5)
                         # place a text box in upper left in axes coords
                         txt ='central box ~ %.1f arcmin$^{2}$'%(area)
@@ -233,6 +234,8 @@ for elegant_loop in range(1):
                             verticalalignment='top', bbox=props)
                         ax.set_xlabel('x (50 mas/pix)')
                         ax.set_ylabel('y (50 mas/pix)')
+                        ax.plot(catal[:,7],yg_1, color ='g')
+                        ax.plot(catal[:,7],yg_2, color ='g')
                 # =============================================================================
                 #         Here is where the party begins
                 # =============================================================================
@@ -501,7 +504,7 @@ for elegant_loop in range(1):
                             # #%
                             
                             
-                            # imf_multi = multiplicity.MultiplicityUnresolved()
+                            imf_multi = multiplicity.MultiplicityUnresolved()
                             
                             # # Make IMF object; we'll use a broken power law with the parameters from Kroupa+01
                             
@@ -509,10 +512,10 @@ for elegant_loop in range(1):
                             # # the entire exponent, including the negative sign. For example, if dN/dm $\propto$ m^-alpha,
                             # # then you would use the value "-2.3" to specify an IMF with alpha = 2.3. 
                             
-                            # massLimits = np.array([0.2, 0.5, 1, 120]) # Define boundaries of each mass segement
-                            # powers = np.array([-1.3, -2.3, -2.3]) # Power law slope associated with each mass segment
-                            # # my_imf = imf.IMF_broken_powerlaw(massLimits, powers, imf_multi)
-                            # my_imf = imf.IMF_broken_powerlaw(massLimits, powers,multiplicity = None)
+                            massLimits = np.array([0.2, 0.5, 1, 120]) # Define boundaries of each mass segement
+                            powers = np.array([-1.3, -2.3, -2.3]) # Power law slope associated with each mass segment
+                            # my_imf = imf.IMF_broken_powerlaw(massLimits, powers, imf_multi)
+                            my_imf = imf.IMF_broken_powerlaw(massLimits, powers,multiplicity = None)
                             
                             
                             # #%
@@ -635,6 +638,86 @@ for elegant_loop in range(1):
                                         # read_txt = glob.glob(check_folder[f_check]+'/cluster_*')
                                         # for clust_text in range(len(read_txt)):
                                         #     print(read_txt[clust_text])
+                                mul, mub= clus_array[:,4],clus_array[:,5]
+                                J, H, K = clus_array[:,6],clus_array[:,7],clus_array[:,8]
+                                AKs_clus, std_AKs = clus_array[:,11],clus_array[:,12]
+                                radio_clus,ID = clus_array[:,13],clus_array[:,14]
+                                
+                                sig_mul, sig_mub = np.std(mul), np.std(mub)
+    
+                                sig_mu = np.mean([sig_mul, sig_mub])
+                                theta = radio_clus[0]*u.arcsec.to(u.rad)
+                                dist = 8200*u.parsec
+                                r_eff = theta*dist
+                                rh = r_eff
+    
+                                sig_mu2 = (3*((sig_mu))**2*40)*(u.km/u.second)#0.0625 is std**2 (0.25**2)
+    
+                                mu_pc_myr = sig_mu2.to(u.pc/u.Myr)
+                                G = 0.0045*(u.pc**3)*(u.Myr**-2)*(u.M_sun**-1)
+    
+                                M_clus = 0.4*(rh * mu_pc_myr**2)/G
+                                print(M_clus)
+    
+                                # Now we are define the crossing time according with Mark Gieles et al. 2011
+                                # We will discard the crossing time right now
+    
+                                # Tcr ≡  10*(r_eff**3/(GM))**0.5
+                                # Tcr = 10*np.sqrt((r_eff**3)/(G*M_clus))
+                                # print(Tcr)
+                                # PI_2 = age2/Tcr
+                                # print(PI_2)
+                                max_stars = len(K)**2
+                                porcentaje = 0
+                                try:
+                                    while  max_stars > len(K)+0.3*len(K):
+            
+                                        # mass = 0.8*10**4.
+                                        mass = M_clus.value -0.05*porcentaje*M_clus.value
+                                        # dAks = std_AKs[0]
+                                        dAks = 0.05
+            
+                                        cluster = synthetic.ResolvedClusterDiffRedden(iso, my_imf, mass,dAks)
+                                        cluster_ndiff = synthetic.ResolvedCluster(iso, my_imf, mass)
+                                        clus = cluster.star_systems
+                                        clus_ndiff = cluster_ndiff.star_systems
+                                        
+                                        max_mass = np.where((clus_ndiff['m_hawki_Ks']>min(K))&(clus_ndiff['m_hawki_Ks']<max(K)))
+                                        
+                                        max_stars = len(clus_ndiff['m_hawki_Ks'][max_mass])
+                                        porcentaje +=1
+            
+                                    fig, ax = plt.subplots(1,2,figsize=(20,10))
+                                    ax[0].hist(clus['mass'],bins = 'auto',color ='k')#, label ='Cluster Mass = %.0f$M_{\odot}$ \n virial mass = %.0f'%(mass,M_clus.value) )
+                                    ax[0].set_xlabel('$(M_{\odot})$')
+                                    ax[0].set_ylabel('$N$')
+                                    ax[0].set_title('Cluster %.0f, Radio = %.2f"'%(ID[0],radio_clus[0]))
+            
+                                    # ax[1].scatter(clus['m_hawki_H']-clus['m_hawki_Ks'],clus['m_hawki_Ks'],color = 'slategray',alpha=0.7)
+                                    ax[1].scatter(clus_ndiff['m_hawki_H']-clus_ndiff['m_hawki_Ks'],clus_ndiff['m_hawki_Ks'],color = 'k',alpha=0.6,s=50)
+                                    ax[1].invert_yaxis()
+                                    ax[1].scatter(H-K,K,color ='lime',s=100)
+                                    props = dict(boxstyle='round', facecolor='w', alpha=0.5)
+            
+                                    ax[1].text(0.55, 0.95, 'L mass = %.0f $M_{\odot}$ \nV mass = %.0f $M_{\odot}$'%(mass, M_clus.value), transform=ax[1].transAxes, fontsize=25,
+                                        verticalalignment='top', bbox=props)
+                                    ax[1].set_xlabel('H-Ks')
+                                    ax[1].set_ylabel('Ks')
+                                    ax[1].set_title('[$\sigma_{mul}$= %.3f, $\sigma_{mub}$= %.3f]'%(sig_mul,sig_mub))
+                                    plt.show()
+                                    plt.ion()
+                                    frase1 ='Still want to save it? ("y" or "n")'
+                                    
+                                    save_clus_still = 'y'
+                                    print(len(frase1)*'?'+'\n'+frase1+'\n'+'?'*len(frase1))
+                                    save_clus_still = input('Awnser:')
+                                    if save_clus_still =='n':
+                                        os.remove(pruebas + 'Sec_%s_clus/'%(section) +'cluster_num%s_%s_knn%s_area%.2f/'%(clus_num-1,i,samples_dist,area)+
+                                                   'cluster%s_%.0f_%.0f_knn_%s_area_%.2f.txt'%(clus_num-1,ic/0.5,jr/0.5,samples_dist,area))
+                                except:
+                                    print('Failed to find an equivalent cluster')
+                                    pass        
+                            
                             elif save_clus =='stop':
                                 frase = 'Do you want to copy the folder with the clusters into the morralla directory?\n("yes" or "no")'
                                 print('\n'.join((len(frase)*'',frase,len(frase)*'')))
@@ -675,3 +758,4 @@ print(np.mean(c2.ra))
 # 
 # 
 # =============================================================================
+
