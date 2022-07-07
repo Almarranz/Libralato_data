@@ -421,7 +421,10 @@ ax[2].invert_yaxis()
 
 ax[0].invert_xaxis()
 
-sys.exit('line 417')
+sys.exit('\n'.join(('The scripts stops at the line 424, and does not run dbscan again','We are just selecting the star at the core of the cluster.',
+                    'The idea is to have a model of a how a small cluster would look like at the NSD',
+                    'Check the velocities and the CMD', 
+                   'Use this core sample to calculate the mass with spysea')))
 
 # %%
 # =============================================================================
