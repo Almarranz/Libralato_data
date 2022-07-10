@@ -22,8 +22,10 @@ from sklearn.neighbors import NearestNeighbors
 from sklearn.neighbors import KDTree
 from kneed import DataGenerator, KneeLocator
 from sklearn.preprocessing import StandardScaler
-
-
+import spisea
+from spisea import synthetic, evolution, atmospheres, reddening, ifmr
+from spisea.imf import imf, multiplicity
+import pandas as pd
 # %%
 
 rcParams.update({'xtick.major.pad': '7.0'})
@@ -52,13 +54,16 @@ plt.rcParams.update({'figure.max_open_warning': 0})# a warniing for matplot lib 
 #%% 
 catal='/Users/amartinez/Desktop/PhD/Arches_and_Quintuplet_Hosek/'
 pruebas='/Users/amartinez/Desktop/PhD/Arches_and_Quintuplet_Hosek/pruebas/'
+gns_ext = '/Users/amartinez/Desktop/PhD/Libralato_data/extinction_maps/'
+
 # =============================================================================
 # #Choose Arches or Quintuplet
 # =============================================================================
-choosen_cluster = 'Arches'
-# choosen_cluster = 'Quintuplet'
+choosen_cluster = 'Arches'#TODO
+# choosen_cluster = 'Quintuplet'#TODO
 
 center_arc = SkyCoord('17h45m50.4769267s', '-28d49m19.16770s', frame='icrs') if choosen_cluster =='Arches' else SkyCoord('17h46m15.13s', '-28d49m34.7s', frame='icrs')#Quintuplet
+# names=('Name','F127M','e_F127M','F153M','e_F153M','ra*','e_ra*','dec','e_dec','pm_ra*','e_pm_ra*','pm_dec','e_pm_dec','t0','n_epochs','dof','chi2_ra*','chi2_dec','Orig_name','Pclust')>
 arches=Table.read(catal + 'Arches_cat_H22_Pclust.fits') if choosen_cluster =='Arches' else Table.read(catal + 'Quintuplet_cat_H22_Pclust.fits')
 # %% Here we are going to trimm the data
 # Only data with valid color and uncertainties in pm smaller than 0.4
@@ -101,7 +106,24 @@ pm_gal = SkyCoord(ra  = ra ,dec = dec, pm_ra_cosdec = pmra, pm_dec = pmdec,frame
 l,b=arc_gal.l, arc_gal.b
 pml,pmb=pm_gal.pm_l_cosb, pm_gal.pm_b
 colorines = m127-m153
+# %Thi is for the extinction
 
+Aks_gns = pd.read_fwf(gns_ext + 'central.txt', sep =' ',header = None)
+
+# %
+AKs_np = Aks_gns.to_numpy()#TODO
+center = np.where(AKs_np[:,6]-AKs_np[:,8] > 1.3)#TODO
+AKs_center =AKs_np[center]#TODO
+# %
+gns_coord = SkyCoord(ra=AKs_center[:,0]*u.degree, dec=AKs_center[:,2]*u.degree)
+# %
+# %
+AKs_list1 =  np.arange(1.6,2.11,0.01)
+AKs_list = np.append(AKs_list1,0)#I added the 0 for the isochrones without extiction
+# clus_coord =  SkyCoord(ra=datos[:,5][colores_index[i][0]]*u.degree, dec=datos[:,6][colores_index[i][0]]*u.degree)
+# idx = clus_coord.match_to_catalog_sky(gns_coord)
+
+# %
 
 # %% Definition section
 def plotting(namex,namey,x,y,ind,**kwargs):
@@ -280,22 +302,12 @@ ax[2].invert_yaxis()
 plotting('m127-m153','m153',m127[colores_index[-1]]-m153[colores_index[-1]],m153[colores_index[-1]],2,color=colors[-1],zorder=1)
 
 
-# %%
-# =============================================================================
-# SECOND distance plot
-# here he are going to select a smaller subgroup of the data and check if the 
-# new kernel method of selecting epsilon we will get the same cluster, aprox
-# 
-# =============================================================================
-
 
 
 # %%
 # =============================================================================
 # Selecting reduced data
 # =============================================================================
-# Now that we can find a cluster, we are going to tryint again changing the distance, e.g. zooming in the data
-# so, we choose randomnly a cluster point and performn the clustering only on the points within a certain distance
 def plotting_h(namex,namey,x,y,ind,**kwargs):
     try:
         pl=ax[ind].hexbin(x.value,y.value,**kwargs)
@@ -330,7 +342,7 @@ clus_gal=arc_gal[colores_index[0]]
 pm_clus=pm_gal[colores_index[0]]
 m153_clus = m153[colores_index[0]]
 m127_clus = m127[colores_index[0]]
-
+arches_small = arches[colores_index[0]]
 # =============================================================================
 # # NOte to myself: pm_clus is a Skycoord pm obeject
 # # , that is not the same than a Skycoor coord objet. 
@@ -348,24 +360,28 @@ m127_clus = m127[colores_index[0]]
 rand = np.random.choice(np.arange(0,len(clus_gal)),1)
 rand_all = np.random.choice(np.arange(0,len(pml)),1)
 
-rand_clus = clus_gal[rand]
-rand_pm = pm_clus[rand]
-radio=2*u.arcsec
+
+
+
+radio=5*u.arcsec#TODO
 
 #Here we can decide if selected the reduced data set around a random value of the cluster.
 
 # =============================================================================
+# rand_clus = clus_gal[rand]
 # id_clus, id_arc, d2d,d3d = ap_coor.search_around_sky(rand_clus,arc_gal, radio)
 # dbs_clus, id_arc_dbs, d2d_db, d3d_db = ap_coor.search_around_sky(rand_clus,clus_gal, radio)
 # 
 # =============================================================================
 # or around just a random point in the data set, that can be part of the found cluster or not
 # This one is not ready jet
+
 # =============================================================================
+# rand_pm = pm_clus[rand]
 # id_clus, id_arc, d2d,d3d = ap_coor.search_around_sky(rand_all,arc_gal, radio)
 # dbs_clus, id_arc_dbs, d2d_db, d3d_db = ap_coor.search_around_sky(rand_clus,clus_gal, radio)
+# 
 # =============================================================================
-
 
 # or around the pre-dertermined coordenates for center of the cluster
 # frist one selects stars whithin a distance 'radio' around the centere of the cluster
@@ -385,6 +401,7 @@ plotting('l','b',arc_gal.l, arc_gal.b,1)
 plotting('l','b',clus_gal.l, clus_gal.b,1,color='orange')
 plotting('l','b',arc_gal.l[id_arc], arc_gal.b[id_arc],1,alpha=0.9,color='g')
 
+
 plotting('mul','mub',pm_gal.pm_l_cosb, pm_gal.pm_b,0)
 plotting('mul','mub',pm_clus.pm_l_cosb, pm_clus.pm_b,0)
 plotting('mul','mub',pml[id_arc], pmb[id_arc],0,alpha=0.1)
@@ -394,185 +411,259 @@ ax[0].invert_xaxis()
 plotting('m127-m153','m153',m127-m153, m153,2,zorder=1,alpha=0.01)
 plotting('m127-m153','m153',m127_clus-m153_clus, m153_clus,2,alpha=0.3,color='orange')
 plotting('m127-m153','m153',m127[id_arc]-m153[id_arc],m153[id_arc],2,alpha=0.8,color='g')
+# This line was only for checking I was selecting the right stars
+# plotting('m127-m153','m153',arches_small['F127M']-arches_small['F153M'],arches_small['F153M'],2,color='r',s=1)
 
 
 
-
+# %
 fig, ax = plt.subplots(1,3,figsize=(30,10))
 ax[1].set_title('THIS ONE,Radio = %s, Orange = %s'%(radio,len(dbs_clus)))
 # ax[0].set_title('%s, method: %s'%(choosen_cluster,method))
 ax[0].set_title('%s, std(mu_l,mu_b): %.3f, %.3f'%(choosen_cluster,
                                            np.std(pm_clus.pm_l_cosb[id_arc_dbs].value),
                                            np.std(pm_clus.pm_b[id_arc_dbs].value)))
-plotting('l','b',arc_gal.l, arc_gal.b,1,alpha=0.01,color='k')
-plotting('l','b',clus_gal.l[id_arc_dbs], clus_gal.b[id_arc_dbs],1,color='orange',alpha=0.3,zorder=3)
+ax[1].scatter(arc_gal.l, arc_gal.b,alpha=0.01,color='k')
+ax[1].scatter(clus_gal.l[id_arc_dbs], clus_gal.b[id_arc_dbs],color='orange',alpha=0.3,zorder=3)
+ax[1].set_xlabel('l(deg)',fontsize =30) 
+ax[1].set_ylabel('b(deg)',fontsize =30) 
 
-
-plotting('mul','mub',pm_gal.pm_l_cosb, pm_gal.pm_b,0,alpha=0.3)
-plotting('mul','mub',pm_clus.pm_l_cosb[id_arc_dbs], pm_clus.pm_b[id_arc_dbs],0,alpha=0.8)
+ax[0].scatter(pm_gal.pm_l_cosb, pm_gal.pm_b,alpha=0.3)
+ax[0].scatter(pm_clus.pm_l_cosb[id_arc_dbs], pm_clus.pm_b[id_arc_dbs],alpha=0.8)
+ax[0].set_xlabel(r'$\mathrm{\mu_{l} (mas\ yr^{-1})}$',fontsize =30) 
+ax[0].set_ylabel(r'$\mathrm{\mu_{b} (mas\ yr^{-1})}$',fontsize =30) 
 
 
 diff_color = max(m127_clus[id_arc_dbs].value-m153_clus[id_arc_dbs].value)-min(m127_clus[id_arc_dbs].value-m153_clus[id_arc_dbs].value)
 ax[2].set_title('diff color = %.3f, std_color=%.3f'%(diff_color,np.std(m127_clus[id_arc_dbs].value-m153_clus[id_arc_dbs].value)))
 plotting('m127-m153','m153',m127-m153, m153,2,zorder=1,alpha=0.1)
-plotting('m127-m153','m153',m127_clus[id_arc_dbs]-m153_clus[id_arc_dbs],m153_clus[id_arc_dbs],2,alpha=0.8)
+plotting('m127-m153','m153',m127_clus[id_arc_dbs]-m153_clus[id_arc_dbs],m153_clus[id_arc_dbs],2,alpha=0.8,s=100)
+
+good_pro = np.where(arches_small[id_arc_dbs]['Pclust']>0.60)#TODO
+print(len((arches_small['Pclust'][id_arc_dbs][good_pro])))
+plotting('m127-m153','m153',arches_small['F127M'][id_arc_dbs][good_pro]-arches_small['F153M'][id_arc_dbs][good_pro],
+         arches_small['F153M'][id_arc_dbs][good_pro],2,color = 'r',s=80,marker='x')
+ax[2].invert_yaxis()
+
 ax[2].invert_yaxis()
 
 
 ax[0].invert_xaxis()
 
-sys.exit('\n'.join(('The scripts stops at the line 424, and does not run dbscan again','We are just selecting the star at the core of the cluster.',
-                    'The idea is to have a model of a how a small cluster would look like at the NSD',
-                    'Check the velocities and the CMD', 
-                   'Use this core sample to calculate the mass with spysea')))
-
-# %%
 # =============================================================================
-# DBSCAN in reduced area
+# sys.exit('\n'.join(('The scripts stops at the line 424, and does not run dbscan again','We are just selecting the star at the core of the cluster.',
+#                     'The idea is to have a model of a how a small cluster would look like at the NSD',
+#                     'Check the velocities and the CMD', 
+#                    'Use this core sample to calculate the mass with spysea')))
+# 
 # =============================================================================
-def plotting(namex,namey,x,y,ind,**kwargs):
-
-    pl=ax[ind].scatter(x,y,**kwargs)
-    
-    try:
-        ax[ind].set_xlabel('%s(%s)'%(namex,x.unit)) # Set the axis label in the form "Variable description [units]"
-        ax[ind].set_ylabel('%s(%s)'%(namey, y.unit))
-    except:
-        ax[ind].set_xlabel('%s'%(namex)) 
-        ax[ind].set_ylabel('%s'%(namey))
-    if ind ==2:
-        ax[ind].invert_yaxis()
-    return pl
-
-area_l,area_b = arc_gal.l[id_arc],arc_gal.b[id_arc]
-area_pml,area_pmb = pml[id_arc], pmb[id_arc]
-area_m153,area_m127 = m153[id_arc],m127[id_arc]
-area_colorines = colorines[id_arc]
-samples_dist_area = 10
-if clustered_by =='all_color':
-    X_area=np.array([area_pml,area_pmb,area_l,area_b,area_colorines]).T 
-    X_stad_area =  StandardScaler().fit_transform(X_area)
-    
-    tree_area=KDTree(X_stad_area, leaf_size=2) 
-    dist_area, ind_area = tree_area.query(X_stad_area, k=samples_dist_area) 
-    d_KNN_area=sorted(dist_area[:,-1])#distance to the Kth neighbour
-
-elif clustered_by == 'all':
-    X_area = np.array([area_pml,area_pmb]).T
-    X_stad_area =  StandardScaler().fit_transform(X_area)
-    
-    tree_area=KDTree(X_stad_area, leaf_size=2) 
-    dist_area, ind_area = tree.query(X_stad_area, k=samples_dist_area) 
-    d_KNN_area=sorted(dist_area[:,-1])#distance to the Kth neighbour
-
-#here we generate the kernel simulated data 
-area_pml_kernel, area_pmb_kernel = gaussian_kde(area_pml), gaussian_kde(area_pmb)
-area_l_kernel, area_b_kernel = gaussian_kde(area_l), gaussian_kde(area_b)
-area_color_kernel = gaussian_kde(area_colorines)
-
-lst_d_KNN_sim_area = []
-for d in range(20):
-    mub_sim_area,  mul_sim_area =area_pmb_kernel.resample(len(area_pml)), area_pml_kernel.resample(len(area_pml))
-    l_sim_area, b_sim_area = area_l_kernel.resample(len(area_pml)), area_b_kernel.resample(len(area_pml))
-    color_sim_area = color_kernel.resample(len(area_pml))
-    if clustered_by == 'all_color':
-        X_sim_area=np.array([mul_sim_area[0],mub_sim_area[0],l_sim_area[0],b_sim_area[0],color_sim_area[0]]).T
-        X_stad_sim_area = StandardScaler().fit_transform(X_sim_area)
-        tree_sim_area =  KDTree(X_stad_sim_area, leaf_size=2)
-        
-        dist_sim_area, ind_sim_area = tree_sim_area.query(X_stad_sim_area, k=samples_dist_area) #DistNnce to the 1,2,3...k neighbour
-        d_KNN_sim_area=sorted(dist_sim_area[:,-1])#distance to the Kth neighbour
-        
-        lst_d_KNN_sim_area.append(min(d_KNN_sim_area))
-    elif clustered_by =='all':
-        X_sim_area=np.array([mul_sim_area[0],mub_sim_area[0],l_sim_area[0],b_sim_area[0]]).T
-        X_stad_sim_area = StandardScaler().fit_transform(X_sim_area)
-        tree_sim_area =  KDTree(X_stad_sim_area, leaf_size=2)
-        
-        dist_sim_area, ind_sim_area = tree_sim_area.query(X_stad_sim_area, k=samples_dist_area) #DistNnce to the 1,2,3...k neighbour
-        d_KNN_sim_area=sorted(dist_sim_area[:,-1])#distance to the Kth neighbour
-        
-        lst_d_KNN_sim_area.append(min(d_KNN_sim_area))
-
-d_KNN_sim_av_area = np.mean(lst_d_KNN_sim_area)
-
-fig, ax = plt.subplots(1,1,figsize=(10,10))
-# ax[0].set_title('Sub_sec_%s_%s'%(col[colum],row[ro]))
-# ax[0].plot(np.arange(0,len(datos),1),d_KNN,linewidth=1,color ='k')
-# ax[0].plot(np.arange(0,len(datos),1),d_KNN_sim, color = 'r')
-
-# # ax.legend(['knee=%s, min=%s, eps=%s, Dim.=%s'%(round(kneedle.elbow_y, 3),round(min(d_KNN),2),round(epsilon,2),len(X[0]))])
-# ax[0].set_xlabel('Point') 
-# ax[0].set_ylabel('%s-NN distance'%(samples)) 
-ax.set_title('Number of points = %s '%(len(area_pml)))
-ax.hist(d_KNN_area,bins ='auto',histtype ='step',color = 'k')
-ax.hist(d_KNN_sim_area,bins ='auto',histtype ='step',color = 'r')
-ax.set_xlabel('%s-NN distance'%(samples_dist_area)) 
-
-eps_av_area = round((min(d_KNN_area)+d_KNN_sim_av_area)/2,3)
-texto = '\n'.join(('min real d_KNN_area = %s'%(round(min(d_KNN_area),3)),
-                    'min sim d_KNN_area =%s'%(round(d_KNN_sim_av_area,3)),'average = %s'%(eps_av_area)))
-
-
-props = dict(boxstyle='round', facecolor='w', alpha=0.5)
-# place a text box in upper left in axes coords
-ax.text(0.65, 0.25, texto, transform=ax.transAxes, fontsize=20,
-    verticalalignment='top', bbox=props)
-
-ax.set_ylabel('N') 
-
-
-
-epsilon = eps_av_area
-clustering_area = DBSCAN(eps=epsilon, min_samples=samples_dist_area).fit(X_stad_area)
-# =============================================================================
-# Here ser dbscan manually till you get the same fucking cluster you got using the whole set
-# =============================================================================
-# clustering_area = DBSCAN(eps=epsilon_area, min_samples=samples_dist_area).fit(X_stad_area)
-
-
-l_area = clustering_area.labels_
-
-loop_area = 0
-
-n_clusters_area = len(set(l_area)) - (1 if -1 in l_area else 0)
-n_noise_area=list(l_area).count(-1)
-
-u_labels_area = set(l_area)
-colors_area=[plt.cm.rainbow(i) for i in np.linspace(0,1,len(set(l_area)))]# Returns a color for each cluster. Each color consists in four number, RGBA, red, green, blue and alpha. Full opacity black would be then 0,0,0,1
-
-
-for k in range(len(colors_area)): #give noise color black with opacity 0.1
-    if list(u_labels_area)[k] == -1:
-        colors_area[k]=[0,0,0,0.1]
-        
-colores_index_area=[]      
-for c in u_labels_area:
-    cl_color_area=np.where(l_area==c)
-    colores_index_area.append(cl_color_area)
-
-
-fig, ax = plt.subplots(1,3,figsize=(30,10))
-
-ax[0].invert_xaxis()
 # %
-elements_in_cluster_area=[]
-for i in range(len(set(l_area))-1):
-    elements_in_cluster_area.append(len(area_pml[colores_index_area[i]]))
-    plotting('mul','mub',area_pml[colores_index_area[i]], area_pmb[colores_index_area[i]],0, color=colors_area[i],zorder=3,alpha=0.1)
-    plotting('l','b',area_l[colores_index_area[i]], area_b[colores_index_area[i]],1, color=colors_area[i],zorder=3,alpha=0.3)
-    plotting('m127-m153','m153',area_colorines[colores_index_area[i]],area_m153[colores_index_area[i]],2)
-    print(len(pml[colores_index_area[i]]))
-plotting('m127-m153','m153',m127-m153, m153,2,zorder=1,alpha=0.01)
-ax[1].set_title('%s. Larger clsuter = %s '%(choosen_cluster, max(elements_in_cluster_area)))
-plotting('mul','mub',pml[colores_index[-1]], pmb[colores_index[-1]],0, color=colors[-1],zorder=1)
-# plotting_h('mul','mub',X[:,0][colores_index[-1]], X[:,1][colores_index[-1]],0, color=colors[-1],zorder=1)
-plotting('l','b',l[colores_index[-1]], b[colores_index[-1]],1, color=colors[-1],zorder=1,alpha=0.01)
-ax[2].invert_yaxis()
 
 # %%
+# =============================================================================
+# Here we are going to plot the core cluster, figure out the mass and fit an isochrone.
+# Since Spisea does not have the filter used by Libralato et al, we have to match the whole catalog 
+# in order to be able to plot the cluster and also the backgroun stars
+# =============================================================================
+color_de_cluster = 'lime'
+
+fig, ax = plt.subplots(1,3, figsize=(30,10))
+prop = dict(boxstyle='round', facecolor=color_de_cluster , alpha=0.2)
+ax[1].text(0.10, 0.95, 'aprox cluster radio = %s" \n cluster stars = %s '%(radio,len(id_arc_dbs)), transform=ax[1].transAxes, fontsize=30,verticalalignment='top', bbox=prop)
+
+mul_mean_all, mub_mean_all = np.mean(pm_gal.pm_l_cosb),np.mean(pm_gal.pm_b)
+mul_mean, mub_mean = np.mean(pm_clus.pm_l_cosb[id_arc_dbs]),np.mean(pm_clus.pm_b[id_arc_dbs])
+
+mul_sig_all, mub_sig_all = np.std(pm_gal.pm_l_cosb),np.std(pm_gal.pm_b)
+mul_sig, mub_sig = np.std(pm_clus.pm_l_cosb[id_arc_dbs]),np.std(pm_clus.pm_b[id_arc_dbs])
+
+vel_txt = '\n'.join(('mul = %s, mub = %s'%(round(mul_mean.value,3), round(mub_mean.value,3)),
+                     '$\sigma_{mul}$ = %s, $\sigma_{mub}$ = %s'%(round(mul_sig.value,3), round(mub_sig.value,3)))) 
+vel_txt_all = '\n'.join(('mul = %s, mub = %s'%(round(mul_mean_all.value,3), round(mub_mean_all.value,3)),
+                     '$\sigma_{mul}$ = %s, $\sigma_{mub}$ = %s'%(round(mul_sig_all.value,3), round(mub_sig_all.value,3))))
+
+propiedades = dict(boxstyle='round', facecolor=color_de_cluster , alpha=0.3)
+propiedades_all = dict(boxstyle='round', facecolor=colors[-1], alpha=0.1)
+ax[0].text(0.05, 0.95, vel_txt, transform=ax[0].transAxes, fontsize=30,
+    verticalalignment='top', bbox=propiedades)
+ax[0].text(0.05, 0.15, vel_txt_all, transform=ax[0].transAxes, fontsize=20,
+    verticalalignment='top', bbox=propiedades_all)
 
 
 
 
 
+ax[0].scatter(pm_gal.pm_l_cosb, pm_gal.pm_b,color = 'k',alpha = 0.03)
+ax[0].scatter(pm_clus.pm_l_cosb[id_arc_dbs], pm_clus.pm_b[id_arc_dbs],color = color_de_cluster,alpha = 1)
+ax[0].set_xlabel(r'$\mathrm{\mu_{l} (mas\ yr^{-1})}$',fontsize =30) 
+ax[0].set_ylabel(r'$\mathrm{\mu_{b} (mas\ yr^{-1})}$',fontsize =30) 
+ax[0].invert_xaxis()
+
+
+
+prop = dict(boxstyle='round', facecolor=color_de_cluster , alpha=0.2)
+ax[1].text(0.10, 0.95, 'aprox cluster radio = %s" \n cluster stars = %s '%(radio,len(id_arc_dbs)), transform=ax[1].transAxes, fontsize=30,verticalalignment='top', bbox=prop)
+ax[1].scatter(arc_gal.l.value, arc_gal.b.value,alpha=0.01,color='k')
+ax[1].scatter(clus_gal[id_arc_dbs].l,clus_gal[id_arc_dbs].b,alpha=1,color=color_de_cluster)
+
+
+ax[1].set_xlabel('l(deg)',fontsize =30) 
+ax[1].set_ylabel('b(deg)',fontsize =30) 
+
+# clus_coord =  SkyCoord(ra=datos[:,5][colores_index[i][0]]*u.degree, dec=datos[:,6][colores_index[i][0]]*u.degree)
+# idx = clus_coord.match_to_catalog_sky(gns_coord)
+
+ax[2].scatter(m127-m153, m153,alpha=0.01,color='k')
+ax[2].scatter(m127_clus[id_arc_dbs]-m153_clus[id_arc_dbs],m153_clus[id_arc_dbs],alpha=1,color=color_de_cluster)
+ax[2].set_xlabel('f127m-f153m',fontsize =30) 
+ax[2].set_ylabel('f153m',fontsize =30) 
+ax[2].invert_yaxis()
+
+# %
+
+
+print(arches.columns)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+gns_coord_gal = gns_coord.galactic
+# this returns 3 values: 0-> the index, 1-> 2d distance, 2->3s distanc3(unuseful in this case)
+common_stars = clus_gal[id_arc_dbs].match_to_catalog_sky(gns_coord_gal)
+AKs_cluster = AKs_center[common_stars[0]] 
+is_match = np.where(common_stars[1]<1*u.arcsec)
+gns_match = gns_coord_gal[common_stars[0][is_match]]
+AKs_cluster = AKs_cluster[is_match]
+print(common_stars)
+
+
+
+ax[1].scatter(gns_match.l,gns_match.b,alpha=1,color='r',s = 1)
+# ax[1].set_xlim(0.122,0.125)
+# ax[1].set_ylim(0.015,0.020)
+# %
+# =============================================================================
+# Here we create the isochrone with spisea
+# =============================================================================
+
+ext_cluster = []
+for ext in range(len(AKs_cluster)):
+    ext_cluster.append(float(AKs_cluster[ext,18]))
+# print(np.mean(ext_cluster),np.std(ext_cluster))
+
+iso_dir = '/Users/amartinez/Desktop/PhD/Libralato_data/nsd_isochrones/'
+
+dist = 8000 # distance in parsec
+metallicity = 0.30 # Metallicity in [M/H]
+# # logAge_600 = np.log10(0.61*10**9.)
+if choosen_cluster =='Arches':
+    logAge = np.log10(0.0025*10**9.)#TODO
+elif choosen_cluster == 'Quintuplet':
+    logAge = np.log10(0.0048*10**9.)
+
+evo_model = evolution.MISTv1() 
+atm_func = atmospheres.get_merged_atmosphere
+red_law = reddening.RedLawNoguerasLara18()
+filt_list = ['wfc3,ir,f127m', 'wfc3,ir,f153m']
+
+iso_dir = '/Users/amartinez/Desktop/PhD/Arches_and_Quintuplet_Hosek/iso_dir/'
+# print(iso.points.columns)
+# names=('L','Teff','R','mass','logg','isWR','mass_current','phase','m_hst_f127m','m_hst_f153m')>
+iso =  synthetic.IsochronePhot(logAge, np.mean(ext_cluster), dist, metallicity=metallicity,
+                                evo_model=evo_model, atm_func=atm_func,
+                                red_law=red_law, filters=filt_list,
+                                    iso_dir=iso_dir)
+
+imf_multi = multiplicity.MultiplicityUnresolved()
+
+# # Make IMF object; we'll use a broken power law with the parameters from Kroupa+01
+
+# # NOTE: when defining the power law slope for each segment of the IMF, we define
+# # the entire exponent, including the negative sign. For example, if dN/dm $\propto$ m^-alpha,
+# # then you would use the value "-2.3" to specify an IMF with alpha = 2.3. 
+
+massLimits = np.array([0.2, 0.5, 1, 120]) # Define boundaries of each mass segement
+powers = np.array([-1.3, -2.3, -2.3]) # Power law slope associated with each mass segment
+# my_imf = imf.IMF_broken_powerlaw(massLimits, powers, imf_multi)
+my_imf = imf.IMF_broken_powerlaw(massLimits, powers,multiplicity = None)
+
+ax[2].plot(iso.points['m_hst_f127m'] - iso.points['m_hst_f153m'], 
+                    iso.points['m_hst_f153m'], 'b-',  label='%.2f Myr'%(10**logAge/1e6),alpha =0.5)
+ax[2].legend()
+ax[2].set_ylim(max(m153_clus[id_arc_dbs].value),min(m153_clus[id_arc_dbs].value)-0.5)
+
+M_mass = 1*10**4.
+# mass = 1 * mass
+dAks = round(np.std(ext_cluster),3)
+cluster = synthetic.ResolvedClusterDiffRedden(iso, my_imf, M_mass,0.05)
+# cluster_ndiff = synthetic.ResolvedCluster(iso, my_imf, mass)
+clus = cluster.star_systems
+# clus_ndiff = cluster_ndiff.star_systems
+ax[2].scatter(clus['m_hst_f127m']-clus['m_hst_f153m'],clus['m_hst_f153m'],color = 'r',alpha=0.2)
+
+# %
+mag_127, mag_153 = m127_clus[id_arc_dbs], m153_clus[id_arc_dbs]
+max_stars = len(mag_127)*2
+porcentaje = 0.0
+M_mass = 1*10**4.
+loop =0
+while  max_stars > len(mag_127)+0.3*len(mag_127):
+    
+    # mass = 0.8*10**4.
+    mass = M_mass - 0.01*porcentaje*M_mass
+    # dAks = std_AKs[0]
+    dAks = 0.05
+    loop += 1
+    print(loop)
+    cluster = synthetic.ResolvedClusterDiffRedden(iso, my_imf, mass,dAks)
+    cluster_ndiff = synthetic.ResolvedCluster(iso, my_imf, mass)
+    clus = cluster.star_systems
+    clus_ndiff = cluster_ndiff.star_systems
+    
+    max_mass = np.where((clus_ndiff['m_hst_f153m']>min(mag_153.value))&(clus_ndiff['m_hst_f153m']<max(mag_153.value)))
+    
+    max_stars = len(clus_ndiff['m_hst_f153m'][max_mass])
+    porcentaje +=1
+
+fig, ax = plt.subplots(1,2,figsize=(20,10))
+ax[0].hist(clus['mass'],bins = 'auto',color ='k')#, label ='Cluster Mass = %.0f$M_{\odot}$ \n virial mass = %.0f'%(mass,M_clus.value) )
+ax[0].set_xlabel('$(M_{\odot})$')
+ax[0].set_ylabel('$N$')
+   
+   
+# ax[1].scatter(clus['m_hawki_H']-clus['m_hawki_Ks'],clus['m_hawki_Ks'],color = 'slategray',alpha=0.7)
+ax[1].scatter( m127-m153, m153,alpha=0.01,color='k',s=50)
+ax[1].invert_yaxis()
+ax[1].scatter(clus_ndiff['m_hst_f127m']-clus_ndiff['m_hst_f153m'],clus_ndiff['m_hst_f153m'],color =color_de_cluster,s=100)
+props = dict(boxstyle='round', facecolor='w', alpha=0.5)
+
+ax[1].text(0.55, 0.95, 'L mass = %.0f $M_{\odot}$'%(mass), transform=ax[1].transAxes, fontsize=25,
+    verticalalignment='top', bbox=props)
+ax[1].set_xlabel('f127m-f153m')
+ax[1].set_ylabel('f153m')
+plt.show()
+
+# %%
+print(mag_153)
+    
+    
+    
+    
+    
+    
+    
+    
+    
