@@ -169,8 +169,8 @@ plotting_h('m127-m153','m153',m127-m153,m153,2,norm=matplotlib.colors.LogNorm())
 # =============================================================================
 # Generated part
 # =============================================================================
-# clustered_by = 'all_color'
-clustered_by = 'all'
+clustered_by = 'all_color'#TODO
+# clustered_by = 'all'#TODO
 
     
 
@@ -363,7 +363,7 @@ rand_all = np.random.choice(np.arange(0,len(pml)),1)
 
 
 
-radio=5*u.arcsec#TODO
+radio=2*u.arcsec#TODO
 
 #Here we can decide if selected the reduced data set around a random value of the cluster.
 
@@ -459,7 +459,7 @@ ax[0].invert_xaxis()
 # =============================================================================
 # %
 
-# %%
+# %
 # =============================================================================
 # Here we are going to plot the core cluster, figure out the mass and fit an isochrone.
 # Since Spisea does not have the filter used by Libralato et al, we have to match the whole catalog 
@@ -614,7 +614,13 @@ clus = cluster.star_systems
 # clus_ndiff = cluster_ndiff.star_systems
 ax[2].scatter(clus['m_hst_f127m']-clus['m_hst_f153m'],clus['m_hst_f153m'],color = 'r',alpha=0.2)
 
-# %
+props = dict(boxstyle='round', facecolor='k', alpha=0.3)
+txt_AKs = '\n'.join(('AKs = %.2f'%(np.mean(ext_cluster)),
+                     'std_AKs = %.2f'%(np.std(ext_cluster))))
+ax[2].text(0.65, 0.50, txt_AKs, transform=ax[2].transAxes, fontsize=20,
+    verticalalignment='top', bbox=props)
+
+# %%
 mag_127, mag_153 = m127_clus[id_arc_dbs], m153_clus[id_arc_dbs]
 max_stars = len(mag_127)*2
 porcentaje = 0.0
