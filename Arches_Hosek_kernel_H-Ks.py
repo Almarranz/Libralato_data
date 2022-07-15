@@ -287,7 +287,7 @@ is_match = np.where(d2d<1*u.arcsec)
 hos_core_match=hos_core[is_match]
 gns_core_match = AKs_center[idi[is_match]]
 
-#%%
+#%
 # =============================================================================
 # Here you can trim the core cluster by color
 # =============================================================================
@@ -319,7 +319,8 @@ ax[0].text(0.05, 0.95, vel_txt, transform=ax[0].transAxes, fontsize=30,
     verticalalignment='top', bbox=propiedades)
 ax[0].text(0.05, 0.15, vel_txt_all, transform=ax[0].transAxes, fontsize=20,
     verticalalignment='top', bbox=propiedades_all)
-
+ax[0].set_xlabel(r'$\mathrm{\mu_{l} (mas\ yr^{-1})}$',fontsize =30) 
+ax[0].set_ylabel(r'$\mathrm{\mu_{b} (mas\ yr^{-1})}$',fontsize =30) 
 
 ax[1].set_title('%s'%(choosen_cluster))
 ax[1].scatter(hos_core_match['ra_abs'], hos_core_match['dec_abs'])
@@ -330,7 +331,8 @@ prop_1 = dict(boxstyle='round', facecolor='lime' , alpha=0.2)
 ax[1].text(0.15, 0.95, 'aprox cluster radio = %s"\n cluster stars = %s '%(round(radio.to(u.arcsec).value,2),len(gns_core_match_trim)), transform=ax[1].transAxes, fontsize=30,
                                             verticalalignment='top', bbox=prop_1)
                     
-
+ax[1].set_xlabel('ra (deg)',fontsize =30) 
+ax[1].set_ylabel('dec (deg)',fontsize =30) 
 # ax[2].scatter(hos_core_match['F127M']-hos_core_match['F153M'], hos_core_match['F153M'],zorder =3)
 # ax[2].scatter(arches['F127M']-arches['F153M'], arches['F153M'],zorder=1)
 ax[2].set_title('Stars trimmied by color at %s$\sigma$'%(sig))
@@ -339,7 +341,8 @@ ax[2].scatter(gns_core_match_trim[:,6]-gns_core_match_trim[:,8],gns_core_match_t
 ax[2].set_xlim(1.2,4)
 ax[2].invert_yaxis()
 # %
-
+ax[2].set_xlabel('H - Ks',fontsize =30) 
+ax[2].set_ylabel('Ks',fontsize =30)
 
 ext_cluster = []
 for ext in range(len(gns_core_match_trim[:,18])):
@@ -406,6 +409,56 @@ ax[2].scatter(clus_ndiff['m_hawki_H']-clus_ndiff['m_hawki_Ks'],clus_ndiff['m_haw
 
 
 # %%
+# =============================================================================
+# Here we are going to stimate the mass of the cluster using spisea
+# =============================================================================
+# %
+H_mag, K_mag = gns_core_, m153_clus[id_arc_dbs]
+max_stars = len(mag_127)*2
+porcentaje = 0.0
+M_mass = 1*10**4.
+loop =0
+while  max_stars > len(mag_127)+0.3*len(mag_127):
+    
+    # mass = 0.8*10**4.
+    mass = M_mass - 0.01*porcentaje*M_mass
+    # dAks = std_AKs[0]
+    dAks = 0.05
+    loop += 1
+    print(loop)
+    cluster = synthetic.ResolvedClusterDiffRedden(iso, my_imf, mass,dAks)
+    cluster_ndiff = synthetic.ResolvedCluster(iso, my_imf, mass)
+    clus = cluster.star_systems
+    clus_ndiff = cluster_ndiff.star_systems
+    
+    max_mass = np.where((clus_ndiff['m_hst_f153m']>min(mag_153.value))&(clus_ndiff['m_hst_f153m']<max(mag_153.value)))
+    
+    max_stars = len(clus_ndiff['m_hst_f153m'][max_mass])
+    porcentaje +=1
+
+
+fig, ax = plt.subplots(1,2,figsize=(20,10))
+ax[0].hist(clus['mass'],bins = 'auto',color ='k')#, label ='Cluster Mass = %.0f$M_{\odot}$ \n virial mass = %.0f'%(mass,M_clus.value) )
+ax[0].set_xlabel('$(M_{\odot})$')
+ax[0].set_ylabel('$N$')
+
+
+ax[1].scatter(clus['m_hawki_H']-clus['m_hawki_Ks'],clus['m_hawki_Ks'],color = 'slategray',alpha=0.7)
+ax[1].scatter( gns_core_match_trim[:,6]-gns_core_match_trim[:,8],gns_core_match_trim[:,6],zorder =3, color = 'lime')
+ax[1].invert_yaxis()
+# ax[1].scatter(clus_ndiff['m_hst_f127m']-clus_ndiff['m_hst_f153m'],clus_ndiff['m_hst_f153m'],color =color_de_cluster,s=100)
+props = dict(boxstyle='round', facecolor='w', alpha=0.5)
+
+ax[1].text(0.55, 0.95, 'L mass = %.0f $M_{\odot}$'%(mass), transform=ax[1].transAxes, fontsize=25,
+    verticalalignment='top', bbox=props)
+ax[1].set_xlabel('H-Ks')
+ax[1].set_ylabel('Ks')
+plt.show()
+
+
+
+
+
 
 
 
