@@ -90,6 +90,10 @@ if section == 'All':
 else:
     catal=np.loadtxt(results + 'sec_%s_%smatch_GNS_and_%s_refined_galactic.txt'%(section,pre,name))
 # %%
+ban_cluster = np.loadtxt(cata +'ban_cluster.txt')
+ban_coord = SkyCoord(ra = ban_cluster[:,0]*u.deg, dec = ban_cluster[:,1]*u.deg)
+print(ban_coord.galactic)
+# %%
 # Definition of center can: m139 - Ks(libralato and GNS) or H - Ks(GNS and GNS)
 center_definition='G_G'#this variable can be L_G or G_G
 if center_definition =='L_G':
@@ -178,12 +182,16 @@ clus_num = 0
 # x_box = 3
 
 
-clustered_by = 'all'
+clustered_by = 'all_color'
+# clustered_by = 'all'
 
 
-xy_box_lst = [[3,1],[4,2],[6,2]]
+# xy_box_lst = [[3,1],[4,2],[6,2]]
+# samples_lst =[10,8,7,5]
 
-samples_lst =[10,8,7,5]
+xy_box_lst = [[4,2]]
+samples_lst =[7]
+
 
 # %
 for elegant_loop in range(3):
@@ -574,12 +582,24 @@ for elegant_loop in range(3):
                             clus_array = np.c_[clus_array,np.full(len(clus_array),AKs_clus),
                                                 np.full(len(clus_array),std_AKs),
                                                 np.full(len(clus_array),round(rad.to(u.arcsec).value,2)),np.full(len(clus_array),clus_num)]
+                            
+                            
+# =============================================================================
+#                             Here we are going to plot the cluster in Ra,Dec space,
+#                             together with Ban´s putative cluster and see if some of the new putative
+#                             new cluster is somewhere neat it
+# =============================================================================
+                            fig, ax = plt.subplots(1,1,figsize=(10,10))
+                            ax.scatter(catal[:,0],catal[:,1], color ='k',alpha=0.1)
+                            ax.scatter(clus_array[:,0],clus_array[:,1],color =color_de_cluster,s=80)
+                            ax.scatter(ban_coord.ra, ban_coord.dec,color ='r',s =80,marker ='x')
+                            plt.show()
                 # =============================================================================
                 #             Here it compare the cluster you want to save wiith the rest of the 
                 #             saved cluster if repited, it saves in the same cluster 
                 #             
                 # =============================================================================
-                              
+                             
                             frase = 'Do you want to save this cluster?'
                             print('\n'.join((len(frase)*'π',frase+'\n("yes" or "no")',len(frase)*'π')))
                             save_clus = input('Awnser:')
