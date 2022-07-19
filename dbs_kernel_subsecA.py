@@ -184,12 +184,12 @@ clus_num = 0
 clustered_by_list =['all_color','all']
 
 # samples_dist = 5
-# x_box_lst = [1,2,3]
-# samples_lst =[8,7,6]
-x_box_lst = [3]
-samples_lst =[7]
+x_box_lst = [1,2,3]
+samples_lst =[8,7,6]
+# x_box_lst = [3]
+# samples_lst =[7]
 for clus_lista in clustered_by_list:
-    cluster_by = clus_lista
+    clustered_by = clus_lista
     for x_box in x_box_lst:
         step = dist_pos /x_box
         step_neg =dist_neg/x_box
@@ -636,86 +636,7 @@ for clus_lista in clustered_by_list:
                                     # for clust_text in range(len(read_txt)):
                                     #     print(read_txt[clust_text])
                                     
-                                    
-                            mul, mub= clus_array[:,4],clus_array[:,5]
-                            J, H, K = clus_array[:,6],clus_array[:,7],clus_array[:,8]
-                            AKs_clus, std_AKs = clus_array[:,11],clus_array[:,12]
-                            radio_clus,ID = clus_array[:,13],clus_array[:,14]
-                            
-                            sig_mul, sig_mub = np.std(mul), np.std(mub)
-    
-                            sig_mu = np.mean([sig_mul, sig_mub])
-                            theta = radio_clus[0]*u.arcsec.to(u.rad)
-                            dist = 8200*u.parsec
-                            r_eff = theta*dist
-                            rh = r_eff
-    
-                            sig_mu2 = (3*((sig_mu))**2*40)*(u.km/u.second)#0.0625 is std**2 (0.25**2)
-    
-                            mu_pc_myr = sig_mu2.to(u.pc/u.Myr)
-                            G = 0.0045*(u.pc**3)*(u.Myr**-2)*(u.M_sun**-1)
-    
-                            M_clus = 0.4*(rh * mu_pc_myr**2)/G
-                            print(M_clus)
-    
-                            # Now we are define the crossing time according with Mark Gieles et al. 2011
-                            # We will discard the crossing time right now
-    
-                            # Tcr ≡  10*(r_eff**3/(GM))**0.5
-                            # Tcr = 10*np.sqrt((r_eff**3)/(G*M_clus))
-                            # print(Tcr)
-                            # PI_2 = age2/Tcr
-                            # print(PI_2)
-                            max_stars = len(K)**2
-                            porcentaje = 0
-                            try:
-                                while  max_stars > len(K)+0.3*len(K):
-        
-                                    # mass = 0.8*10**4.
-                                    mass = M_clus.value -0.05*porcentaje*M_clus.value
-                                    # dAks = std_AKs[0]
-                                    dAks = 0.05
-        
-                                    cluster = synthetic.ResolvedClusterDiffRedden(iso, my_imf, mass,dAks)
-                                    cluster_ndiff = synthetic.ResolvedCluster(iso, my_imf, mass)
-                                    clus = cluster.star_systems
-                                    clus_ndiff = cluster_ndiff.star_systems
-                                    
-                                    max_mass = np.where((clus_ndiff['m_hawki_Ks']>min(K))&(clus_ndiff['m_hawki_Ks']<max(K)))
-                                    
-                                    max_stars = len(clus_ndiff['m_hawki_Ks'][max_mass])
-                                    porcentaje +=1
-        
-                                fig, ax = plt.subplots(1,2,figsize=(20,10))
-                                ax[0].hist(clus['mass'],bins = 'auto',color ='k')#, label ='Cluster Mass = %.0f$M_{\odot}$ \n virial mass = %.0f'%(mass,M_clus.value) )
-                                ax[0].set_xlabel('$(M_{\odot})$')
-                                ax[0].set_ylabel('$N$')
-                                ax[0].set_title('Cluster %.0f, Radio = %.2f"'%(ID[0],radio_clus[0]))
-        
-                                # ax[1].scatter(clus['m_hawki_H']-clus['m_hawki_Ks'],clus['m_hawki_Ks'],color = 'slategray',alpha=0.7)
-                                ax[1].scatter(clus_ndiff['m_hawki_H']-clus_ndiff['m_hawki_Ks'],clus_ndiff['m_hawki_Ks'],color = 'k',alpha=0.6,s=50)
-                                ax[1].invert_yaxis()
-                                ax[1].scatter(H-K,K,color ='lime',s=100)
-                                props = dict(boxstyle='round', facecolor='w', alpha=0.5)
-        
-                                ax[1].text(0.55, 0.95, 'L mass = %.0f $M_{\odot}$ \nV mass = %.0f $M_{\odot}$'%(mass, M_clus.value), transform=ax[1].transAxes, fontsize=25,
-                                    verticalalignment='top', bbox=props)
-                                ax[1].set_xlabel('H-Ks')
-                                ax[1].set_ylabel('Ks')
-                                ax[1].set_title('[$\sigma_{mul}$= %.3f, $\sigma_{mub}$= %.3f]'%(sig_mul,sig_mub))
-                                plt.show()
-                                plt.ion()
-                                frase1 ='Still want to save it? ("y" or "n")'
-                                
-                                save_clus_still = 'y'
-                                print(len(frase1)*'?'+'\n'+frase1+'\n'+'?'*len(frase1))
-                                save_clus_still = input('Awnser:')
-                                if save_clus_still =='n':
-                                    os.remove(pruebas + 'Sec_%s_clus/'%(section) +'cluster_num%s_%s_knn%s_area%.2f/'%(clus_num-1,i,samples_dist,area)+
-                                               'cluster%s_%.0f_%.0f_knn_%s_area_%.2f.txt'%(clus_num-1,ic/0.5,jr/0.5,samples_dist,area))
-                            except:
-                                print('Failed to find an equivalent cluster')
-                                pass
+                          
                         elif save_clus =='stop':
                             frase = 'Do you want to copy the folder with the clusters into the morralla directory?\n("yes" or "no")'
                             print('\n'.join((len(frase)*'',frase,len(frase)*'')))
@@ -745,13 +666,6 @@ else:
 sys.exit('Chao')
 
 
-# %%
-# mul,mub, J,H,K,AKs_clus, std_AKs, radio_clus,ID =clus_array[:,[4,5,6,7,8,11,12,13,14]]
-mul, mub= clus_array[:,4],clus_array[:,5]
-J, H, K = clus_array[:,6],clus_array[:,7],clus_array[:,8]
-AKs_clus, std_AKs = clus_array[:,11],clus_array[:,12]
-radio_clus,ID = clus_array[:,13],clus_array[:,14]
-print(mul)
 
 
 
