@@ -46,8 +46,7 @@ pruebas='/Users/amartinez/Desktop/PhD/Libralato_data/pruebas/'
 results='/Users/amartinez/Desktop/PhD/Libralato_data/results/'
 gns_ext = '/Users/amartinez/Desktop/PhD/Libralato_data/extinction_maps/'
 
-# folder = '/Users/amartinez/Desktop/morralla/Sec_A_all_color_good_VvsL_mass/'
-folder = '/Users/amartinez/Desktop/morralla/Sec_A_all_good_VvsL_mass/'
+
 
 # %%
 name='WFC3IR'
@@ -115,12 +114,25 @@ gns_coord = SkyCoord(ra=AKs_center[:,0]*u.degree, dec=AKs_center[:,2]*u.degree)
 AKs_list1 =  np.arange(1.6,2.11,0.01)
 AKs_list = np.append(AKs_list1,0)#I added the 0 for the isochrones without extiction
 # %%
-for clus_f in glob.glob(folder +'cluster_num3_0_knn7_area2.12'):
+# folder = '/Users/amartinez/Desktop/morralla/Sec_A_all_color_good_VvsL_mass/'
+section_folder = '/Users/amartinez/Desktop/morralla/Sec_A_at_2022-07-19_all_and_allcolor/'
+
+plots =0
+for folder in sorted(glob.glob(section_folder + 'cluster_num*'),key = os.path.getmtime):
+   print(folder)
+   for cluster_f in sorted(glob.glob(folder + '/cluster*.txt'),key = os.path.getmtime):
+       print(cluster_f)
+   plots +=1
+   print(30*'+')
+print(plots)
+# %%
+plots =0
+for folder in sorted(glob.glob(section_folder + 'cluster_num*'),key = os.path.getmtime):
+    print(folder)
     
-    print(clus_f)
     all_clus = []
     cluster_len =[]
-    for file in glob.glob(clus_f + '/cluster*'):
+    for file in glob.glob(folder + '/cluster*'):
         # ra, dec, l, b, pml, pmb,J, H, Ks,x, y, AKs_mean, dAks_mean, radio("),cluster_ID
         print(file)
         cluster = np.loadtxt(file)
@@ -137,8 +149,9 @@ for clus_f in glob.glob(folder +'cluster_num3_0_knn7_area2.12'):
         print('some stars added')
     else:
         print('all cluster are the same')
-
+    plots += 1
     fig, ax = plt.subplots(1,3,figsize=(30,10))
+    ax[0].set_title('Plot #%s'%(plots))
     ax[0].scatter(catal[:,-6],catal[:,-5],color = 'k', alpha = 0.1, zorder=1)
     ax[0].scatter(cluster_unique[:,4],cluster_unique[:,5], color = color_de_cluster, zorder=3,s=100) 
     ax[0].set_xlim(-10,10)
@@ -180,12 +193,18 @@ for clus_f in glob.glob(folder +'cluster_num3_0_knn7_area2.12'):
     ax[1].text(0.15, 0.95, 'aprox cluster radio = %s"\n cluster stars = %s '%(round(rad.to(u.arcsec).value,2),len(cluster_unique)), transform=ax[1].transAxes, fontsize=30,
                             verticalalignment='top', bbox=prop)
     
-    ax[1].scatter(catal[:,7][group_md],catal[:,8][group_md], color='red',s=50,zorder=1,marker='x',alpha = 0.3)
+    # ax[1].scatter(catal[:,7][group_md],catal[:,8][group_md], color='red',s=50,zorder=1,marker='x',alpha = 0.3)
 
-    ax[1].scatter(catal[:,7],catal[:,8],color ='k',alpha = 0.1)
-    ax[1].scatter(cluster_unique[:,9], cluster_unique[:,10], color = color_de_cluster,s=100)
-    ax[1].set_xlabel('x',fontsize =30) 
-    ax[1].set_ylabel('y',fontsize =30) 
+    # ax[1].scatter(catal[:,7],catal[:,8],color ='k',alpha = 0.1)
+    # ax[1].scatter(cluster_unique[:,9], cluster_unique[:,10], color = color_de_cluster,s=100)
+    # ax[1].set_xlabel('x',fontsize =30) 
+    # ax[1].set_ylabel('y',fontsize =30) 
+    ax[1].scatter(catal[:,5][group_md],catal[:,6][group_md], color='red',s=50,zorder=1,marker='x',alpha = 0.3)
+
+    ax[1].scatter(ra_,dec_,color ='k',alpha = 0.1)
+    ax[1].scatter(cluster_unique[:,0], cluster_unique[:,1], color = color_de_cluster,s=100)
+    ax[1].set_xlabel('Ra',fontsize =30) 
+    ax[1].set_ylabel('Dec',fontsize =30,labelpad = 1) 
     
     ax[2].scatter(catal[:,3]-catal[:,4],catal[:,4], color='k' ,s=50,zorder=1, alpha=0.03)
     ax[2].scatter(catal[:,3][group_md]-catal[:,4][group_md],catal[:,4][group_md], color='r' ,s=50,zorder=1, alpha=0.5,marker='x')
