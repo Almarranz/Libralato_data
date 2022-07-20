@@ -42,6 +42,8 @@ import spisea
 from spisea import synthetic, evolution, atmospheres, reddening, ifmr
 from spisea.imf import imf, multiplicity
 from astropy.coordinates import FK5
+from sklearn.decomposition import PCA
+import pdb
 # %%plotting parametres
 rcParams.update({'xtick.major.pad': '7.0'})
 rcParams.update({'xtick.major.size': '7.5'})
@@ -184,10 +186,10 @@ clus_num = 0
 clustered_by_list =['all_color','all']
 
 # samples_dist = 5
-x_box_lst = [1,2,3]
-samples_lst =[8,7,6]
-# x_box_lst = [3]
-# samples_lst =[7]
+# x_box_lst = [1,2,3]
+# samples_lst =[8,7,6]
+x_box_lst = [3]
+samples_lst =[7]
 for clus_lista in clustered_by_list:
     clustered_by = clus_lista
     for x_box in x_box_lst:
@@ -254,6 +256,11 @@ for clus_lista in clustered_by_list:
                     color_kernel = gaussian_kde(colorines)
                     if clustered_by == 'all_color':
                         X=np.array([mul,mub,datos[:,7],datos[:,8],colorines]).T
+                        pca = PCA(n_components=4)
+                        pca.fit(X)
+
+                        print(pca.explained_variance_ratio_)
+                        # pdb.set_trace()
                         X_stad = StandardScaler().fit_transform(X)
                         tree = KDTree(X_stad, leaf_size=2) 
                         dist, ind = tree.query(X_stad, k=samples_dist) #DistNnce to the 1,2,3...k neighbour
@@ -591,7 +598,7 @@ for clus_lista in clustered_by_list:
                             if len(check_folder) == 0:
                                 os.makedirs(pruebas + 'Sec_%s_clus/'%(section) +'cluster_num%s_%s_knn%s_area%.2f/'%(clus_num,i,samples_dist,area))
                                 np.savetxt(pruebas + 'Sec_%s_clus/'%(section) +'cluster_num%s_%s_knn%s_area%.2f/'%(clus_num,i,samples_dist,area)+
-                                           'cluster%s_%.0f_%.0f_knn_%s_area_%.2f.txt'%(clus_num,ic/0.5,jr/0.5,samples_dist,area),clus_array,
+                                           'cluster%s_%.0f_%.0f_knn_%s_area_%.2f_%s.txt'%(clus_num,ic/0.5,jr/0.5,samples_dist,area,clustered_by),clus_array,
                                            fmt='%.7f '*6 + ' %.4f'*3 +' %.5f'*2 +' %.3f'*3+ ' %.0f',
                                            header ='ra, dec, l, b, pml, pmb,J, H, Ks,x, y, AKs_mean, dAks_mean, radio("),cluster_ID')
                                 
@@ -611,7 +618,7 @@ for clus_lista in clustered_by_list:
                                         if len(intersection)> 0 :
                                             print('Same (or similar) cluster  is in %s'%(f_check))
                                             np.savetxt(f_check+'/'+
-                                                       'cluster%s_%.0f_%.0f_knn_%s_area_%.2f.txt'%(clus_num,ic/0.5,jr/0.5,samples_dist,area),clus_array,
+                                                       'cluster%s_%.0f_%.0f_knn_%s_area_%.2f_%s.txt'%(clus_num,ic/0.5,jr/0.5,samples_dist,area,clustered_by),clus_array,
                                                        fmt='%.7f '*6 + ' %.4f'*3 +' %.5f'*2+' %.3f'*3+ ' %.0f',
                                                        header ='ra, dec, l, b, pml, pmb,J, H, Ks,x, y, Aks_mean, dAks_mean, radio("),cluster_ID')
                                           
@@ -626,7 +633,7 @@ for clus_lista in clustered_by_list:
                                     print('NEW CLUSTER')
                                     os.makedirs(pruebas + 'Sec_%s_clus/'%(section) +'cluster_num%s_%s_knn%s_area%.2f/'%(clus_num,i,samples_dist,area))
                                     np.savetxt(pruebas + 'Sec_%s_clus/'%(section) +'cluster_num%s_%s_knn%s_area%.2f/'%(clus_num,i,samples_dist,area)+
-                                               'cluster%s_%.0f_%.0f_knn_%s_area_%.2f.txt'%(clus_num,ic/0.5,jr/0.5,samples_dist,area),clus_array,
+                                               'cluster%s_%.0f_%.0f_knn_%s_area_%.2f_%s.txt'%(clus_num,ic/0.5,jr/0.5,samples_dist,area,clustered_by),clus_array,
                                                fmt='%.7f '*6 + ' %.4f'*3 +' %.5f'*2+' %.3f'*3 + ' %.0f',
                                                header ='ra, dec, l, b, pml, pmb,J, H, Ks,x, y, Aks_mean,dAks_mean, radio("), cluster_ID')
                                     
