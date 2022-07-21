@@ -109,6 +109,7 @@ dmu_lim = 1
 vel_lim = np.where((catal[:,19]<=dmu_lim) & (catal[:,20]<=dmu_lim))
 catal=catal[vel_lim]
 
+np.savetxt(pruebas + 'catal_sec%s_center.txt'%(section),catal)
 # 'ra dec x_c  y_c mua dmua mud dmud time n1 n2 ID mul mub dmul dmub '
 # catal_all = np.loadtxt(cata + '%s_pm_galactic.txt'%(name))
 
@@ -189,8 +190,8 @@ clustered_by = 'all_color'
 # xy_box_lst = [[3,1],[4,2],[6,2]]
 # samples_lst =[10,8,7,5]
 
-xy_box_lst = [[4,2]]
-samples_lst =[7]
+xy_box_lst = [[3,1]]
+samples_lst =[10, 7]
 
 
 # %
@@ -589,11 +590,11 @@ for elegant_loop in range(3):
 #                             together with Ban´s putative cluster and see if some of the new putative
 #                             new cluster is somewhere neat it
 # =============================================================================
-                            fig, ax = plt.subplots(1,1,figsize=(10,10))
-                            ax.scatter(catal[:,0],catal[:,1], color ='k',alpha=0.1)
-                            ax.scatter(clus_array[:,0],clus_array[:,1],color =color_de_cluster,s=80)
-                            ax.scatter(ban_coord.ra, ban_coord.dec,color ='r',s =80,marker ='x')
-                            plt.show()
+                            # fig, ax = plt.subplots(1,1,figsize=(10,10))
+                            # ax.scatter(catal[:,0],catal[:,1], color ='k',alpha=0.1)
+                            # ax.scatter(clus_array[:,0],clus_array[:,1],color =color_de_cluster,s=80)
+                            # ax.scatter(ban_coord.ra, ban_coord.dec,color ='r',s =80,marker ='x')
+                            # plt.show()
                 # =============================================================================
                 #             Here it compare the cluster you want to save wiith the rest of the 
                 #             saved cluster if repited, it saves in the same cluster 

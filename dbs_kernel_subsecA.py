@@ -256,13 +256,14 @@ for clus_lista in clustered_by_list:
                     color_kernel = gaussian_kde(colorines)
                     if clustered_by == 'all_color':
                         X=np.array([mul,mub,datos[:,7],datos[:,8],colorines]).T
-                        pca = PCA(n_components=4)
-                        pca.fit(X)
-
-                        print(pca.explained_variance_ratio_)
-                        # pdb.set_trace()
                         X_stad = StandardScaler().fit_transform(X)
                         tree = KDTree(X_stad, leaf_size=2) 
+                        # pca = PCA(n_components=5)
+                        # pca.fit(X_stad)
+                        # print(pca.explained_variance_ratio_)
+                        # print(pca.explained_variance_ratio_.sum())
+                        # X_pca = pca.transform(X_stad)
+                        # tree = KDTree(X_pca, leaf_size=2) 
                         dist, ind = tree.query(X_stad, k=samples_dist) #DistNnce to the 1,2,3...k neighbour
                         d_KNN=sorted(dist[:,-1])#distance to the Kth neighbour
                     elif clustered_by == 'all':
@@ -560,6 +561,14 @@ for clus_lista in clustered_by_list:
                                           iso.points['m_hawki_Ks'], 'b-',  label='10 Myr')
                         ax[2].set_xlim(1.3,2.5)
                         ax[2].set_ylim(max(datos[:,4]),min(datos[:,4]))
+                        
+                        
+                        
+                        # fig, ax = plt.subplots(1,1,figsize =(10,10))
+                        # ax.scatter(X_pca[:,3],X_pca[:,4],color ='k')
+                        # ax.scatter(X_pca[:,3][colores_index[i][0]],X_pca[:,4][colores_index[i][0]])
+                        # plt.show()
+                        # ax.set_title('')
                         # ax[2].plot(iso_30.points['m_hawki_H'] - iso_30.points['m_hawki_Ks'], 
                         #                   iso_30.points['m_hawki_Ks'], 'orange',  label='30 Myr')
                         # ax[2].plot(iso_60.points['m_hawki_H'].value - iso_60.points['m_hawki_Ks'].value, 
