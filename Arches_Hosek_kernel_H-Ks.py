@@ -269,7 +269,7 @@ print(hos_cluster['ra_abs'])
 # quintuplet cluster
 # =============================================================================
 
-radio=3*u.arcsec#TODO
+radio=20*u.arcsec#TODO
 hos_coor_clus = SkyCoord(ra = hos_cluster['ra_abs'], dec = hos_cluster['dec_abs'],frame = 'icrs')
 id1, id2, d2d,d3d = ap_coor.search_around_sky(SkyCoord(['17h45m50.4769267s'], ['-28d49m19.16770s'], frame='icrs'),hos_coor_clus, radio) if choosen_cluster =='Arches' else ap_coor.search_around_sky(SkyCoord(['17h46m15.13s'], ['-28d49m34.7s'], frame='icrs'),hos_coor_clus, radio)
 # dbs_clus, id_arc_dbs, d2d_db, d3d_db = ap_coor.search_around_sky(SkyCoord(['17h45m50.4769267s'], ['-28d49m19.16770s'], frame='icrs'),clus_gal, radio) if choosen_cluster =='Arches' else ap_coor.search_around_sky(SkyCoord(['17h46m15.13s'], ['-28d49m34.7s'], frame='icrs'),clus_gal, radio)
@@ -408,17 +408,19 @@ ax[2].scatter(clus['m_hawki_H']-clus['m_hawki_Ks'],clus['m_hawki_Ks'],color = 'r
 ax[2].scatter(clus_ndiff['m_hawki_H']-clus_ndiff['m_hawki_Ks'],clus_ndiff['m_hawki_Ks'],color = 'k',alpha=0.1,s=1)
 
 
-# %%
+# %
 # =============================================================================
 # Here we are going to stimate the mass of the cluster using spisea
 # =============================================================================
 # %
-H_mag, K_mag = gns_core_, m153_clus[id_arc_dbs]
-max_stars = len(mag_127)*2
+H_mag, Ks_mag = gns_core_match_trim[:,6], gns_core_match_trim[:,8]
+max_stars = len(H_mag)*2
+print(len(H_mag))
+# %
 porcentaje = 0.0
 M_mass = 1*10**4.
 loop =0
-while  max_stars > len(mag_127)+0.3*len(mag_127):
+while  max_stars > len(H_mag) + 0.1*len(H_mag):
     
     # mass = 0.8*10**4.
     mass = M_mass - 0.01*porcentaje*M_mass
@@ -431,9 +433,10 @@ while  max_stars > len(mag_127)+0.3*len(mag_127):
     clus = cluster.star_systems
     clus_ndiff = cluster_ndiff.star_systems
     
-    max_mass = np.where((clus_ndiff['m_hst_f153m']>min(mag_153.value))&(clus_ndiff['m_hst_f153m']<max(mag_153.value)))
+    max_mass = np.where((clus_ndiff['m_hawki_Ks']>min(Ks_mag)) 
+                        & (clus_ndiff['m_hawki_Ks']<max(Ks_mag)))
     
-    max_stars = len(clus_ndiff['m_hst_f153m'][max_mass])
+    max_stars = len(clus_ndiff['m_hawki_Ks'][max_mass])
     porcentaje +=1
 
 
@@ -453,6 +456,7 @@ ax[1].text(0.55, 0.95, 'L mass = %.0f $M_{\odot}$'%(mass), transform=ax[1].trans
     verticalalignment='top', bbox=props)
 ax[1].set_xlabel('H-Ks')
 ax[1].set_ylabel('Ks')
+ax[1].set_xlim(1.3,4)
 plt.show()
 
 
