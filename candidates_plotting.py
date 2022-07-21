@@ -118,8 +118,8 @@ AKs_list1 =  np.arange(1.6,2.11,0.01)
 AKs_list = np.append(AKs_list1,0)#I added the 0 for the isochrones without extiction
 # %%
 
-# section_folder = '/Users/amartinez/Desktop/morralla/Sec_A_at_2022-07-19_all_and_allcolor/'
-section_folder = '/Users/amartinez/Desktop/morralla/Sec_A_at_2022-07-20 12/'#Test folder
+section_folder = '/Users/amartinez/Desktop/morralla/Sec_A_at_2022-07-19_all_and_allcolor/'
+# section_folder = '/Users/amartinez/Desktop/morralla/Sec_A_at_2022-07-20 12/'#Test folder
 
 
 plots =0
@@ -133,8 +133,8 @@ print(plots)
 # %%
 plots =0
 
-# for folder in sorted(glob.glob(section_folder + 'cluster_num*'),key = os.path.getmtime):
-for folder in sorted(glob.glob(section_folder + 'cluster_num13_0_knn7_area2.12'),key = os.path.getmtime):#cluster for testing
+for folder in sorted(glob.glob(section_folder + 'cluster_num*'),key = os.path.getmtime):
+# for folder in sorted(glob.glob(section_folder + 'cluster_num13_0_knn7_area2.12'),key = os.path.getmtime):#cluster for testing
  
     all_clus = []
     cluster_len =[]
@@ -156,10 +156,10 @@ for folder in sorted(glob.glob(section_folder + 'cluster_num13_0_knn7_area2.12')
     print(clus_per_folder)
     print(30*'∂')
 # % 
-    same_method = 'yes'
+    same_method = 'One space (4D or 5D)' # WE are looking for cluster using 4 or 5 dimesional spaces. If a two different cluster,found in 4 and 5 dimensional space respectively, have at least one commons star, the variable with chage to 'Two method' 
     if len(set(equal_method)) ==2:
-        same_method = 'no'
-        
+        same_method = 'Two spaces (4D and 5D)'
+    
     cu_test, index_u = np.unique(clus_arr[:,0:2],return_index=True,axis=0)
     cluster_unique = clus_arr[index_u]
     new_stars = 'no'
@@ -208,6 +208,7 @@ for folder in sorted(glob.glob(section_folder + 'cluster_num13_0_knn7_area2.12')
     
     ax[0].scatter(catal[:,-6][group_md],catal[:,-5][group_md], color='red',s=50,zorder=1,marker='x',alpha = 0.7)
 
+    ax[1].set_title('%s'%(same_method))
     prop = dict(boxstyle='round', facecolor=color_de_cluster , alpha=0.2)
     ax[1].text(0.15, 0.95, 'aprox cluster radio = %s"\n cluster stars = %s '%(round(rad.to(u.arcsec).value,2),len(cluster_unique)), transform=ax[1].transAxes, fontsize=30,
                             verticalalignment='top', bbox=prop)
