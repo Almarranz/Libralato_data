@@ -44,6 +44,7 @@ from spisea.imf import imf, multiplicity
 from astropy.coordinates import FK5
 from sklearn.decomposition import PCA
 import pdb
+from sklearn.preprocessing import RobustScaler
 # %%plotting parametres
 rcParams.update({'xtick.major.pad': '7.0'})
 rcParams.update({'xtick.major.size': '7.5'})
@@ -181,15 +182,14 @@ ang = math.degrees(np.arctan(m1))
 clus_num = 0
 # x_box = 3
 
-# clustered_by = 'all_color'
-# clustered_by = 'all'
-clustered_by_list =['all_color','all']
 
-# samples_dist = 5
-# x_box_lst = [1,2,3]
-# samples_lst =[8,7,6]
-x_box_lst = [3]
-samples_lst =[7]
+# clustered_by_list =['all_color','all']
+clustered_by_list =['all']
+
+x_box_lst = [1,2,3]
+samples_lst =[10, 9, 8,7]
+# x_box_lst = [1,3]
+# samples_lst =[10]
 for clus_lista in clustered_by_list:
     clustered_by = clus_lista
     for x_box in x_box_lst:
@@ -256,6 +256,7 @@ for clus_lista in clustered_by_list:
                     color_kernel = gaussian_kde(colorines)
                     if clustered_by == 'all_color':
                         X=np.array([mul,mub,datos[:,7],datos[:,8],colorines]).T
+                        # X_stad = RobustScaler(quantile_range=(25, 75)).fit_transform(X)#TODO
                         X_stad = StandardScaler().fit_transform(X)
                         tree = KDTree(X_stad, leaf_size=2) 
                         # pca = PCA(n_components=5)
@@ -268,6 +269,7 @@ for clus_lista in clustered_by_list:
                         d_KNN=sorted(dist[:,-1])#distance to the Kth neighbour
                     elif clustered_by == 'all':
                         X=np.array([mul,mub,datos[:,7],datos[:,8]]).T
+                        # X_stad = RobustScaler(quantile_range=(25, 75)).fit_transform(X)#TODO
                         X_stad = StandardScaler().fit_transform(X)
                         tree = KDTree(X_stad, leaf_size=2) 
                         dist, ind = tree.query(X_stad, k=samples_dist) #DistNnce to the 1,2,3...k neighbour
