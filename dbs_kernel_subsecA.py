@@ -183,13 +183,13 @@ clus_num = 0
 # x_box = 3
 
 
-# clustered_by_list =['all_color','all']
-clustered_by_list =['all']
+clustered_by_list =['all_color','all']
+# clustered_by_list =['all']
 
-x_box_lst = [1,2,3]
-samples_lst =[10, 9, 8,7]
-# x_box_lst = [1,3]
-# samples_lst =[10]
+# x_box_lst = [1,2,3]
+# samples_lst =[10, 9, 8,7]
+x_box_lst = [1,2]
+samples_lst =[10]
 for clus_lista in clustered_by_list:
     clustered_by = clus_lista
     for x_box in x_box_lst:
@@ -231,6 +231,7 @@ for clus_lista in clustered_by_list:
                         verticalalignment='top', bbox=props)
                     ax.set_xlabel('x (50 mas/pix)')
                     ax.set_ylabel('y (50 mas/pix)')
+                    plt.show()
             # =============================================================================
             #         Here is where the party begins
             # =============================================================================
@@ -328,7 +329,7 @@ for clus_lista in clustered_by_list:
                     ax.set_ylabel('N') 
                     # ax.set_xlim(0,1)
                    
-                   
+                    plt.show()
                     clus_method = 'dbs'
             
                     clustering = DBSCAN(eps=eps_av, min_samples=samples_dist).fit(X_stad)
@@ -442,7 +443,7 @@ for clus_lista in clustered_by_list:
                         ax[1].set_ylabel('Dec(deg)',fontsize =30) 
                         ax[1].yaxis.set_major_formatter(FormatStrFormatter('%.2f'))
                         ax[1].xaxis.set_major_formatter(FormatStrFormatter('%.2f'))
-                        ax[1].set_title('col_row %.0f, %.0f. Area = %.2farcmin$^{2}$'%(ic/0.5,jr/0.5,area))
+                        ax[1].set_title('col_row %.0f, %.0f.(%.2farcmin$^{2}$),Clus = %s'%(ic/0.5,jr/0.5,area,clus_num))
                         
                         
                         
@@ -532,7 +533,7 @@ for clus_lista in clustered_by_list:
                         # cluster_ndiff = synthetic.ResolvedCluster(iso, my_imf, mass)
                         # clus = cluster.star_systems
                         # clus_ndiff = cluster_ndiff.star_systems
-                        ax[2].set_title('Cluster %s, eps = %s'%(clus_num,round(eps_av,3)))
+                        # ax[2].set_title('Cluster %s, eps = %s'%(clus_num,round(eps_av,3)))
                         ax[2].scatter(datos[:,3]-datos[:,4],datos[:,4],alpha=0.1,color ='k')
                         ax[2].scatter(datos[:,3][group_md]-datos[:,4][group_md],datos[:,4][group_md],alpha=0.7,c='r',marker = 'x')
                         txt_around = '\n'.join(('H-Ks =%.3f'%(np.median(datos[:,3][group_md]-datos[:,4][group_md])),
@@ -581,8 +582,8 @@ for clus_lista in clustered_by_list:
                         # ax[2].set_ylabel('Ks')
                         # ax[2].legend(loc =3, fontsize = 12)
                         # plt.savefig(pruebas + 'cluster_for_R.png', dpi=300,bbox_inches='tight')
-                        plt.show()
-                        plt.ion()
+                        # plt.show()
+                       
                         clus_array = np.array([datos[:,5][colores_index[i]],datos[:,6][colores_index[i]],t_gal['l'][colores_index[i]].value,t_gal['b'][colores_index[i]].value,
                                                                                               X[:,0][colores_index[i]], 
                                                                                               X[:,1][colores_index[i]],
@@ -599,7 +600,8 @@ for clus_lista in clustered_by_list:
                          
                         frase = 'Do you want to save this cluster?'
                         print('\n'.join((len(frase)*'π',frase+'\n("yes" or "no")',len(frase)*'π')))
-                        save_clus = input('Awnser:')
+                        # save_clus = input('Awnser:')
+                        save_clus = 'yes'
                         print('You said: %s'%(save_clus))
                         if save_clus =='yes' or save_clus =='y':
                             
@@ -612,7 +614,8 @@ for clus_lista in clustered_by_list:
                                            'cluster%s_%.0f_%.0f_knn_%s_area_%.2f_%s.txt'%(clus_num,ic/0.5,jr/0.5,samples_dist,area,clustered_by),clus_array,
                                            fmt='%.7f '*6 + ' %.4f'*3 +' %.5f'*2 +' %.3f'*3+ ' %.0f',
                                            header ='ra, dec, l, b, pml, pmb,J, H, Ks,x, y, AKs_mean, dAks_mean, radio("),cluster_ID')
-                                
+                                ax[2].set_title('Saved in cluster_num%s_%s_knn%s_area%.2f/'%(clus_num,i,samples_dist,area))
+                                plt.show()
                                 clus_num +=1   
                             else:
                                 break_out_flag = False
@@ -632,7 +635,8 @@ for clus_lista in clustered_by_list:
                                                        'cluster%s_%.0f_%.0f_knn_%s_area_%.2f_%s.txt'%(clus_num,ic/0.5,jr/0.5,samples_dist,area,clustered_by),clus_array,
                                                        fmt='%.7f '*6 + ' %.4f'*3 +' %.5f'*2+' %.3f'*3+ ' %.0f',
                                                        header ='ra, dec, l, b, pml, pmb,J, H, Ks,x, y, Aks_mean, dAks_mean, radio("),cluster_ID')
-                                          
+                                            ax[2].set_title('Saved in %s'%(os.path.basename(f_check)))
+                                            plt.show()
                                             clus_num +=1 
                                             break_out_flag = True
                                             break
@@ -647,7 +651,8 @@ for clus_lista in clustered_by_list:
                                                'cluster%s_%.0f_%.0f_knn_%s_area_%.2f_%s.txt'%(clus_num,ic/0.5,jr/0.5,samples_dist,area,clustered_by),clus_array,
                                                fmt='%.7f '*6 + ' %.4f'*3 +' %.5f'*2+' %.3f'*3 + ' %.0f',
                                                header ='ra, dec, l, b, pml, pmb,J, H, Ks,x, y, Aks_mean,dAks_mean, radio("), cluster_ID')
-                                    
+                                    ax[2].set_title('Saved in cluster_num%s_%s_knn%s_area%.2f/'%(clus_num,i,samples_dist,area))
+                                    plt.show()
                                     clus_num +=1   
                                        
                                     # read_txt = glob.glob(check_folder[f_check]+'/cluster_*')
