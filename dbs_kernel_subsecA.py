@@ -106,7 +106,7 @@ elif center_definition =='G_G':
     catal=catal[valid]
     center=np.where(catal[:,3]-catal[:,4]>1.3)
 catal=catal[center]
-dmu_lim = 1
+dmu_lim = 2
 vel_lim = np.where((catal[:,19]<=dmu_lim) & (catal[:,20]<=dmu_lim))
 catal=catal[vel_lim]
 
@@ -681,7 +681,7 @@ print('\n'.join((len(frase)*'',frase,len(frase)*'')))
 save_folder = input('Awnser:')   
 if save_folder == 'yes' or save_folder == 'y':       
     source_dir = pruebas + 'Sec_%s_clus/'%(section)
-    destination_dir = '/Users/amartinez/Desktop/morralla/Sec_%s_at_%s'%(section,datetime.now())
+    destination_dir = '/Users/amartinez/Desktop/morralla/Sec_%s_dmu%s_at_%s'%(section,dmu_lim,datetime.now())
     shutil.copytree(source_dir, destination_dir)
     sys.exit('You stoped it')
 else:

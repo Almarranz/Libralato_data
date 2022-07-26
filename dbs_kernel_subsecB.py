@@ -110,7 +110,7 @@ elif center_definition =='G_G':
     catal=catal[valid]
     center=np.where(catal[:,3]-catal[:,4]>1.3)
 catal=catal[center]
-dmu_lim = 1.5
+dmu_lim = 1
 vel_lim = np.where((catal[:,19]<=dmu_lim) & (catal[:,20]<=dmu_lim))
 catal=catal[vel_lim]
 
@@ -182,8 +182,8 @@ dist_pos = abs((-1*catal[0,7]+ (lim_pos_down + m*catal[0,7])-lim_pos_up)/np.sqrt
 # =============================================================================
 # distancia entre yg_up e yg_down
 dist_neg = abs((-m1*catal[0,7]+ (lim_neg_down + m1*catal[0,7])-lim_neg_up)/np.sqrt((-1)**2+(1)**2))
-ang = math.degrees(np.arctan(m1))
-
+# ang = math.degrees(np.arctan(m1))
+ang = (np.arctan(m1))
 clus_num = 0
 # x_box = 3
 
@@ -191,11 +191,11 @@ clus_num = 0
 clustered_by_list =['all_color','all']
 
 
-# xy_box_lst = [[3,1],[4,2],[6,2]]
-# samples_lst =[10,8,7,5]
+xy_box_lst = [[3,1],[4,2],[6,2]]
+samples_lst =[10,8,7,5]
 
-xy_box_lst = [[3,1]]
-samples_lst =[10, 7]
+# xy_box_lst = [[3,1]]
+# samples_lst =[10, 7]
 
 
 for a in range(2):
@@ -213,9 +213,9 @@ for a in range(2):
                         # fig, ax = plt.subplots(1,1,figsize=(10,10))
                         # ax.scatter(catal[:,7],catal[:,8],alpha =0.01)
                         ic *= 0.5
-                        yg_1 = (lim_pos_up - (ic)*step/np.cos(45*u.deg)) +  m*catal[:,7]
-                        # yg_2 = (lim_pos_up - (ic+1)*step*np.cos(45*u.deg)) +  m*catal[:,7]
-                        yg_2 = (lim_pos_up - (ic+1)*step/np.cos(45*u.deg)) +  m*catal[:,7]
+                        # yg_1 = (lim_pos_up - (ic)*step/np.cos(45*u.deg)) +  m*catal[:,7]
+                        yg_1 = (lim_pos_up - (ic)*step/np.cos(np.pi/4)) +  m*catal[:,7]
+                        yg_2 = (lim_pos_up - (ic+1)*step/np.cos(np.pi/4)) +  m*catal[:,7]
                         
                         # ax.scatter(catal[:,7][good],catal[:,8][good],color =strin[np.random.choice(indices)],alpha = 0.1)
             
@@ -227,9 +227,9 @@ for a in range(2):
                             step_neg =dist_neg/y_box
                             ax.scatter(catal[:,7],catal[:,8],alpha =0.01)
                             jr *=0.5
-                            yr_1 = (lim_neg_up - (jr)*step_neg/np.cos(ang*u.deg)) +  m1*catal[:,7]
+                            yr_1 = (lim_neg_up - (jr)*step_neg/np.cos(ang)) +  m1*catal[:,7]
                             # yg_2 = (lim_pos_up - (i+1)*step*np.cos(45*u.deg)) +  m*catal[:,7]
-                            yr_2 = (lim_neg_up - (jr+1)*step_neg/np.cos(ang*u.deg)) +  m1*catal[:,7]
+                            yr_2 = (lim_neg_up - (jr+1)*step_neg/np.cos(ang)) +  m1*catal[:,7]
                             good = np.where((catal[:,8]<yg_1)&(catal[:,8]>yg_2)
                                                     & (catal[:,8]<yr_1)&(catal[:,8]>yr_2))
                             area = step*step_neg*0.05**2/3600
@@ -705,7 +705,7 @@ print('\n'.join((len(frase)*'',frase,len(frase)*'')))
 save_folder = input('Awnser:')   
 if save_folder == 'yes' or save_folder == 'y':       
     source_dir = pruebas + 'Sec_%s_clus/'%(section)
-    destination_dir = '/Users/amartinez/Desktop/morralla/Sec_%s_at_%s'%(section,datetime.now())
+    destination_dir = '/Users/amartinez/Desktop/morralla/Sec_%s_dmu%s_at_%s'%(section,dmu_lim,datetime.now())
     shutil.copytree(source_dir, destination_dir)
     sys.exit('You stoped it')
 else:
@@ -714,16 +714,25 @@ sys.exit('Chao')
 
 
 # %%
-sep_ban = c2.separation(ban_coord[0])
+yg_1 = (lim_pos_up - (ic)*step/np.cos(45*u.deg)) +  m*catal[:,7]
+# print(catal[:,7]*0.5)
+
 # %%
-for ban_star in range(len(ban_coord)):
-    sep_ban = c2.separation(ban_coord[ban_star])
-    if min(sep_ban.value) <1/3600:
-        ax[2].facecolor('lavender')
-print(sep_ban)
-# 
-# 
-# 
-# 
-# 
-# =============================================================================
+
+print((lim_pos_up - (ic)*step/np.cos(45*u.deg)) +  m*catal[:,7])
+
+for i in range(len(catal)):
+    try:
+        print('-',catal[i,7]+lim_pos_up - (ic)*step/np.cos(45*u.deg))
+    except:
+        print('*',catal[i,7])
+
+
+
+
+
+
+
+
+
+
