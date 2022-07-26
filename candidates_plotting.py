@@ -20,6 +20,7 @@ import pandas as pd
 import spisea
 from spisea import synthetic, evolution, atmospheres, reddening, ifmr
 from spisea.imf import imf, multiplicity
+from astropy.stats import sigma_clip
 # %%plotting parametres
 rcParams.update({'xtick.major.pad': '7.0'})
 rcParams.update({'xtick.major.size': '7.5'})
@@ -65,8 +66,11 @@ else:
 
 # %%
 # "'RA_gns','DE_gns','Jmag','Hmag','Ksmag','ra','dec','x_c','y_c','mua','dmua','mud','dmud','time','n1','n2','ID','mul','mub','dmul','dmub','m139','Separation'",
-section = 'A'#selecting the whole thing
+section = 'B'#selecting the whole thing
 
+ban_cluster = np.loadtxt(cata +'ban_cluster.txt')
+ban_coord = SkyCoord(ra = ban_cluster[:,0]*u.deg, dec = ban_cluster[:,1]*u.deg)
+    
 if section == 'All':
     catal=np.loadtxt(results + '%smatch_GNS_and_%s_refined_galactic.txt'%(pre,name))
 else:
@@ -83,10 +87,11 @@ elif center_definition =='G_G':
     catal=catal[valid]
     center=np.where(catal[:,3]-catal[:,4]>1.3)
 catal=catal[center]
-dmu_lim = 1
+dmu_lim = 2
 vel_lim = np.where((catal[:,19]<=dmu_lim) & (catal[:,20]<=dmu_lim))
 catal=catal[vel_lim]
-
+#here we can save the trimmed catal for using it in Aladin
+np.savetxt(pruebas + 'libralato_center_dpm%s.txt'%(dmu_lim),catal)
 color_de_cluster = 'lime'
 
 # for clus_f in glob.glob(folder +'*'):
@@ -118,9 +123,15 @@ AKs_list1 =  np.arange(1.6,2.11,0.01)
 AKs_list = np.append(AKs_list1,0)#I added the 0 for the isochrones without extiction
 # %%
 
-section_folder = '/Users/amartinez/Desktop/morralla/Sec_A_at_2022-07-19_all_and_allcolor/'
+section_folder = '/Users/amartinez/Desktop/morralla/Sec_B_dmu0.5_at_2022-07-25/'
+print(os.path.basename(section_folder))
 # section_folder = '/Users/amartinez/Desktop/morralla/Sec_A_at_2022-07-20 12/'#Test folder
-
+if 'dmu0.5' in section_folder:
+    lim = '0.5'
+elif 'dmu1' in section_folder:
+    lim = '1.0'
+elif 'dmu2' in section_folder:
+    lim = '2.0'
 
 plots =0
 for folder in sorted(glob.glob(section_folder + 'cluster_num*'),key = os.path.getmtime):
@@ -161,7 +172,45 @@ for folder in sorted(glob.glob(section_folder + 'cluster_num*'),key = os.path.ge
         same_method = 'Two spaces (4D and 5D)'
     
     cu_test, index_u = np.unique(clus_arr[:,0:2],return_index=True,axis=0)
-    cluster_unique = clus_arr[index_u]
+    cluster_unique0 = clus_arr[index_u]
+   
+    if plots == 63:
+        np.savetxt(pruebas + 'combined_clus%s_sect%s.txt'%(plots, section),cluster_unique0)
+    
+    #Here we are going to make a sigma clipping for the cluster members
+    #Not really sure which dimension I should clipp...
+    sigma = 2
+    trimmed_by ='color'#TODO
+    # trimmed_by = 'pm'#TODO
+    # trimmed_by = 'color_pm'#TODO
+    if trimmed_by =='color':   
+        clus_trim = sigma_clip(cluster_unique0[:,7]-cluster_unique0[:,8],sigma = sigma,maxiters = 10)
+        good_filt = np.where(np.isnan(clus_trim)==False)
+        cluster_unique = cluster_unique0[good_filt]
+    elif trimmed_by =='pm':
+        velocidad = np.sqrt(cluster_unique0[:,4]**2 + cluster_unique0[:,5]**2 )
+        # clus_trim = sigma_clip(cluster_unique0[:,4],sigma = sigma,maxiters = 10)
+        clus_trim = sigma_clip(velocidad,sigma = sigma,maxiters = 10)
+        good_filt = np.where(np.isnan(clus_trim)==False)
+        cluster_unique = cluster_unique0[good_filt]
+    elif trimmed_by =='color_pm':
+        clus_trim = sigma_clip(cluster_unique0[:,7]-cluster_unique0[:,8],sigma = sigma,maxiters = 10)
+        good_filt_color = np.where(np.isnan(clus_trim)==False)
+        cluster_unique1 = cluster_unique0[good_filt_color]
+        velocidad = np.sqrt(cluster_unique1[:,4]**2 + cluster_unique1[:,5]**2 )
+        clus_trim_velo = sigma_clip(velocidad,sigma = sigma,maxiters = 10)
+        good_filt_velo = np.where(np.isnan(clus_trim_velo)==False)
+        cluster_unique = cluster_unique1[good_filt_velo]
+    
+    # colores_trim = []
+    # sig = 2
+    # for tr in range(len(gns_core_match)):
+    #     colores_trim.append(float(gns_core_match[tr,6]-gns_core_match[tr,8]))
+    # print(np.mean(colores_trim))
+    # fil_color = sigma_clip(colores_trim, sigma=sig, maxiters=10)
+    # good_filt = np.where(np.isnan(fil_color)==False)
+
+    # gns_core_match_trim = gns_core_match[good_filt]
     new_stars = 'no'
     if any(x<len(cluster_unique) for x in cluster_len):
         new_stars = 'yes'
@@ -189,12 +238,15 @@ for folder in sorted(glob.glob(section_folder + 'cluster_num*'),key = os.path.ge
     vel_txt_all = '\n'.join(('mul = %s, mub = %s'%(round(mul_mean_all,3), round(mub_mean_all,3)),
                          '$\sigma_{mul}$ = %s, $\sigma_{mub}$ = %s'%(round(mul_sig_all,3), round(mub_sig_all,3))))
     
-    propiedades = dict(boxstyle='round', facecolor=color_de_cluster , alpha=0.2)
-    propiedades_all = dict(boxstyle='round', facecolor='k', alpha=0.1)
+    
+    
+    prop_0 = dict(boxstyle='round', facecolor=color_de_cluster , alpha=0.2)
+    prop_01 = dict(boxstyle='round', facecolor='k', alpha=0.1)
+    
     ax[0].text(0.05, 0.95, vel_txt, transform=ax[0].transAxes, fontsize=30,
-        verticalalignment='top', bbox=propiedades)
-    ax[0].text(0.05, 0.15, vel_txt_all, transform=ax[0].transAxes, fontsize=20,
-        verticalalignment='top', bbox=propiedades_all)
+        verticalalignment='top', bbox=prop_0)
+    ax[0].text(0.05, 0.45, vel_txt_all, transform=ax[0].transAxes, fontsize=20,
+        verticalalignment='top', bbox=prop_01)
     ax[0].set_xlabel(r'$\mathrm{\mu_{l} (mas\ yr^{-1})}$',fontsize =30) 
     ax[0].set_ylabel(r'$\mathrm{\mu_{b} (mas\ yr^{-1})}$',fontsize =30) 
     
@@ -207,11 +259,19 @@ for folder in sorted(glob.glob(section_folder + 'cluster_num*'),key = os.path.ge
     idxc, group_md, d2d,d3d =  ap_coor.search_around_sky(m_point,coordenadas, rad*1.5)
     
     ax[0].scatter(catal[:,-6][group_md],catal[:,-5][group_md], color='red',s=50,zorder=1,marker='x',alpha = 0.7)
+    
+    prop_02 = dict(boxstyle='round', facecolor='red', alpha=0.1)
+    vel_txt_around = '\n'.join(('mul = %s, mub = %s'%(round(np.mean(catal[:,-6][group_md]),3), round(np.mean(catal[:,-5][group_md]),3)),
+                         '$\sigma_{mul}$ = %s, $\sigma_{mub}$ = %s'%(round(np.std(catal[:,-6][group_md]),3), round(np.std(catal[:,-5][group_md]),3))))
+    ax[0].text(0.05, 0.15, vel_txt_around, transform=ax[0].transAxes, fontsize=30,
+        verticalalignment='top', bbox=prop_02)
 
-    ax[1].set_title('%s'%(same_method))
-    prop = dict(boxstyle='round', facecolor=color_de_cluster , alpha=0.2)
+   
+
+    ax[1].set_title('max dmu = %s. %s'%(lim, same_method)) 
+    prop_1 = dict(boxstyle='round', facecolor=color_de_cluster , alpha=0.2)
     ax[1].text(0.15, 0.95, 'aprox cluster radio = %s"\n cluster stars = %s '%(round(rad.to(u.arcsec).value,2),len(cluster_unique)), transform=ax[1].transAxes, fontsize=30,
-                            verticalalignment='top', bbox=prop)
+                            verticalalignment='top', bbox=prop_1)
     
     # ax[1].scatter(catal[:,7][group_md],catal[:,8][group_md], color='red',s=50,zorder=1,marker='x',alpha = 0.3)
 
@@ -221,8 +281,10 @@ for folder in sorted(glob.glob(section_folder + 'cluster_num*'),key = os.path.ge
     # ax[1].set_ylabel('y',fontsize =30) 
     ax[1].scatter(catal[:,5][group_md],catal[:,6][group_md], color='red',s=50,zorder=1,marker='x',alpha = 0.3)
 
-    ax[1].scatter(ra_,dec_,color ='k',alpha = 0.1)
+    ax[1].scatter(ra_,dec_,color ='k',alpha = 0.01)
     ax[1].scatter(cluster_unique[:,0], cluster_unique[:,1], color = color_de_cluster,s=100)
+    if section == 'B':
+        ax[1].scatter(ban_coord.ra, ban_coord.dec,color ='b',s =80,marker ='x')
     ax[1].set_xlabel('Ra',fontsize =30) 
     ax[1].set_ylabel('Dec',fontsize =30,labelpad = -10) 
     
@@ -237,7 +299,7 @@ for folder in sorted(glob.glob(section_folder + 'cluster_num*'),key = os.path.ge
     for member in range(len(gns_match)):
         if gns_match[member,16] != '-' and gns_match[member,18] != '-':
             AKs_clus_all.append(float(gns_match[member,18]))
-            
+          
     AKs_clus, std_AKs = np.median(AKs_clus_all),np.std(AKs_clus_all)
     absolute_difference_function = lambda list_value : abs(list_value - AKs_clus)
     AKs = min(AKs_list, key=absolute_difference_function)
@@ -279,8 +341,8 @@ for folder in sorted(glob.glob(section_folder + 'cluster_num*'),key = os.path.ge
     
     txt_AKs = '\n'.join(('AKs = %.2f'%(AKs_clus),'std_AKs = %.2f'%(std_AKs)))
     ax[2].text(0.65, 0.50, txt_AKs, transform=ax[2].transAxes, fontsize=20,
-        verticalalignment='top', bbox=propiedades_all)
-    
+        verticalalignment='top', bbox=prop_01)
+    ax[2].set_title('Trimmed by: %s. %s$\sigma$ (%s stars trimmied)'%(trimmed_by,sigma, len(cluster_unique0)-len(cluster_unique)))
     ax[2].scatter(catal[:,3]-catal[:,4],catal[:,4], color='k' ,s=50,zorder=1, alpha=0.03)
     ax[2].scatter(catal[:,3][group_md]-catal[:,4][group_md],catal[:,4][group_md], color='r' ,s=50,zorder=1, alpha=0.5,marker='x')
 
@@ -297,7 +359,7 @@ for folder in sorted(glob.glob(section_folder + 'cluster_num*'),key = os.path.ge
                          'diff_color = %.3f'%(max(cluster_unique[:,7]-cluster_unique[:,8])-min(cluster_unique[:,7]-cluster_unique[:,8]))))
     props_arou = dict(boxstyle='round', facecolor=color_de_cluster, alpha=0.3)
     ax[2].text(0.45, 0.90,txt_clus, transform=ax[2].transAxes, fontsize=30,
-        verticalalignment='top', bbox=props_arou)
+        verticalalignment='top', bbox=prop_0)
     
     txt_around= '\n'.join(('H-Ks =%.3f'%(np.mean(catal[:,3][group_md]-catal[:,4][group_md])),
                          '$\sigma_{H-Ks}$ = %.3f'%(np.std(catal[:,3][group_md]-catal[:,4][group_md])),
@@ -305,14 +367,11 @@ for folder in sorted(glob.glob(section_folder + 'cluster_num*'),key = os.path.ge
     props_arou = dict(boxstyle='round', facecolor='r', alpha=0.3)
     ax[2].text(0.45, 0.30,txt_around, transform=ax[2].transAxes, fontsize=30,
         verticalalignment='top', bbox=props_arou)
-    # sys.exit('line 232')
+    # sys.exit('line 337')
 
 # %%
-cu_test, index = np.unique(clus_arr[:,0:2],return_index=True,axis=0)
-print(clus_arr[index])
-print(len(cu_test))
 
-               
+              
 
 
 
