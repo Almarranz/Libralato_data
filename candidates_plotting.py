@@ -123,7 +123,7 @@ AKs_list1 =  np.arange(1.6,2.11,0.01)
 AKs_list = np.append(AKs_list1,0)#I added the 0 for the isochrones without extiction
 # %%
 
-section_folder = '/Users/amartinez/Desktop/morralla/Sec_B_dmu0.5_at_2022-07-25/'
+section_folder = '/Users/amartinez/Desktop/morralla/Sec_B_dmu1_at_2022-07-26/'
 print(os.path.basename(section_folder))
 # section_folder = '/Users/amartinez/Desktop/morralla/Sec_A_at_2022-07-20 12/'#Test folder
 if 'dmu0.5' in section_folder:
@@ -146,7 +146,7 @@ plots =0
 
 for folder in sorted(glob.glob(section_folder + 'cluster_num*'),key = os.path.getmtime):
 # for folder in sorted(glob.glob(section_folder + 'cluster_num13_0_knn7_area2.12'),key = os.path.getmtime):#cluster for testing
- 
+   
     all_clus = []
     cluster_len =[]
     equal_method=[]
@@ -180,27 +180,33 @@ for folder in sorted(glob.glob(section_folder + 'cluster_num*'),key = os.path.ge
     #Here we are going to make a sigma clipping for the cluster members
     #Not really sure which dimension I should clipp...
     sigma = 2
-    trimmed_by ='color'#TODO
+    # trimmed_by ='color'#TODO
     # trimmed_by = 'pm'#TODO
-    # trimmed_by = 'color_pm'#TODO
+    trimmed_by = 'color_pm'#TODO
     if trimmed_by =='color':   
         clus_trim = sigma_clip(cluster_unique0[:,7]-cluster_unique0[:,8],sigma = sigma,maxiters = 10)
         good_filt = np.where(np.isnan(clus_trim)==False)
         cluster_unique = cluster_unique0[good_filt]
+    # elif trimmed_by =='pm':
+    #     # velocidad = np.sqrt(cluster_unique0[:,4]**2 + cluster_unique0[:,5]**2 )
+    #     # clus_trim = sigma_clip(cluster_unique0[:,4],sigma = sigma,maxiters = 10)
+    #     clus_trim = sigma_clip(velocidad,sigma = sigma,maxiters = 10)
+    #     good_filt = np.where(np.isnan(clus_trim)==False)
+    #     cluster_unique = cluster_unique0[good_filt]
     elif trimmed_by =='pm':
-        velocidad = np.sqrt(cluster_unique0[:,4]**2 + cluster_unique0[:,5]**2 )
-        # clus_trim = sigma_clip(cluster_unique0[:,4],sigma = sigma,maxiters = 10)
-        clus_trim = sigma_clip(velocidad,sigma = sigma,maxiters = 10)
-        good_filt = np.where(np.isnan(clus_trim)==False)
+        clus_trim_x = sigma_clip(cluster_unique0[:,4],sigma = sigma, maxiters = 10)
+        clus_trim_y =  sigma_clip(cluster_unique0[:,5],sigma = sigma, maxiters = 10)
+        good_filt = np.where(np.isnan(clus_trim_x)==False &(np.isnan(clus_trim_y)==False))
         cluster_unique = cluster_unique0[good_filt]
     elif trimmed_by =='color_pm':
-        clus_trim = sigma_clip(cluster_unique0[:,7]-cluster_unique0[:,8],sigma = sigma,maxiters = 10)
-        good_filt_color = np.where(np.isnan(clus_trim)==False)
-        cluster_unique1 = cluster_unique0[good_filt_color]
-        velocidad = np.sqrt(cluster_unique1[:,4]**2 + cluster_unique1[:,5]**2 )
-        clus_trim_velo = sigma_clip(velocidad,sigma = sigma,maxiters = 10)
-        good_filt_velo = np.where(np.isnan(clus_trim_velo)==False)
-        cluster_unique = cluster_unique1[good_filt_velo]
+        clus_trim_color = sigma_clip(cluster_unique0[:,7]-cluster_unique0[:,8],sigma = sigma,maxiters = 10)
+        clus_trim_x = sigma_clip(cluster_unique0[:,4],sigma = sigma, maxiters = 10)
+        clus_trim_y =  sigma_clip(cluster_unique0[:,5],sigma = sigma, maxiters = 10)
+        good_filt = np.where((np.isnan(clus_trim_color)==False) & 
+                             np.isnan(clus_trim_x)==False 
+                             & (np.isnan(clus_trim_y)==False))
+        cluster_unique = cluster_unique0[good_filt]
+
     
     # colores_trim = []
     # sig = 2
@@ -219,6 +225,7 @@ for folder in sorted(glob.glob(section_folder + 'cluster_num*'),key = os.path.ge
         print('all cluster are the same')
     plots += 1
     fig, ax = plt.subplots(1,3,figsize=(30,10))
+    fig.suptitle('In folder --> %s'%(os.path.basename(folder)),fontsize=40)
     ax[0].set_title('Plot #%s. Found %s times. Combiend cluster: %s'%(plots,clus_per_folder,new_stars))
     ax[0].scatter(catal[:,-6],catal[:,-5],color = 'k', alpha = 0.1, zorder=1)
     ax[0].scatter(cluster_unique[:,4],cluster_unique[:,5], color = color_de_cluster, zorder=3,s=100) 
@@ -285,6 +292,10 @@ for folder in sorted(glob.glob(section_folder + 'cluster_num*'),key = os.path.ge
     ax[1].scatter(cluster_unique[:,0], cluster_unique[:,1], color = color_de_cluster,s=100)
     if section == 'B':
         ax[1].scatter(ban_coord.ra, ban_coord.dec,color ='b',s =80,marker ='x')
+        for ban_star in range(len(ban_coord)):
+            sep_ban = c2.separation(ban_coord[ban_star])
+            if min(sep_ban.value) <1/3600:
+                ax[1].set_facecolor('lavender')
     ax[1].set_xlabel('Ra',fontsize =30) 
     ax[1].set_ylabel('Dec',fontsize =30,labelpad = -10) 
     
