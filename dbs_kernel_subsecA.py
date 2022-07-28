@@ -106,7 +106,7 @@ elif center_definition =='G_G':
     catal=catal[valid]
     center=np.where(catal[:,3]-catal[:,4]>1.3)
 catal=catal[center]
-dmu_lim = 2
+dmu_lim = 1
 vel_lim = np.where((catal[:,19]<=dmu_lim) & (catal[:,20]<=dmu_lim))
 catal=catal[vel_lim]
 
@@ -186,10 +186,10 @@ clus_num = 0
 clustered_by_list =['all_color','all']
 # clustered_by_list =['all']
 
-# x_box_lst = [1,2,3]
-# samples_lst =[10, 9, 8,7]
-x_box_lst = [1,2]
-samples_lst =[10]
+x_box_lst = [1,2,3]
+samples_lst =[10, 9, 8,7]
+# x_box_lst = [1,2]
+# samples_lst =[10]
 for clus_lista in clustered_by_list:
     clustered_by = clus_lista
     for x_box in x_box_lst:

@@ -112,6 +112,18 @@ color = pd.read_csv('/Users/amartinez/Desktop/PhD/python/colors_html.csv')
 strin= color.values.tolist()
 indices = np.arange(0,len(strin),1)
 # %%
+sec_clus = pruebas +'BAN_Sec_A_clus/'
+ifE_sec = os.path.exists(sec_clus)
+if not ifE_sec:
+    os.makedirs(pruebas + 'BAN_Sec_%s_clus/'%(section))
+
+carp_clus = sec_clus +'/ban_cluster_num*'
+
+
+clus_to_erase = glob.glob(pruebas + 'BAN_Sec_%s_clus/'%(section)+'ban_cluster_num*')
+for f_e in range(len(clus_to_erase)):
+    # print(clus_to_erase)
+    shutil.rmtree(clus_to_erase[f_e], ignore_errors=True)
 
 fig, ax = plt.subplots(1,1, figsize= (10,10))
 ax.scatter(catal[:,0],catal[:,2])
@@ -148,13 +160,13 @@ ang1 = (np.arctan(m1))
 
 clus_num = 0
 
-clustered_by_list =['all_color','all']
-# clustered_by_list =['all']
+# clustered_by_list =['all_color','all']
+clustered_by_list =['all_color']
 
-x_box_lst = [1,2,3]
-samples_lst =[10, 9, 8,7]
 # x_box_lst = [1,2,3]
-# samples_lst =[10]
+# samples_lst =[10, 9, 8,7]
+x_box_lst = [1,2,3]
+samples_lst =[10,9,8,7]
 for clus_lista in clustered_by_list:
     clustered_by = clus_lista
     for x_box in x_box_lst:
@@ -558,14 +570,14 @@ for clus_lista in clustered_by_list:
                             
                             intersection_lst =[]
                             
-                            check_folder = glob.glob(pruebas + 'Sec_%s_clus/'%(section)+'cluster_num*')
+                            check_folder = glob.glob(pruebas + 'BAN_Sec_%s_clus/'%(section)+'ban_cluster_num*')
                             if len(check_folder) == 0:
-                                os.makedirs(pruebas + 'Sec_%s_clus/'%(section) +'cluster_num%s_%s_knn%s_area%.2f/'%(clus_num,i,samples_dist,area))
-                                np.savetxt(pruebas + 'Sec_%s_clus/'%(section) +'cluster_num%s_%s_knn%s_area%.2f/'%(clus_num,i,samples_dist,area)+
-                                           'cluster%s_%.0f_%.0f_knn_%s_area_%.2f_%s.txt'%(clus_num,ic/0.5,jr/0.5,samples_dist,area,clustered_by),clus_array,
+                                os.makedirs(pruebas + 'BAN_Sec_%s_clus/'%(section) +'ban_cluster_num%s_%s_knn%s_area%.2f/'%(clus_num,i,samples_dist,area))
+                                np.savetxt(pruebas + 'BAN_Sec_%s_clus/'%(section) +'ban_cluster_num%s_%s_knn%s_area%.2f/'%(clus_num,i,samples_dist,area)+
+                                           'ban_cluster%s_%.0f_%.0f_knn_%s_area_%.2f_%s.txt'%(clus_num,ic/0.5,jr/0.5,samples_dist,area,clustered_by),clus_array,
                                            fmt='%.7f '*6 + ' %.4f'*3 +' %.3f'*3+ ' %.0f',
                                            header ='ra, dec, l, b, pml, pmb,J, H, Ks, AKs_mean, dAks_mean, radio("),cluster_ID')
-                                ax[2].set_title('Saved in cluster_num%s_%s_knn%s_area%.2f/'%(clus_num,i,samples_dist,area))
+                                ax[2].set_title('Saved in ban_cluster_num%s_%s_knn%s_area%.2f/'%(clus_num,i,samples_dist,area))
                                 plt.show()
                                 clus_num +=1   
                             else:
@@ -583,7 +595,7 @@ for clus_lista in clustered_by_list:
                                         if len(intersection)> 0 :
                                             print('Same (or similar) cluster  is in %s'%(f_check))
                                             np.savetxt(f_check+'/'+
-                                                       'cluster%s_%.0f_%.0f_knn_%s_area_%.2f_%s.txt'%(clus_num,ic/0.5,jr/0.5,samples_dist,area,clustered_by),clus_array,
+                                                       'ban_cluster%s_%.0f_%.0f_knn_%s_area_%.2f_%s.txt'%(clus_num,ic/0.5,jr/0.5,samples_dist,area,clustered_by),clus_array,
                                                       fmt='%.7f '*6 + ' %.4f'*3 +' %.3f'*3+ ' %.0f',
                                                       header ='ra, dec, l, b, pml, pmb,J, H, Ks, AKs_mean, dAks_mean, radio("),cluster_ID')
                                             ax[2].set_title('Saved in %s'%(os.path.basename(f_check)))
@@ -597,12 +609,12 @@ for clus_lista in clustered_by_list:
                                 if np.all(np.array(intersection_lst)==0):
                                     # clus_num +=1
                                     print('NEW CLUSTER')
-                                    os.makedirs(pruebas + 'Sec_%s_clus/'%(section) +'cluster_num%s_%s_knn%s_area%.2f/'%(clus_num,i,samples_dist,area))
-                                    np.savetxt(pruebas + 'Sec_%s_clus/'%(section) +'cluster_num%s_%s_knn%s_area%.2f/'%(clus_num,i,samples_dist,area)+
-                                               'cluster%s_%.0f_%.0f_knn_%s_area_%.2f_%s.txt'%(clus_num,ic/0.5,jr/0.5,samples_dist,area,clustered_by),clus_array,
+                                    os.makedirs(pruebas + 'BAN_Sec_%s_clus/'%(section) +'ban_cluster_num%s_%s_knn%s_area%.2f/'%(clus_num,i,samples_dist,area))
+                                    np.savetxt(pruebas + 'BAN_Sec_%s_clus/'%(section) +'ban_cluster_num%s_%s_knn%s_area%.2f/'%(clus_num,i,samples_dist,area)+
+                                               'ban_cluster%s_%.0f_%.0f_knn_%s_area_%.2f_%s.txt'%(clus_num,ic/0.5,jr/0.5,samples_dist,area,clustered_by),clus_array,
                                                fmt='%.7f '*6 + ' %.4f'*3 +' %.3f'*3+ ' %.0f',
                                                header ='ra, dec, l, b, pml, pmb,J, H, Ks, AKs_mean, dAks_mean, radio("),cluster_ID')
-                                    ax[2].set_title('Saved in cluster_num%s_%s_knn%s_area%.2f/'%(clus_num,i,samples_dist,area))
+                                    ax[2].set_title('Saved in ban_cluster_num%s_%s_knn%s_area%.2f/'%(clus_num,i,samples_dist,area))
                                     plt.show()
                                     clus_num +=1   
                                        
@@ -616,8 +628,8 @@ for clus_lista in clustered_by_list:
                             print('\n'.join((len(frase)*'',frase,len(frase)*'')))
                             save_folder = input('Awnser:')   
                             if save_folder == 'yes' or save_folder == 'y':       
-                                source_dir = pruebas + 'Sec_%s_clus/'%(section)
-                                destination_dir = '/Users/amartinez/Desktop/morralla/Sec_%s_at_%s'%(section,datetime.now())
+                                source_dir = pruebas + 'BAN_Sec_%s_clus/'%(section)
+                                destination_dir = '/Users/amartinez/Desktop/morralla/BAN_Sec_%s_at_%s'%(section,datetime.now())
                                 shutil.copytree(source_dir, destination_dir)
                                 sys.exit('You stoped it')
                             else:
@@ -631,7 +643,7 @@ frase = 'Do you want to copy the folder with the clusters into the morralla dire
 print('\n'.join((len(frase)*'',frase,len(frase)*'')))
 save_folder = input('Awnser:')   
 if save_folder == 'yes' or save_folder == 'y':       
-    source_dir = pruebas + 'Sec_%s_clus/'%(section)
+    source_dir = pruebas + 'BAN_Sec_%s_clus/'%(section)
     destination_dir = '/Users/amartinez/Desktop/morralla/BAN_Sec_%s_dmu%s_at_%s'%(section,dmu_lim,datetime.now())
     shutil.copytree(source_dir, destination_dir)
     sys.exit('You stoped it')

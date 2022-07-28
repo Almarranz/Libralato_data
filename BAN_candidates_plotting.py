@@ -71,42 +71,31 @@ section = 'A'#selecting the whole thing
 ban_cluster = np.loadtxt(cata +'ban_cluster.txt')
 ban_coord = SkyCoord(ra = ban_cluster[:,0]*u.deg, dec = ban_cluster[:,1]*u.deg)
     
-if section == 'All':
-    catal=np.loadtxt(results + '%smatch_GNS_and_%s_refined_galactic.txt'%(pre,name))
-else:
-    catal=np.loadtxt(results + 'sec_%s_%smatch_GNS_and_%s_refined_galactic.txt'%(section,pre,name))
+# ra, dra, dec, ddec, j, dj, h, dh, k, dk, v_x, dv_x, v_y, dv_y, mu_alpha, mu_delta, mu_l, dmu_l, mu_b, dmu_b
+catal = np.loadtxt(cata + 'BAN_on_sect%s.txt'%(section))
 # %%
-# Definition of center can: m139 - Ks(libralato and GNS) or H - Ks(GNS and GNS)
-center_definition='G_G'#this variable can be L_G or G_G
-if center_definition =='L_G':
-    valid=np.where(np.isnan(catal[:,4])==False)# This is for the valus than make Ks magnitude valid, but shouldn´t we do the same with the H magnitudes?
-    catal=catal[valid]
-    center=np.where(catal[:,-2]-catal[:,4]>2.5) # you can choose the way to make the color cut, as they did in libralato or as it is done in GNS
-elif center_definition =='G_G':
-    valid=np.where((np.isnan(catal[:,3])==False) & (np.isnan(catal[:,4])==False ))
-    catal=catal[valid]
-    center=np.where(catal[:,3]-catal[:,4]>1.3)
+
+valid=np.where((np.isnan(catal[:,6])<90) & (np.isnan(catal[:,8])<90))
+catal=catal[valid]
+center=np.where(catal[:,6]-catal[:,8]>1.3)
 catal=catal[center]
 dmu_lim = 1
-vel_lim = np.where((catal[:,19]<=dmu_lim) & (catal[:,20]<=dmu_lim))
+vel_lim = np.where((catal[:,-3]<=dmu_lim) & (catal[:,-1]<=dmu_lim))
 catal=catal[vel_lim]
-#here we can save the trimmed catal for using it in Aladin
-np.savetxt(pruebas + 'libralato_center_dpm%s.txt'%(dmu_lim),catal)
-color_de_cluster = 'lime'
 
 # for clus_f in glob.glob(folder +'*'):
 # % coordinates
-ra_=catal[:,5]
-dec_=catal[:,6]
+ra_=catal[:,0]
+dec_=catal[:,2]
 # Process needed for the trasnformation to galactic coordinates
 coordenadas = SkyCoord(ra=ra_*u.degree, dec=dec_*u.degree)#
 gal_c=coordenadas.galactic
 
 t_gal= QTable([gal_c.l,gal_c.b], names=('l','b'))
 
-mul,mub = catal[:,-6],catal[:,-5]
-x,y = catal[:,7], catal[:,8]
-colorines = catal[:,3]-catal[:,4]
+mul,mub = catal[:,-4],catal[:,-2]
+x,y = ra_, dec_
+colorines = catal[:,6]-catal[:,8]
 # %%Thi is for the extinction
 
 Aks_gns = pd.read_fwf(gns_ext + 'central.txt', sep =' ',header = None)
@@ -123,7 +112,7 @@ AKs_list1 =  np.arange(1.6,2.11,0.01)
 AKs_list = np.append(AKs_list1,0)#I added the 0 for the isochrones without extiction
 # %%
 
-section_folder = '/Users/amartinez/Desktop/morralla/Sec_A_dmu1_at_2022-07-28_123/'
+section_folder = '/Users/amartinez/Desktop/morralla/BAN_Sec_A_dmu1_at_2022-07-28_123/'
 print(os.path.basename(section_folder))
 # section_folder = '/Users/amartinez/Desktop/morralla/Sec_A_at_2022-07-20 12/'#Test folder
 if 'dmu0.5' in section_folder:
@@ -134,30 +123,31 @@ elif 'dmu2' in section_folder:
     lim = '2.0'
 
 plots =0
-for folder in sorted(glob.glob(section_folder + 'cluster_num*'),key = os.path.getmtime):
+for folder in sorted(glob.glob(section_folder + 'ban_cluster_num*'),key = os.path.getmtime):
    print(folder)
-   for cluster_f in sorted(glob.glob(folder + '/cluster*.txt'),key = os.path.getmtime):
+   for cluster_f in sorted(glob.glob(folder + '/ban_cluster*.txt'),key = os.path.getmtime):
        print(cluster_f)
    plots +=1
    print(30*'+')
 print(plots)
 # %%
 plots =0
-
-for folder in sorted(glob.glob(section_folder + 'cluster_num*'),key = os.path.getmtime):
-# for folder in sorted(glob.glob(section_folder + 'cluster_num13_0_knn7_area2.12'),key = os.path.getmtime):#cluster for testing
+color_de_cluster = 'lime'
+for folder in sorted(glob.glob(section_folder + 'ban_cluster_num*'),key = os.path.getmtime):
+    print(folder)
+    # for folder in sorted(glob.glob(section_folder + 'cluster_num13_0_knn7_area2.12'),key = os.path.getmtime):#cluster for testing
    
     all_clus = []
     cluster_len =[]
     equal_method=[]
     clus_per_folder =0
-    for file in glob.glob(folder + '/cluster*'):
+    for file in glob.glob(folder + '/ban_cluster*'):
         if 'all_color.txt' in os.path.basename(file):
             equal_method.append(0)
         elif 'all.txt' in os.path.basename(file):
             equal_method.append(1)
         clus_per_folder += 1  
-        # ra, dec, l, b, pml, pmb,J, H, Ks,x, y, AKs_mean, dAks_mean, radio("),cluster_ID
+        # ra, dec, l, b, pml, pmb,J, H, Ks, AKs_mean, dAks_mean, radio("),cluster_ID
         cluster = np.loadtxt(file)
         cluster_len.append(len(cluster))
         for line in range(len(cluster)):
@@ -217,19 +207,20 @@ for folder in sorted(glob.glob(section_folder + 'cluster_num*'),key = os.path.ge
 
     # gns_core_match_trim = gns_core_match[good_filt]
     new_stars = 'no'
+    
     if any(x<len(cluster_unique) for x in cluster_len):
         new_stars = 'yes'
         print('some stars added')
     else:
         print('all cluster are the same')
     plots += 1
-    if plots == 5:
-        np.savetxt(pruebas + 'combined_clus%s_sect%s.txt'%(plots, section),cluster_unique0)
-        
+    
+    if plots == 10:#TODO
+        np.savetxt(pruebas + 'BAN_combined_clus%s_sect%s.txt'%(plots, section),cluster_unique)
     fig, ax = plt.subplots(1,3,figsize=(30,10))
     fig.suptitle('In folder --> %s'%(os.path.basename(folder)),fontsize=40)
     ax[0].set_title('Plot #%s. Found %s times. Combiend cluster: %s'%(plots,clus_per_folder,new_stars))
-    ax[0].scatter(catal[:,-6],catal[:,-5],color = 'k', alpha = 0.1, zorder=1)
+    ax[0].scatter(catal[:,-4],catal[:,-2],color = 'k', alpha = 0.1, zorder=1)
     ax[0].scatter(cluster_unique[:,4],cluster_unique[:,5], color = color_de_cluster, zorder=3,s=100) 
     ax[0].set_xlim(-10,10)
     ax[0].set_ylim(-10,10)
@@ -238,8 +229,8 @@ for folder in sorted(glob.glob(section_folder + 'cluster_num*'),key = os.path.ge
     mul_sig, mub_sig = np.std(cluster_unique[:,4]), np.std(cluster_unique[:,5])
     mul_mean, mub_mean = np.mean(cluster_unique[:,4]), np.mean(cluster_unique[:,5])
     
-    mul_sig_all, mub_sig_all = np.std(catal[:,-6]), np.std(catal[:,-5])
-    mul_mean_all, mub_mean_all = np.mean(catal[:,-6]), np.mean(catal[:,-5])
+    mul_sig_all, mub_sig_all = np.std(catal[:,-4]), np.std(catal[:,-2])
+    mul_mean_all, mub_mean_all = np.mean(catal[:,-4]), np.mean(catal[:,-2])
     
     
     vel_txt = '\n'.join(('mul = %s, mub = %s'%(round(mul_mean,3), round(mub_mean,3)),
@@ -267,7 +258,7 @@ for folder in sorted(glob.glob(section_folder + 'cluster_num*'),key = os.path.ge
     
     idxc, group_md, d2d,d3d =  ap_coor.search_around_sky(m_point,coordenadas, rad*1.5)
     
-    ax[0].scatter(catal[:,-6][group_md],catal[:,-5][group_md], color='red',s=50,zorder=1,marker='x',alpha = 0.7)
+    ax[0].scatter(catal[:,-4][group_md],catal[:,-2][group_md], color='red',s=50,zorder=1,marker='x',alpha = 0.7)
     
     prop_02 = dict(boxstyle='round', facecolor='red', alpha=0.1)
     vel_txt_around = '\n'.join(('mul = %s, mub = %s'%(round(np.mean(catal[:,-6][group_md]),3), round(np.mean(catal[:,-5][group_md]),3)),
@@ -288,7 +279,7 @@ for folder in sorted(glob.glob(section_folder + 'cluster_num*'),key = os.path.ge
     # ax[1].scatter(cluster_unique[:,9], cluster_unique[:,10], color = color_de_cluster,s=100)
     # ax[1].set_xlabel('x',fontsize =30) 
     # ax[1].set_ylabel('y',fontsize =30) 
-    ax[1].scatter(catal[:,5][group_md],catal[:,6][group_md], color='red',s=50,zorder=1,marker='x',alpha = 0.3)
+    ax[1].scatter(catal[:,0][group_md],catal[:,2][group_md], color='red',s=50,zorder=1,marker='x',alpha = 0.3)
 
     ax[1].scatter(ra_,dec_,color ='k',alpha = 0.01)
     ax[1].scatter(cluster_unique[:,0], cluster_unique[:,1], color = color_de_cluster,s=100)
@@ -363,8 +354,8 @@ for folder in sorted(glob.glob(section_folder + 'cluster_num*'),key = os.path.ge
     ax[2].text(0.65, 0.50, txt_AKs, transform=ax[2].transAxes, fontsize=20,
         verticalalignment='top', bbox=prop_01)
     ax[2].set_title('Trimmed by: %s. %s$\sigma$ (%s stars trimmied)'%(trimmed_by,sigma, len(cluster_unique0)-len(cluster_unique)))
-    ax[2].scatter(catal[:,3]-catal[:,4],catal[:,4], color='k' ,s=50,zorder=1, alpha=0.03)
-    ax[2].scatter(catal[:,3][group_md]-catal[:,4][group_md],catal[:,4][group_md], color='r' ,s=50,zorder=1, alpha=0.5,marker='x')
+    ax[2].scatter(catal[:,6]-catal[:,8],catal[:,8], color='k' ,s=50,zorder=1, alpha=0.03)
+    ax[2].scatter(catal[:,6][group_md]-catal[:,8][group_md],catal[:,8][group_md], color='r' ,s=50,zorder=1, alpha=0.5,marker='x')
 
     ax[2].scatter(cluster_unique[:,7]-cluster_unique[:,8],cluster_unique[:,8], color=color_de_cluster ,s=120,zorder=3, alpha=1)
     ax[2].invert_yaxis()  
@@ -372,8 +363,8 @@ for folder in sorted(glob.glob(section_folder + 'cluster_num*'),key = os.path.ge
     ax[2].set_xlabel('$H-Ks$',fontsize =30)
     ax[2].set_ylabel('$Ks$',fontsize =30)
     ax[2].set_xlim(1.3,2.5)
-    ax[2].set_ylim(max(catal[:,4]),min(catal[:,4]))
-    # ax[2].set_title('Cluster %s, eps = %s'%(clus_num,round(eps_av,3)))
+    ax[2].set_ylim(max(catal[:,6]),min(catal[:,8]))
+                    # ax[2].set_title('Cluster %s, eps = %s'%(clus_num,round(eps_av,3)))
     txt_clus = '\n'.join(('H-Ks =%.3f'%(np.mean(cluster_unique[:,7]-cluster_unique[:,8])),
                          '$\sigma_{H-Ks}$ = %.3f'%(np.std(cluster_unique[:,7]-cluster_unique[:,8])),
                          'diff_color = %.3f'%(max(cluster_unique[:,7]-cluster_unique[:,8])-min(cluster_unique[:,7]-cluster_unique[:,8]))))
@@ -381,13 +372,13 @@ for folder in sorted(glob.glob(section_folder + 'cluster_num*'),key = os.path.ge
     ax[2].text(0.45, 0.90,txt_clus, transform=ax[2].transAxes, fontsize=30,
         verticalalignment='top', bbox=prop_0)
     
-    txt_around= '\n'.join(('H-Ks =%.3f'%(np.mean(catal[:,3][group_md]-catal[:,4][group_md])),
-                         '$\sigma_{H-Ks}$ = %.3f'%(np.std(catal[:,3][group_md]-catal[:,4][group_md])),
-                         'diff_color = %.3f'%(max(catal[:,3][group_md]-catal[:,4][group_md])-min(catal[:,3][group_md]-catal[:,4][group_md]))))
+    txt_around= '\n'.join(('H-Ks =%.3f'%(np.mean(catal[:,6][group_md]-catal[:,8][group_md])),
+                         '$\sigma_{H-Ks}$ = %.3f'%(np.std(catal[:,6][group_md]-catal[:,8][group_md])),
+                         'diff_color = %.3f'%(max(catal[:,6][group_md]-catal[:,8][group_md])-min(catal[:,6][group_md]-catal[:,8][group_md]))))
     props_arou = dict(boxstyle='round', facecolor='r', alpha=0.3)
     ax[2].text(0.45, 0.30,txt_around, transform=ax[2].transAxes, fontsize=30,
         verticalalignment='top', bbox=props_arou)
-    # sys.exit('line 337')
+
 
 # %%
 
