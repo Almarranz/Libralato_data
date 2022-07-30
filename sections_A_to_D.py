@@ -18,29 +18,11 @@ Created on Sat May 14 11:43:50 2022
 # center and dived it into 4 sections.
 # =============================================================================
 
-from sklearn.cluster import DBSCAN
-from sklearn.neighbors import NearestNeighbors
+
 import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib import rcParams
-from sklearn.neighbors import KDTree
-from kneed import DataGenerator, KneeLocator
-from matplotlib.ticker import FormatStrFormatter
-import pandas as pd
 import sys
-from astropy import units as u
-from astropy.coordinates import SkyCoord
-from astropy.table import QTable
-import pylab as p
-from random import seed
-from random import random
-import glob
-from sklearn.preprocessing import StandardScaler
-import os
-import spisea
-from spisea import synthetic, evolution, atmospheres, reddening, ifmr
-from spisea.imf import imf, multiplicity
-import astropy.coordinates as ap_coor
 
 # %%
 
@@ -122,7 +104,7 @@ ax.scatter(catal[:,7],catal[:,8],color = 'k', alpha = 0.3)
 # Section A
 # =============================================================================
 
-yr_A = 32700 + m*catal[:,7]
+yr_A = 32714 + m*catal[:,7]
 yb_Adown = 18500 + m1*catal[:,7]
 
 sec_A = np.where((catal[:,8]<yr_A) & (catal[:,8]>yb_Adown))
@@ -181,8 +163,8 @@ sec_names = ['sec_A','sec_B','sec_C','sec_D']
 data_len = 0
 for s in range(len(sections)):
     np.savetxt(results + '%s_%smatch_GNS_and_%s_refined_galactic.txt'%(sec_names[s],pre,name),catal[sections[s]],
-               fmt='%.7f %.7f %.4f %.4f %.4f %.7f %.7f %.4f %.4f %.5f %.5f %.5f %.5f %.0f %.0f %.0f %.0f %.5f %.5f %.5f %.5f %.5f %.3f',
-               header ="'RA_gns','DE_gns','Jmag','Hmag','Ksmag','ra','dec','x_c','y_c','mua','dmua','mud','dmud','time','n1','n2','ID','mul','mub','dmul','dmub','m139','Separation'")
+                fmt='%.7f %.7f %.4f %.4f %.4f %.7f %.7f %.4f %.4f %.5f %.5f %.5f %.5f %.0f %.0f %.0f %.0f %.5f %.5f %.5f %.5f %.5f %.3f',
+                header ="'RA_gns','DE_gns','Jmag','Hmag','Ksmag','ra','dec','x_c','y_c','mua','dmua','mud','dmud','time','n1','n2','ID','mul','mub','dmul','dmub','m139','Separation'")
     data_len += len(catal[sections[s]])
 print(data_len,len(catal))
 if len(catal) != data_len:
