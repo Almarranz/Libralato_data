@@ -17,7 +17,7 @@ results='/Users/amartinez/Desktop/PhD/Libralato_data/results/'
 
 # name='ACSWFC'
 name='WFC3IR'
-trimmed_data = 'no'
+trimmed_data = 'yes'
 if trimmed_data == 'yes':
     pre=''
 elif trimmed_data == 'no':
@@ -35,8 +35,8 @@ gns= pd.read_csv(cata + 'GNS_central.csv')# tCentral region of GNS
 libr = np.loadtxt(results + '%srefined_%s_PM.txt'%(pre, name))
 gns_np= gns.to_numpy()
 # %%
-gns_coord = SkyCoord(ra=gns_np[:,0]*u.degree, dec=gns_np[:,1]*u.degree)
-libr_coord =  SkyCoord(ra=libr[:,0]*u.degree, dec=libr[:,1]*u.degree)
+gns_coord = SkyCoord(ra=gns_np[:,0]*u.degree, dec=gns_np[:,1]*u.degree, frame = 'icrs', equinox = 'J2000',obstime='J2015.5')
+libr_coord =  SkyCoord(ra=libr[:,0]*u.degree, dec=libr[:,1]*u.degree,frame = 'icrs',equinox ='J2000',obstime='J2014.2')
 # %%
 idx = libr_coord.match_to_catalog_sky(gns_coord)
 
