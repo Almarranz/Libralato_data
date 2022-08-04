@@ -56,11 +56,7 @@ ___
 ___
 5. sections_A_to_D.py. Divide the data in the most obvious 4 sections and stores them in four lists. This are the star the matched the GNS (from match_w_GNS.py.), not yet trimmed in velocity or color
 6. dbs_kernel_subsecA.py.(A to D) divides each section in subsections. Runs dbscan with the kernel method and stores common clusters in common folders'
-7. BAN_dbs_kernel_subsecA.py.(A to B for now). DO the same thing. 
-8. candidates_plotting.py (and BAN_candidates_plotting.py). Put toghter and plots all clusters found by dbs_kernel_subsecA.py (or BAN_dbs_kernel_subsecA) adn plot them
-9. Lib_vs_Ban_comp.py. Uses the folder geneated by step 8 (or any other folder with files containing cluster information for that matter) for plotting together (in 5D space) cluster closer that certain separation 
-
-
+7. BAN_dbs_kernel_subsecA.py.(A to D). DO the same thing. 
 
 
 ## Other scripts
@@ -83,9 +79,12 @@ same_cluster_diff_MS.py.
 cluster_to_region.py. 
 >Generates a region of the selected cluster to be visualized in DS9.
 
-candidates_plotting.py.
-BAN_candidates_plotting.py
->You have to select a folder with all the cluster found in the different scanners, then this scrips deselects the repited stars and plotting the resulting cluster. It throws a sentence saying if all the star were the same for all the scanner or not
+candidates_plotting.py (and BAN_candidates_plotting.py). 
+>Put toghter and plots all clusters found by dbs_kernel_subsecA.py (or BAN_dbs_kernel_subsecA) adn plot them
+Lib_vs_Ban_comp.py. 
+>Uses the folder geneated by previous step (or any other folder with files containing cluster information for that matter) for plotting together (in 5D space) cluster closer that certain separation 
+
+
 
 
 
