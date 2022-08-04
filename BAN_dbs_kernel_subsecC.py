@@ -74,7 +74,7 @@ pruebas='/Users/amartinez/Desktop/PhD/Libralato_data/pruebas/'
 results='/Users/amartinez/Desktop/PhD/Libralato_data/results/'
 gns_ext = '/Users/amartinez/Desktop/PhD/Libralato_data/extinction_maps/'
 
-section = 'B'#selecting the whole thing
+section = 'C'#selecting the whole thing
 
 MS_ra,MS_dec = np.loadtxt(cata + 'MS_section%s.txt'%(section),unpack=True, usecols=(0,1),skiprows=0)
 MS_coord = SkyCoord(ra = MS_ra*u.deg, dec = MS_dec*u.deg, frame = FK5,equinox ='J2014.2')
@@ -112,7 +112,7 @@ color = pd.read_csv('/Users/amartinez/Desktop/PhD/python/colors_html.csv')
 strin= color.values.tolist()
 indices = np.arange(0,len(strin),1)
 # %%
-sec_clus = pruebas +'BAN_Sec_B_clus/'
+sec_clus = pruebas +'BAN_Sec_%s_clus/'%(section)
 ifE_sec = os.path.exists(sec_clus)
 if not ifE_sec:
     os.makedirs(pruebas + 'BAN_Sec_%s_clus/'%(section))
@@ -132,11 +132,11 @@ ax.scatter(catal[:,0],catal[:,2])
 # %
 m1 =-1
 m = 94/135
-yr_1 = 237.63 + m1*catal[:,0]# yg_1 = (lim_pos_up - (ic)*step/np.cos(45*u.deg)) +  m*catal[:,7]
-yr_2 = 237.23 + m1*catal[:,0]
+yr_1 = 237.32 + m1*catal[:,0]# yg_1 = (lim_pos_up - (ic)*step/np.cos(45*u.deg)) +  m*catal[:,7]
+yr_2 = 237.027 + m1*catal[:,0]
 
-yg_1 = -214.358 + m*catal[:,0]# yg_1 = (lim_pos_up - (ic)*step/np.cos(45*u.deg)) +  m*catal[:,7]
-yg_2 = - 214.450 + m*catal[:,0]
+yg_1 = -214.465 + m*catal[:,0]# yg_1 = (lim_pos_up - (ic)*step/np.cos(45*u.deg)) +  m*catal[:,7]
+yg_2 = - 214.580 + m*catal[:,0]
                       
 # y = 0.45x - 148.813
 ax.scatter(catal[:,0],yg_1,color ='g')
@@ -146,8 +146,8 @@ ax.scatter(catal[:,0],yr_2,color = 'r')
 
 
 # %%
-lim_pos_up, lim_pos_down = -214.358, - 214.450 #intesection of the positives slopes lines with y axis,
-lim_neg_up, lim_neg_down = 237.63 ,237.23
+lim_pos_up, lim_pos_down = -214.474, - 214.57 #intesection of the positives slopes lines with y axis,
+lim_neg_up, lim_neg_down = 237.32 , 236.985
 # %
 
 dist_pos = abs((-m*catal[0,0]+ (lim_pos_down + m*catal[0,0])-lim_pos_up)/np.sqrt((-1)**2+(1)**2))
@@ -216,10 +216,10 @@ for a in range(len(clustered_by_list)):
                             txt ='central box ~ %.1f arcmin$^{2}$'%(area)
                             ax.text(0.65, 0.95, txt, transform=ax.transAxes, fontsize=14,
                                 verticalalignment='top', bbox=props)
-                            # ax.plot(catal[:,0],yg_1, color ='g')
-                            # ax.plot(catal[:,0],yg_2, color ='g')
-                            # ax.plot(catal[:,0],yr_1, color ='r')
-                            # ax.plot(catal[:,0],yr_2, color ='r')            
+                            ax.plot(catal[:,0],yg_1, color ='g')
+                            ax.plot(catal[:,0],yg_2, color ='g')
+                            ax.plot(catal[:,0],yr_1, color ='r')
+                            ax.plot(catal[:,0],yr_2, color ='r')            
                     # =============================================================================
                     #         Here is where the party begins
                     # =============================================================================
