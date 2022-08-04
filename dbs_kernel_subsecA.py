@@ -89,7 +89,7 @@ else:
 section = 'A'#selecting the whole thing
 
 MS_ra,MS_dec = np.loadtxt(cata + 'MS_section%s.txt'%(section),unpack=True, usecols=(0,1),skiprows=0)
-MS_coord = SkyCoord(ra = MS_ra*u.deg, dec = MS_dec*u.deg, frame = FK5,equinox ='J2014.2')
+MS_coord = SkyCoord(ra = MS_ra*u.deg, dec = MS_dec*u.deg, frame = 'icrs',equinox ='J2000',obstime = 'J2014.2')
 if section == 'All':
     catal=np.loadtxt(results + '%smatch_GNS_and_%s_refined_galactic.txt'%(pre,name))
 else:
@@ -122,7 +122,7 @@ AKs_np = Aks_gns.to_numpy()#TODO
 center = np.where(AKs_np[:,6]-AKs_np[:,8] > 1.3)#TODO
 AKs_center =AKs_np[center]#TODO
 # %
-gns_coord = SkyCoord(ra=AKs_center[:,0]*u.degree, dec=AKs_center[:,2]*u.degree)
+gns_coord = SkyCoord(ra=AKs_center[:,0]*u.degree, dec=AKs_center[:,2]*u.degree, frame ='icrs', equinox = 'J2000', obstime = 'J2015.5')
 # %
 # %
 AKs_list1 =  np.arange(1.6,2.11,0.01)
@@ -187,7 +187,7 @@ clustered_by_list =['all_color','all']
 # clustered_by_list =['all']
 
 x_box_lst = [1,2,3]
-samples_lst =[10, 9, 8,7]
+samples_lst =[10,9,8,7,6,5]
 # x_box_lst = [1,2]
 # samples_lst =[10]
 for clus_lista in clustered_by_list:
@@ -242,7 +242,7 @@ for clus_lista in clustered_by_list:
                     ra_=datos[:,5]
                     dec_=datos[:,6]
                     # Process needed for the trasnformation to galactic coordinates
-                    coordenadas = SkyCoord(ra=ra_*u.degree, dec=dec_*u.degree)#
+                    coordenadas = SkyCoord(ra=ra_*u.degree, dec=dec_*u.degree, frame ='icrs', equinox = 'J2000', obstime = 'J2014.2')#
                     gal_c=coordenadas.galactic
             
                     t_gal= QTable([gal_c.l,gal_c.b], names=('l','b'))
@@ -399,7 +399,7 @@ for clus_lista in clustered_by_list:
                         
                         
                         #This calcualte the maximun distance between cluster members to have a stimation of the cluster radio
-                        c2 = SkyCoord(ra = datos[:,0][colores_index[i]]*u.deg,dec = datos[:,1][colores_index[i]]*u.deg)
+                        c2 = SkyCoord(ra = datos[:,0][colores_index[i]]*u.deg,dec = datos[:,1][colores_index[i]]*u.deg,frame ='icrs', equinox = 'J2000', obstime = 'J2014.2')
                         sep = [max(c2[c_mem].separation(c2)) for c_mem in range(len(c2))]
                         rad = max(sep)/2
                         
@@ -422,7 +422,7 @@ for clus_lista in clustered_by_list:
     
                         # m_point = SkyCoord(ra = [(p2.ra+p1.ra)/2], dec = [(p2.dec +p1.dec)/2])
                         
-                        m_point = SkyCoord(ra =[np.mean(c2.ra)], dec = [np.mean(c2.dec)])
+                        m_point = SkyCoord(ra =[np.mean(c2.ra)], dec = [np.mean(c2.dec)],frame ='icrs', equinox = 'J2000', obstime = 'J2014.2')
                         
                         idxc, group_md, d2d,d3d =  ap_coor.search_around_sky(m_point,coordenadas, rad*2)
                         
@@ -451,7 +451,7 @@ for clus_lista in clustered_by_list:
                         Ks_yes = []
                         AKs_clus_all =[]
                         
-                        clus_coord =  SkyCoord(ra=datos[:,5][colores_index[i][0]]*u.degree, dec=datos[:,6][colores_index[i][0]]*u.degree)
+                        clus_coord =  SkyCoord(ra=datos[:,5][colores_index[i][0]]*u.degree, dec=datos[:,6][colores_index[i][0]]*u.degree,frame ='icrs', equinox = 'J2000', obstime = 'J2014.2')
                         idx = clus_coord.match_to_catalog_sky(gns_coord)
                         validas = np.where(idx[1]<1*u.arcsec)
                         gns_match = AKs_center[idx[0][validas]]

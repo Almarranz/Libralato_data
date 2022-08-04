@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-Created on Fri May 20 11:28:52 2022
+Created on Wed Jul  6 16:11:30 2022
 
 @author: amartinez
 """
@@ -42,6 +42,7 @@ import spisea
 from spisea import synthetic, evolution, atmospheres, reddening, ifmr
 from spisea.imf import imf, multiplicity
 from astropy.coordinates import FK5
+
 # %%plotting parametres
 rcParams.update({'xtick.major.pad': '7.0'})
 rcParams.update({'xtick.major.size': '7.5'})
@@ -83,9 +84,10 @@ else:
 
 # %%
 # "'RA_gns','DE_gns','Jmag','Hmag','Ksmag','ra','dec','x_c','y_c','mua','dmua','mud','dmud','time','n1','n2','ID','mul','mub','dmul','dmub','m139','Separation'",
-section = 'C'#selecting the whole thing
+section = 'D'#selecting the whole thing
 MS_ra,MS_dec = np.loadtxt(cata + 'MS_section%s.txt'%(section),unpack=True, usecols=(0,1),skiprows=0)
-MS_coord = SkyCoord(ra = MS_ra*u.deg, dec = MS_dec*u.deg, frame = 'icrs',equinox ='J2000', obstime = 'J2014.2')
+MS_coord = SkyCoord(ra = MS_ra*u.deg, dec = MS_dec*u.deg, frame ='icrs',equinox ='J2000', obstime ='J2014.2')
+
 if section == 'All':
     catal=np.loadtxt(results + '%smatch_GNS_and_%s_refined_galactic.txt'%(pre,name))
 else:
@@ -118,7 +120,7 @@ AKs_np = Aks_gns.to_numpy()#TODO
 center = np.where(AKs_np[:,6]-AKs_np[:,8] > 1.3)#TODO
 AKs_center =AKs_np[center]#TODO
 # %
-gns_coord = SkyCoord(ra=AKs_center[:,0]*u.degree, dec=AKs_center[:,2]*u.degree,frame = 'icrs',equinox ='J2000', obstime = 'J2015.5')
+gns_coord = SkyCoord(ra=AKs_center[:,0]*u.degree, dec=AKs_center[:,2]*u.degree)
 # %
 # %
 AKs_list1 =  np.arange(1.6,2.11,0.01)
@@ -128,7 +130,7 @@ color = pd.read_csv('/Users/amartinez/Desktop/PhD/python/colors_html.csv')
 strin= color.values.tolist()
 indices = np.arange(0,len(strin),1)
 # %%
-sec_clus = pruebas +'Sec_C_clus/'
+sec_clus = pruebas +'Sec_%s_clus/'%(section)
 ifE_sec = os.path.exists(sec_clus)
 if not ifE_sec:
     os.makedirs(pruebas + 'Sec_%s_clus/'%(section))
@@ -140,7 +142,7 @@ clus_to_erase = glob.glob(pruebas + 'Sec_%s_clus/'%(section)+'cluster_num*')
 for f_e in range(len(clus_to_erase)):
     # print(clus_to_erase)
     shutil.rmtree(clus_to_erase[f_e], ignore_errors=True)
-
+# %%
 # %
 # clus_test = np.loadtxt(pruebas + 'dbs_cluster1_of_group89.txt')
 m1 = -0.80
@@ -156,8 +158,8 @@ missing =0
 # fig, ax = plt.subplots(1,1, figsize=(10,10))
 # ax.scatter(catal[:,7],catal[:,8])
 fila =-1
-lim_pos_up, lim_pos_down = 1000, -18000 #intersection of the positives slopes lines with y axis,
-lim_neg_up, lim_neg_down =30500,22500 #intersection of the negayives slopes lines with y axis,
+lim_pos_up, lim_pos_down = 500, -18000 #intersection of the positives slopes lines with y axis,
+lim_neg_up, lim_neg_down =23000,16500 #intersection of the negayives slopes lines with y axis,
 
 # =============================================================================
 # yg_up =  lim_pos_up + m*catal[:,7]
@@ -179,8 +181,6 @@ clus_num = 0
 # x_box = 3
 
 
-
-
 clustered_by_list =['all_color']
 xy_box_lst = [[3,1],[4,2],[6,2]]
 # xy_box_lst = [[4,2]]
@@ -200,8 +200,8 @@ for a in range(len(clustered_by_list)):
                 for samples_dist in samples_lst:
                     for ic in range(x_box*2-1):
                         
-                        fig, ax = plt.subplots(1,1,figsize=(10,10))
-                        ax.scatter(catal[:,7],catal[:,8],alpha =0.01)
+                        # fig, ax = plt.subplots(1,1,figsize=(10,10))
+                        # ax.scatter(catal[:,7],catal[:,8],alpha =0.01)
                         ic *= 0.5
                         yg_1 = (lim_pos_up - (ic)*step/np.cos(45*u.deg)) +  m*catal[:,7]
                         # yg_2 = (lim_pos_up - (ic+1)*step*np.cos(45*u.deg)) +  m*catal[:,7]
@@ -210,8 +210,7 @@ for a in range(len(clustered_by_list)):
                         # ax.scatter(catal[:,7][good],catal[:,8][good],color =strin[np.random.choice(indices)],alpha = 0.1)
             
              # %       
-                        # ax.plot(catal[:,7],yg_1, color ='g')
-                        # ax.plot(catal[:,7],yg_2, color ='g')
+                        
                         for jr in range(y_box*2-1):
                             fig, ax = plt.subplots(1,1, figsize=(10,10))
                             step_neg =dist_neg/y_box
@@ -238,9 +237,9 @@ for a in range(len(clustered_by_list)):
                             ax.set_ylabel('y (50 mas/pix)')
                             ax.plot(catal[:,7],yg_1, color ='g')
                             ax.plot(catal[:,7],yg_2, color ='g')
-                    # =============================================================================
-                    #         Here is where the party begins
-                    # =============================================================================
+#                     # =============================================================================
+#                     #         Here is where the party begins
+#                     # =============================================================================
                             datos =[]
                             datos = catal[good]
                             
@@ -391,9 +390,9 @@ for a in range(len(clustered_by_list)):
                             
                             
                                 vel_txt = '\n'.join(('mul = %s, mub = %s'%(round(mul_mean,3), round(mub_mean,3)),
-                                                     '$\sigma_{mul}$ = %s, $\sigma_{mub}$ = %s'%(round(mul_sig,3), round(mub_sig,3)))) 
+                                                      '$\sigma_{mul}$ = %s, $\sigma_{mub}$ = %s'%(round(mul_sig,3), round(mub_sig,3)))) 
                                 vel_txt_all = '\n'.join(('mul = %s, mub = %s'%(round(mul_mean_all,3), round(mub_mean_all,3)),
-                                                     '$\sigma_{mul}$ = %s, $\sigma_{mub}$ = %s'%(round(mul_sig_all,3), round(mub_sig_all,3))))
+                                                      '$\sigma_{mul}$ = %s, $\sigma_{mub}$ = %s'%(round(mul_sig_all,3), round(mub_sig_all,3))))
                                 
                                 propiedades = dict(boxstyle='round', facecolor=color_de_cluster , alpha=0.2)
                                 propiedades_all = dict(boxstyle='round', facecolor=colors[-1], alpha=0.1)
@@ -450,10 +449,10 @@ for a in range(len(clustered_by_list)):
                                 ax[1].set_ylabel('Dec(deg)',fontsize =30) 
                                 ax[1].yaxis.set_major_formatter(FormatStrFormatter('%.2f'))
                                 ax[1].xaxis.set_major_formatter(FormatStrFormatter('%.2f'))
+                                
                                 ax[1].set_title('col_row %.0f, %.0f.(%.2farcmin$^{2}$),Clus = %s'%(ic/0.5,jr/0.5,area,clus_num))
                                 
-                                
-                                
+                               
                                 
                                 
                                 H_Ks_yes = []
@@ -546,8 +545,8 @@ for a in range(len(clustered_by_list)):
                                 ax[2].scatter(datos[:,3]-datos[:,4],datos[:,4],alpha=0.1,color ='k')
                                 ax[2].scatter(datos[:,3][group_md]-datos[:,4][group_md],datos[:,4][group_md],alpha=0.7,c='r',marker = 'x')
                                 txt_around = '\n'.join(('H-Ks =%.3f'%(np.median(datos[:,3][group_md]-datos[:,4][group_md])),
-                                                     '$\sigma_{H-Ks}$ = %.3f'%(np.std(datos[:,3][group_md]-datos[:,4][group_md])),
-                                                     'diff_color = %.3f'%(max(datos[:,3][group_md]-datos[:,4][group_md])-min(datos[:,3][group_md]-datos[:,4][group_md]))))
+                                                      '$\sigma_{H-Ks}$ = %.3f'%(np.std(datos[:,3][group_md]-datos[:,4][group_md])),
+                                                      'diff_color = %.3f'%(max(datos[:,3][group_md]-datos[:,4][group_md])-min(datos[:,3][group_md]-datos[:,4][group_md]))))
                                 props_arou = dict(boxstyle='round', facecolor='r', alpha=0.3)
                                 ax[2].text(0.50, 0.25,txt_around, transform=ax[2].transAxes, fontsize=30,
                                     verticalalignment='top', bbox=props_arou)
@@ -558,8 +557,8 @@ for a in range(len(clustered_by_list)):
                                 # txt_srn = '\n'.join(('metallicity = %s'%(metallicity),'dist = %.1f Kpc'%(dist/1000),'mass =%.0fx$10^{3}$ $M_{\odot}$'%(mass/1000),
                                 #                      'age = %.0f Myr'%(10**logAge/10**6)))
                                 txt_color = '\n'.join(('H-Ks =%.3f'%(np.median(datos[:,3][colores_index[i]]-datos[:,4][colores_index[i]])),
-                                                     '$\sigma_{H-Ks}$ = %.3f'%(np.std(datos[:,3][colores_index[i]]-datos[:,4][colores_index[i]])),
-                                                     'diff_color = %.3f'%(max(datos[:,3][colores_index[i]]-datos[:,4][colores_index[i]])-min(datos[:,3][colores_index[i]]-datos[:,4][colores_index[i]]))))
+                                                      '$\sigma_{H-Ks}$ = %.3f'%(np.std(datos[:,3][colores_index[i]]-datos[:,4][colores_index[i]])),
+                                                      'diff_color = %.3f'%(max(datos[:,3][colores_index[i]]-datos[:,4][colores_index[i]])-min(datos[:,3][colores_index[i]]-datos[:,4][colores_index[i]]))))
                                 txt_AKs = '\n'.join(('AKs = %.2f'%(AKs_clus),'std_AKs = %.2f'%(std_AKs)))
                                 ax[2].text(0.65, 0.50, txt_AKs, transform=ax[2].transAxes, fontsize=20,
                                     verticalalignment='top', bbox=propiedades_all)
@@ -597,10 +596,10 @@ for a in range(len(clustered_by_list)):
                                                                                                       X[:,0][colores_index[i]], 
                                                                                                       X[:,1][colores_index[i]],
                                                                                                       datos[:,2][colores_index[i]],datos[:,3][colores_index[i]],datos[:,4][colores_index[i]],
-                                                                                                     datos[:,7][colores_index[i]],datos[:,8][colores_index[i]]]).T
+                                                                                                      datos[:,7][colores_index[i]],datos[:,8][colores_index[i]]]).T
                                 clus_array = np.c_[clus_array,np.full(len(clus_array),AKs_clus),
-                                                   np.full(len(clus_array),std_AKs),
-                                                   np.full(len(clus_array),round(rad.to(u.arcsec).value,2)),np.full(len(clus_array),clus_num)]
+                                                    np.full(len(clus_array),std_AKs),
+                                                    np.full(len(clus_array),round(rad.to(u.arcsec).value,2)),np.full(len(clus_array),clus_num)]
                                 
                                 
                                 
@@ -624,9 +623,9 @@ for a in range(len(clustered_by_list)):
                                     if len(check_folder) == 0:
                                         os.makedirs(pruebas + 'Sec_%s_clus/'%(section) +'cluster_num%s_%s_knn%s_area%.2f/'%(clus_num,i,samples_dist,area))
                                         np.savetxt(pruebas + 'Sec_%s_clus/'%(section) +'cluster_num%s_%s_knn%s_area%.2f/'%(clus_num,i,samples_dist,area)+
-                                                   'cluster%s_%.0f_%.0f_knn_%s_area_%.2f_%s.txt'%(clus_num,ic/0.5,jr/0.5,samples_dist,area,clustered_by),clus_array,
-                                                   fmt='%.7f '*6 + ' %.4f'*3 +' %.5f'*2 +' %.3f'*3+ ' %.0f',
-                                                   header ='ra, dec, l, b, pml, pmb,J, H, Ks,x, y, AKs_mean, dAks_mean, radio("),cluster_ID')
+                                                    'cluster%s_%.0f_%.0f_knn_%s_area_%.2f_%s.txt'%(clus_num,ic/0.5,jr/0.5,samples_dist,area,clustered_by),clus_array,
+                                                    fmt='%.7f '*6 + ' %.4f'*3 +' %.5f'*2 +' %.3f'*3+ ' %.0f',
+                                                    header ='ra, dec, l, b, pml, pmb,J, H, Ks,x, y, AKs_mean, dAks_mean, radio("),cluster_ID')
                                         ax[2].set_title('Saved in cluster_num%s_%s_knn%s_area%.2f/'%(clus_num,i,samples_dist,area))
                                         plt.show()
                                         clus_num +=1   
@@ -645,9 +644,9 @@ for a in range(len(clustered_by_list)):
                                                 if len(intersection)> 0 :
                                                     print('Same (or similar) cluster  is in %s'%(f_check))
                                                     np.savetxt(f_check+'/'+
-                                                               'cluster%s_%.0f_%.0f_knn_%s_area_%.2f_%s.txt'%(clus_num,ic/0.5,jr/0.5,samples_dist,area,clustered_by),clus_array,
-                                                               fmt='%.7f '*6 + ' %.4f'*3 +' %.5f'*2+' %.3f'*3+ ' %.0f',
-                                                               header ='ra, dec, l, b, pml, pmb,J, H, Ks,x, y, Aks_mean, dAks_mean, radio("),cluster_ID')
+                                                                'cluster%s_%.0f_%.0f_knn_%s_area_%.2f_%s.txt'%(clus_num,ic/0.5,jr/0.5,samples_dist,area,clustered_by),clus_array,
+                                                                fmt='%.7f '*6 + ' %.4f'*3 +' %.5f'*2+' %.3f'*3+ ' %.0f',
+                                                                header ='ra, dec, l, b, pml, pmb,J, H, Ks,x, y, Aks_mean, dAks_mean, radio("),cluster_ID')
                                                     ax[2].set_title('Saved in %s'%(os.path.basename(f_check)))
                                                     plt.show()
                                                     clus_num +=1 
@@ -661,9 +660,9 @@ for a in range(len(clustered_by_list)):
                                             print('NEW CLUSTER')
                                             os.makedirs(pruebas + 'Sec_%s_clus/'%(section) +'cluster_num%s_%s_knn%s_area%.2f/'%(clus_num,i,samples_dist,area))
                                             np.savetxt(pruebas + 'Sec_%s_clus/'%(section) +'cluster_num%s_%s_knn%s_area%.2f/'%(clus_num,i,samples_dist,area)+
-                                                       'cluster%s_%.0f_%.0f_knn_%s_area_%.2f_%s.txt'%(clus_num,ic/0.5,jr/0.5,samples_dist,area,clustered_by),clus_array,
-                                                       fmt='%.7f '*6 + ' %.4f'*3 +' %.5f'*2+' %.3f'*3 + ' %.0f',
-                                                       header ='ra, dec, l, b, pml, pmb,J, H, Ks,x, y, Aks_mean,dAks_mean, radio("), cluster_ID')
+                                                        'cluster%s_%.0f_%.0f_knn_%s_area_%.2f_%s.txt'%(clus_num,ic/0.5,jr/0.5,samples_dist,area,clustered_by),clus_array,
+                                                        fmt='%.7f '*6 + ' %.4f'*3 +' %.5f'*2+' %.3f'*3 + ' %.0f',
+                                                        header ='ra, dec, l, b, pml, pmb,J, H, Ks,x, y, Aks_mean,dAks_mean, radio("), cluster_ID')
                                             ax[2].set_title('Saved in cluster_num%s_%s_knn%s_area%.2f/'%(clus_num,i,samples_dist,area))
                                             plt.show()
                                             clus_num +=1   
