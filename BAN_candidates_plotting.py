@@ -49,6 +49,7 @@ cata='/Users/amartinez/Desktop/PhD/Libralato_data/CATALOGS/'
 pruebas='/Users/amartinez/Desktop/PhD/Libralato_data/pruebas/'
 results='/Users/amartinez/Desktop/PhD/Libralato_data/results/'
 gns_ext = '/Users/amartinez/Desktop/PhD/Libralato_data/extinction_maps/'
+morralla =  '/Users/amartinez/Desktop/morralla/'
 
 
 
@@ -66,10 +67,12 @@ else:
 
 # %%
 # "'RA_gns','DE_gns','Jmag','Hmag','Ksmag','ra','dec','x_c','y_c','mua','dmua','mud','dmud','time','n1','n2','ID','mul','mub','dmul','dmub','m139','Separation'",
-section = 'A'#selecting the whole thing
+frase = 'On which section are you working?'
+print('\n'.join((len(frase)*'π',frase+'\n A, B, C or D',len(frase)*'π')))
+section = input('Awnser:')
 
 ban_cluster = np.loadtxt(cata +'ban_cluster.txt')
-ban_coord = SkyCoord(ra = ban_cluster[:,0]*u.deg, dec = ban_cluster[:,1]*u.deg)
+ban_coord = SkyCoord(ra = ban_cluster[:,0]*u.deg, dec = ban_cluster[:,1]*u.deg,frame ='icrs', equinox ='J2000', obstime = 'J2015.5')
     
 # ra, dra, dec, ddec, j, dj, h, dh, k, dk, v_x, dv_x, v_y, dv_y, mu_alpha, mu_delta, mu_l, dmu_l, mu_b, dmu_b
 catal = np.loadtxt(cata + 'BAN_on_sect%s.txt'%(section))
@@ -88,7 +91,7 @@ catal=catal[vel_lim]
 ra_=catal[:,0]
 dec_=catal[:,2]
 # Process needed for the trasnformation to galactic coordinates
-coordenadas = SkyCoord(ra=ra_*u.degree, dec=dec_*u.degree)#
+coordenadas = SkyCoord(ra=ra_*u.degree, dec=dec_*u.degree,frame ='icrs', equinox ='J2000', obstime = 'J2014.2')#
 gal_c=coordenadas.galactic
 
 t_gal= QTable([gal_c.l,gal_c.b], names=('l','b'))
@@ -105,14 +108,29 @@ AKs_np = Aks_gns.to_numpy()#TODO
 center = np.where(AKs_np[:,6]-AKs_np[:,8] > 1.3)#TODO
 AKs_center =AKs_np[center]#TODO
 # %
-gns_coord = SkyCoord(ra=AKs_center[:,0]*u.degree, dec=AKs_center[:,2]*u.degree)
+gns_coord = SkyCoord(ra=AKs_center[:,0]*u.degree, dec=AKs_center[:,2]*u.degree,frame ='icrs', equinox ='J2000', obstime = 'J2015.5')
 # %
 # %
 AKs_list1 =  np.arange(1.6,2.11,0.01)
 AKs_list = np.append(AKs_list1,0)#I added the 0 for the isochrones without extiction
 # %%
+# This deletes the folder
+sec_clus = morralla +'BAN_combined_Sec_%s_clus/'%(section)
+ifE_sec = os.path.exists(sec_clus)
+if not ifE_sec:
+    os.makedirs(morralla+ 'BAN_combined_Sec_%s_clus/ban_cluster_num/'%(section))
 
-section_folder = '/Users/amartinez/Desktop/morralla/BAN_Sec_A_dmu1_at_2022-07-28_123/'
+carp_clus = sec_clus +'/ban_cluster_num*'
+
+
+clus_to_erase = glob.glob(morralla + 'BAN_combined_Sec_%s_clus/ban_cluster_num/ban_cluster_combined_clus*'%(section))
+for f_e in range(len(clus_to_erase)):
+    print(clus_to_erase[f_e])
+    # shutil.rmtree(clus_to_erase[f_e], ignore_errors=True)
+    os.remove((clus_to_erase[f_e]))
+# %%
+
+section_folder = '/Users/amartinez/Desktop/morralla/BAN_Sec_B_dmu1_at_2022-08-01/'#TODO
 print(os.path.basename(section_folder))
 # section_folder = '/Users/amartinez/Desktop/morralla/Sec_A_at_2022-07-20 12/'#Test folder
 if 'dmu0.5' in section_folder:
@@ -214,11 +232,12 @@ for folder in sorted(glob.glob(section_folder + 'ban_cluster_num*'),key = os.pat
     else:
         print('all cluster are the same')
     plots += 1
-    
+    np.savetxt(morralla+'BAN_combined_Sec_%s_clus/ban_cluster_num/'%(section) + 'ban_cluster_combined_clus%s_sect%s.txt'%(plots, section),cluster_unique)    
+
     if plots == 10:#TODO
         np.savetxt(pruebas + 'BAN_combined_clus%s_sect%s.txt'%(plots, section),cluster_unique)
     fig, ax = plt.subplots(1,3,figsize=(30,10))
-    fig.suptitle('In folder --> %s'%(os.path.basename(folder)),fontsize=40)
+    fig.suptitle('BAN Sec: %s. In folder --> %s'%(section,os.path.basename(folder)),fontsize=40)
     ax[0].set_title('Plot #%s. Found %s times. Combiend cluster: %s'%(plots,clus_per_folder,new_stars))
     ax[0].scatter(catal[:,-4],catal[:,-2],color = 'k', alpha = 0.1, zorder=1)
     ax[0].scatter(cluster_unique[:,4],cluster_unique[:,5], color = color_de_cluster, zorder=3,s=100) 
@@ -250,11 +269,11 @@ for folder in sorted(glob.glob(section_folder + 'ban_cluster_num*'),key = os.pat
     ax[0].set_xlabel(r'$\mathrm{\mu_{l} (mas\ yr^{-1})}$',fontsize =30) 
     ax[0].set_ylabel(r'$\mathrm{\mu_{b} (mas\ yr^{-1})}$',fontsize =30) 
     
-    c2 = SkyCoord(ra = cluster_unique[:,0]*u.deg,dec = cluster_unique[:,1]*u.deg)
+    c2 = SkyCoord(ra = cluster_unique[:,0]*u.deg,dec = cluster_unique[:,1]*u.deg,frame ='icrs', equinox ='J2000', obstime = 'J2014.2')
     sep = [max(c2[c_mem].separation(c2)) for c_mem in range(len(c2))]
     rad = max(sep)/2
     
-    m_point = SkyCoord(ra =[np.mean(c2.ra)], dec = [np.mean(c2.dec)])
+    m_point = SkyCoord(ra =[np.mean(c2.ra)], dec = [np.mean(c2.dec)],frame ='icrs', equinox ='J2000', obstime = 'J2014.2')
     
     idxc, group_md, d2d,d3d =  ap_coor.search_around_sky(m_point,coordenadas, rad*1.5)
     
@@ -296,7 +315,7 @@ for folder in sorted(glob.glob(section_folder + 'ban_cluster_num*'),key = os.pat
     H_Ks_yes = []
     Ks_yes = []
     AKs_clus_all =[]
-    clus_coord = SkyCoord(ra = cluster_unique[:,0], dec = cluster_unique[:,1], unit = 'deg')
+    clus_coord = SkyCoord(ra = cluster_unique[:,0], dec = cluster_unique[:,1], unit = 'deg',frame ='icrs', equinox ='J2000', obstime = 'J2014.2')
     idx = clus_coord.match_to_catalog_sky(gns_coord)
     validas = np.where(idx[1]<0.5*u.arcsec)
     gns_match = AKs_center[idx[0][validas]]
@@ -363,7 +382,7 @@ for folder in sorted(glob.glob(section_folder + 'ban_cluster_num*'),key = os.pat
     ax[2].set_xlabel('$H-Ks$',fontsize =30)
     ax[2].set_ylabel('$Ks$',fontsize =30)
     ax[2].set_xlim(1.3,2.5)
-    ax[2].set_ylim(max(catal[:,6]),min(catal[:,8]))
+    ax[2].set_ylim(max(cluster_unique[:,8]+0.5),min(cluster_unique[:,8]-0.5))
                     # ax[2].set_title('Cluster %s, eps = %s'%(clus_num,round(eps_av,3)))
     txt_clus = '\n'.join(('H-Ks =%.3f'%(np.mean(cluster_unique[:,7]-cluster_unique[:,8])),
                          '$\sigma_{H-Ks}$ = %.3f'%(np.std(cluster_unique[:,7]-cluster_unique[:,8])),
