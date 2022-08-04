@@ -55,9 +55,10 @@ ___
 # Aproach B: it consists in dividing the data in 4 bigger section and diviede each section in smaller section and look for the clusters. IN PROGRESS
 ___
 5. sections_A_to_D.py. Divide the data in the most obvious 4 sections and stores them in four lists. This are the star the matched the GNS (from match_w_GNS.py.), not yet trimmed in velocity or color
-6. dbs_kernel_subsecA.py. divides each section in subsections. Runs dbscan with the kernel method and stores common clusters in common folders'
-
-
+6. dbs_kernel_subsecA.py.(A to D) divides each section in subsections. Runs dbscan with the kernel method and stores common clusters in common folders'
+7. BAN_dbs_kernel_subsecA.py.(A to B for now). DO the same thing. 
+8. candidates_plotting.py (and BAN_candidates_plotting.py). Put toghter and plots all clusters found by dbs_kernel_subsecA.py (or BAN_dbs_kernel_subsecA) adn plot them
+9. Lib_vs_Ban_comp.py. Uses the folder geneated by step 8 (or any other folder with files containing cluster information for that matter) for plotting together (in 5D space) cluster closer that certain separation 
 
 
 
@@ -69,7 +70,10 @@ Arches_Hosek.py. In this iscript arches (or quintuplet) are dbscaned for cluster
 >Afterwards a reduced data set is scanned for comparations. 
 >Selecting a mini cluster at the center of the found cluster we can have an idea of how a almost disolving cluster might look like in the galactic center.
 >Selecting at the center improves the posibilities of choosing  mini cluster without any false cluster member in it.
->In this mini cluster we can look for de dispersion in velocity and color to have an idean of what we are looking for in Lkbralato data.
+>In this mini cluster we can look for the dispersion in velocity and color to have an idean of what we are looking for in Lkbralato data.
+
+Arches_Hosek_Kernel.py 
+>Finds the core of the Arches or Quintuplet cluster from Hosek data using the kernel method and dbscan. Then matches it with GNS and fit an isochrone and a simulated cluter to it.
 Arches_Hosek_Kernel.py 
 >Finds cluster with dbsacn usin the kernel simulation for the epsilon. Then selecte a small group of stars from the  middle of the cluster and plots then. This is for comparation of how a cluster in the NSD with only a few stars should look like
 same_cluster_diff_MS.py. 
@@ -80,6 +84,7 @@ cluster_to_region.py.
 >Generates a region of the selected cluster to be visualized in DS9.
 
 candidates_plotting.py.
+BAN_candidates_plotting.py
 >You have to select a folder with all the cluster found in the different scanners, then this scrips deselects the repited stars and plotting the resulting cluster. It throws a sentence saying if all the star were the same for all the scanner or not
 
 
