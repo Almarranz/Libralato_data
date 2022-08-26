@@ -189,7 +189,7 @@ clustered_by_list =['all_color','all']
 x_box_lst = [1,2,3]
 samples_lst =[10,9,8,7,6,5]
 # x_box_lst = [1,2]
-# samples_lst =[10]
+# samples_lst =[10,7,5]
 for clus_lista in clustered_by_list:
     clustered_by = clus_lista
     for x_box in x_box_lst:
@@ -237,7 +237,13 @@ for clus_lista in clustered_by_list:
             # =============================================================================
                     datos =[]
                     datos = catal[good]
-                    
+                    # Here we are going to save some data apart
+                    # select with chunck you want to save
+                    if x_box == 1 and samples_dist ==10:
+                        np.savetxt(pruebas + 'secA_center_dmu%s_area%.1f.txt'%(dmu_lim,area),catal, fmt = '%.6f',
+                                   header = "'RA_gns','DE_gns','Jmag','Hmag','Ksmag','ra','dec','x_c','y_c','mua','dmua','mud','dmud','time','n1','n2','ID','mul','mub','dmul','dmub','m139','Separation'")
+ 
+                    sys.exit('244')
                     # % coordinates
                     ra_=datos[:,5]
                     dec_=datos[:,6]
