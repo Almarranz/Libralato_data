@@ -186,10 +186,10 @@ clus_num = 0
 clustered_by_list =['all_color','all']
 # clustered_by_list =['all']
 
-x_box_lst = [1,2,3]
-samples_lst =[10,9,8,7,6,5]
-# x_box_lst = [1,2]
-# samples_lst =[10,7,5]
+# x_box_lst = [1,2,3]
+# samples_lst =[10,9,8,7,6,5]
+x_box_lst = [2]
+samples_lst =[10]
 for clus_lista in clustered_by_list:
     clustered_by = clus_lista
     for x_box in x_box_lst:
@@ -238,12 +238,14 @@ for clus_lista in clustered_by_list:
                     datos =[]
                     datos = catal[good]
                     # Here we are going to save some data apart
-                    # select with chunck you want to save
-                    if x_box == 1 and samples_dist ==10:
-                        np.savetxt(pruebas + 'secA_center_dmu%s_area%.1f.txt'%(dmu_lim,area),catal, fmt = '%.6f',
-                                   header = "'RA_gns','DE_gns','Jmag','Hmag','Ksmag','ra','dec','x_c','y_c','mua','dmua','mud','dmud','time','n1','n2','ID','mul','mub','dmul','dmub','m139','Separation'")
- 
-                    sys.exit('244')
+                    # select which chunck you want to save
+# =============================================================================
+#                     if x_box == 2 and samples_dist ==10 and jr ==1 :
+#                         np.savetxt(pruebas + 'secA_center_dmu%s_area%.1f.txt'%(dmu_lim,area),catal, fmt = '%.6f',
+#                                     header = "'RA_gns','DE_gns','Jmag','Hmag','Ksmag','ra','dec','x_c','y_c','mua','dmua','mud','dmud','time','n1','n2','ID','mul','mub','dmul','dmub','m139','Separation'")
+#  
+#                         sys.exit('244')
+# =============================================================================
                     # % coordinates
                     ra_=datos[:,5]
                     dec_=datos[:,6]
@@ -283,7 +285,7 @@ for clus_lista in clustered_by_list:
                         d_KNN=sorted(dist[:,-1])#distance to the Kth neighbour
                     # For the simulated data we loop a number of times and get the average of the minimun distance
                     lst_d_KNN_sim = []
-                    for d in range(20):
+                    for d in range(50):
                         mub_sim,  mul_sim = mub_kernel.resample(len(datos)), mul_kernel.resample(len(datos))
                         x_sim, y_sim = x_kernel.resample(len(datos)), y_kernel.resample(len(datos))
                         color_sim = color_kernel.resample(len(datos))
@@ -322,9 +324,10 @@ for clus_lista in clustered_by_list:
                     ax.hist(d_KNN_sim,bins ='auto',histtype ='step',color = 'r')
                     ax.set_xlabel('%s-NN distance'%(samples_dist)) 
                     
-                    eps_av = round((min(d_KNN)+d_KNN_sim_av)/2,3)
+                    # eps_av = round((min(d_KNN)+d_KNN_sim_av)/2,3)
+                    eps_av = round((min(d_KNN)+min(lst_d_KNN_sim))/2,3)
                     texto = '\n'.join(('min real d_KNN = %s'%(round(min(d_KNN),3)),
-                                        'min sim d_KNN =%s'%(round(d_KNN_sim_av,3)),'average = %s'%(eps_av)))
+                                        'min sim d_KNN =%s'%(round(d_KNN_sim_av,3)),'average = %s'%(eps_av),'MINIMO'))
                     
             
                     props = dict(boxstyle='round', facecolor='w', alpha=0.5)
