@@ -106,9 +106,11 @@ elif center_definition =='G_G':
     catal=catal[valid]
     center=np.where(catal[:,3]-catal[:,4]>1.3)
 catal=catal[center]
-dmu_lim = 2
+dmu_lim = input('dmu_lim = ')#TODO
+dmu_lim = int(dmu_lim)
 vel_lim = np.where((catal[:,19]<=dmu_lim) & (catal[:,20]<=dmu_lim))
 catal=catal[vel_lim]
+gen_sim = input('shuffle or kernnel? =')#TODO generates the simulated data by randomly shuffle it
 
 # 'ra dec x_c  y_c mua dmua mud dmud time n1 n2 ID mul mub dmul dmub '
 # catal_all = np.loadtxt(cata + '%s_pm_galactic.txt'%(name))
@@ -182,15 +184,17 @@ ang = math.degrees(np.arctan(m1))
 clus_num = 0
 # x_box = 3
 # gen_sim = 'kernnel'#TODO generated the simulated data extracting it from a kernnel density estimator
-gen_sim = 'shuffle'#TODO generates the simulated data by randomly shuffle it
 
-# clustered_by_list =['all_color','all']#TODO
-clustered_by_list =['all_color']#TODO
+sim_lim = 'minimun'#TODO if you want to choosee the minimum value of all the minumun epsilons of the simulated sets
+# sim_lim = 'mean'#TODO if you want to choose the mean value of al the minumun epsilon of the simulated sets
 
-# x_box_lst = [1,2,3]
-# samples_lst =[10,9,8,7,6,5]
-x_box_lst = [2]
-samples_lst =[7]
+clustered_by_list =['all_color','all']#TODO
+# clustered_by_list =['all_color']#TODO
+
+x_box_lst = [1,2,3]
+samples_lst =[10,9,8,7,6,5]
+# x_box_lst = [2]
+# samples_lst =[7]
 for clus_lista in clustered_by_list:
     clustered_by = clus_lista
     for x_box in x_box_lst:
@@ -355,16 +359,20 @@ for clus_lista in clustered_by_list:
                     ax.hist(d_KNN_sim,bins ='auto',histtype ='step',color = 'r')
                     ax.set_xlabel('%s-NN distance'%(samples_dist)) 
                     
-                    # eps_av = round((min(d_KNN)+d_KNN_sim_av)/2,3)
-                    eps_av = round((min(d_KNN)+min(lst_d_KNN_sim))/2,3)
+                    if sim_lim == 'mean':
+                        eps_av = round((min(d_KNN)+d_KNN_sim_av)/2,3)
+                        valor = d_KNN_sim_av
+                    elif sim_lim == 'minimun':
+                        eps_av = round((min(d_KNN)+min(lst_d_KNN_sim))/2,3)
+                        valor = min(lst_d_KNN_sim)
                     texto = '\n'.join(('min real d_KNN = %s'%(round(min(d_KNN),3)),
-                                        'min sim d_KNN =%s'%(round(min(lst_d_KNN_sim),3)),
-                                        'average = %s'%(eps_av),'MINIMO','%s'%(gen_sim)))
+                                        'min sim d_KNN =%s'%(round(valor,3)),
+                                        'average = %s'%(eps_av),'%s'%(sim_lim),'%s'%(gen_sim)))
                     
             
                     props = dict(boxstyle='round', facecolor='w', alpha=0.5)
                     # place a text box in upper left in axes coords
-                    ax.text(0.65, 0.25, texto, transform=ax.transAxes, fontsize=20,
+                    ax.text(0.55, 0.25, texto, transform=ax.transAxes, fontsize=20,
                         verticalalignment='top', bbox=props)
                     
                     ax.set_ylabel('N') 

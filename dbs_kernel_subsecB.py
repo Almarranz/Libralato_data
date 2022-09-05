@@ -108,9 +108,11 @@ elif center_definition =='G_G':
     catal=catal[valid]
     center=np.where(catal[:,3]-catal[:,4]>1.3)
 catal=catal[center]
-dmu_lim = 1
+dmu_lim = input('dmu_lim =')#TODO
+dmu_lim = int(dmu_lim)
 vel_lim = np.where((catal[:,19]<=dmu_lim) & (catal[:,20]<=dmu_lim))
 catal=catal[vel_lim]
+gen_sim = input('shuffle or kernnel? = ')#TODO generates the simulated data by randomly shuffle it
 
 np.savetxt(pruebas + 'catal_sec%s_center.txt'%(section),catal)
 # 'ra dec x_c  y_c mua dmua mud dmud time n1 n2 ID mul mub dmul dmub '
@@ -185,7 +187,7 @@ ang = (np.arctan(m1))
 clus_num = 0
 # x_box = 3
 
-
+sim_lim = 'minimun'
 clustered_by_list =['all_color','all']
 
 
@@ -262,7 +264,7 @@ for a in range(2):
                             mul,mub = datos[:,-6],datos[:,-5]
                             x,y = datos[:,7], datos[:,8]
                             colorines = datos[:,3]-datos[:,4]
-                            
+                            H_datos, K_datos = datos[:,3], datos[:,4]
                            
                             mul_kernel, mub_kernel = gaussian_kde(mul), gaussian_kde(mub)
                             x_kernel, y_kernel = gaussian_kde(x), gaussian_kde(y)
@@ -290,29 +292,58 @@ for a in range(2):
                                 d_KNN=sorted(dist[:,-1])#distance to the Kth neighbour
                             # For the simulated data we loop a number of times and get the average of the minimun distance
                             lst_d_KNN_sim = []
-                            for d in range(20):
-                                mub_sim,  mul_sim = mub_kernel.resample(len(datos)), mul_kernel.resample(len(datos))
-                                x_sim, y_sim = x_kernel.resample(len(datos)), y_kernel.resample(len(datos))
-                                color_sim = color_kernel.resample(len(datos))
-                                if clustered_by == 'all_color':
-                                    X_sim=np.array([mul_sim[0],mub_sim[0],x_sim[0],y_sim[0],color_sim[0]]).T
-                                    X_stad_sim = StandardScaler().fit_transform(X_sim)
-                                    tree_sim =  KDTree(X_stad_sim, leaf_size=2)
-                                    
-                                    dist_sim, ind_sim = tree_sim.query(X_stad_sim, k=samples_dist) #DistNnce to the 1,2,3...k neighbour
-                                    d_KNN_sim=sorted(dist_sim[:,-1])#distance to the Kth neighbour
-                                    
-                                    lst_d_KNN_sim.append(min(d_KNN_sim))
-                                elif clustered_by =='all':
-                                    X_sim=np.array([mul_sim[0],mub_sim[0],x_sim[0],y_sim[0]]).T
-                                    X_stad_sim = StandardScaler().fit_transform(X_sim)
-                                    tree_sim =  KDTree(X_stad_sim, leaf_size=2)
-                                    
-                                    dist_sim, ind_sim = tree_sim.query(X_stad_sim, k=samples_dist) #DistNnce to the 1,2,3...k neighbour
-                                    d_KNN_sim=sorted(dist_sim[:,-1])#distance to the Kth neighbour
-                                    
-                                    lst_d_KNN_sim.append(min(d_KNN_sim))
-                            
+                            if gen_sim == 'kernnel':
+                                for d in range(20):
+                                    mub_sim,  mul_sim = mub_kernel.resample(len(datos)), mul_kernel.resample(len(datos))
+                                    x_sim, y_sim = x_kernel.resample(len(datos)), y_kernel.resample(len(datos))
+                                    color_sim = color_kernel.resample(len(datos))
+                                    if clustered_by == 'all_color':
+                                        X_sim=np.array([mul_sim[0],mub_sim[0],x_sim[0],y_sim[0],color_sim[0]]).T
+                                        X_stad_sim = StandardScaler().fit_transform(X_sim)
+                                        tree_sim =  KDTree(X_stad_sim, leaf_size=2)
+                                        
+                                        dist_sim, ind_sim = tree_sim.query(X_stad_sim, k=samples_dist) #DistNnce to the 1,2,3...k neighbour
+                                        d_KNN_sim=sorted(dist_sim[:,-1])#distance to the Kth neighbour
+                                        
+                                        lst_d_KNN_sim.append(min(d_KNN_sim))
+                                    elif clustered_by =='all':
+                                        X_sim=np.array([mul_sim[0],mub_sim[0],x_sim[0],y_sim[0]]).T
+                                        X_stad_sim = StandardScaler().fit_transform(X_sim)
+                                        tree_sim =  KDTree(X_stad_sim, leaf_size=2)
+                                        
+                                        dist_sim, ind_sim = tree_sim.query(X_stad_sim, k=samples_dist) #DistNnce to the 1,2,3...k neighbour
+                                        d_KNN_sim=sorted(dist_sim[:,-1])#distance to the Kth neighbour
+                                        
+                                        lst_d_KNN_sim.append(min(d_KNN_sim))
+                            if gen_sim == 'shuffle':
+                                for d in range(20):
+                                    randomize = np.arange(len(datos))
+                                    np.random.shuffle(randomize)
+                                    mul_sim,  mub_sim = mul[randomize], mub[randomize]
+                                    x_sim, y_sim = x, y
+                                    ra_sim, dec_sim = ra_, dec_
+                                    random_col = np.arange(len(datos))
+                                    np.random.shuffle(random_col)
+                                    H_sim, K_sim = H_datos[random_col], K_datos[random_col]
+                                    color_sim = H_sim-K_sim
+                                    if clustered_by == 'all_color':
+                                        X_sim=np.array([mul_sim,mub_sim,x_sim,y_sim,color_sim]).T
+                                        X_stad_sim = StandardScaler().fit_transform(X_sim)
+                                        tree_sim =  KDTree(X_stad_sim, leaf_size=2)
+                                        
+                                        dist_sim, ind_sim = tree_sim.query(X_stad_sim, k=samples_dist) #DistNnce to the 1,2,3...k neighbour
+                                        d_KNN_sim=sorted(dist_sim[:,-1])#distance to the Kth neighbour
+                                        
+                                        lst_d_KNN_sim.append(min(d_KNN_sim))
+                                    elif clustered_by =='all':
+                                        X_sim=np.array([mul_sim,mub_sim,x_sim,y_sim]).T
+                                        X_stad_sim = StandardScaler().fit_transform(X_sim)
+                                        tree_sim =  KDTree(X_stad_sim, leaf_size=2)
+                                        
+                                        dist_sim, ind_sim = tree_sim.query(X_stad_sim, k=samples_dist) #DistNnce to the 1,2,3...k neighbour
+                                        d_KNN_sim=sorted(dist_sim[:,-1])#distance to the Kth neighbour
+                                        
+                                        lst_d_KNN_sim.append(min(d_KNN_sim))
                             d_KNN_sim_av = np.mean(lst_d_KNN_sim)
                             
                     
@@ -329,9 +360,15 @@ for a in range(2):
                             ax.hist(d_KNN_sim,bins ='auto',histtype ='step',color = 'r')
                             ax.set_xlabel('%s-NN distance'%(samples_dist)) 
                             
-                            eps_av = round((min(d_KNN)+d_KNN_sim_av)/2,3)
+                            if sim_lim == 'mean':
+                                eps_av = round((min(d_KNN)+d_KNN_sim_av)/2,3)
+                                valor = d_KNN_sim_av
+                            elif sim_lim == 'minimun':
+                                eps_av = round((min(d_KNN)+min(lst_d_KNN_sim))/2,3)
+                                valor = min(lst_d_KNN_sim)
                             texto = '\n'.join(('min real d_KNN = %s'%(round(min(d_KNN),3)),
-                                                'min sim d_KNN =%s'%(round(d_KNN_sim_av,3)),'average = %s'%(eps_av)))
+                                                'min sim d_KNN =%s'%(round(valor,3)),
+                                                'average = %s'%(eps_av),'%s'%(sim_lim),'%s'%(gen_sim)))
                             
                     
                             props = dict(boxstyle='round', facecolor='w', alpha=0.5)
