@@ -142,7 +142,10 @@ for f_e in range(len(clus_to_erase)):
     os.remove((clus_to_erase[f_e]))
     
 # %%
-section_folder = '/Users/amartinez/Desktop/morralla/Sec_%s_dmu1_at_2022-08-01/'%(section)#TODO
+choosen_folder = input('Copy paste the folder with the clusters:')
+# section_folder = '/Users/amartinez/Desktop/morralla/Sec_%s_dmu2_at_minimun_2022-08-30/'%(section)#TODO
+section_folder = '/Users/amartinez/Desktop/morralla/%s/'%(choosen_folder)#TODO
+
 print(os.path.basename(section_folder))
 # section_folder = '/Users/amartinez/Desktop/morralla/Sec_A_at_2022-07-20 12/'#Test folder
 if 'dmu0.5' in section_folder:
@@ -151,6 +154,8 @@ elif 'dmu1' in section_folder:
     lim = '1.0'
 elif 'dmu2' in section_folder:
     lim = '2.0'
+elif 'dmu3' in section_folder:
+    lim = '3.0'
 
 plots =0
 for folder in sorted(glob.glob(section_folder + 'cluster_num*'),key = os.path.getmtime):
@@ -183,7 +188,7 @@ for folder in sorted(glob.glob(section_folder + 'cluster_num*'),key = os.path.ge
             all_clus.append(cluster[line])
     clus_arr = np.array(all_clus)
     print(30*'∂')
-    print(clus_per_folder)
+    print('Plot %s, cluster per foloder %s'%(plots+1,clus_per_folder))
     print(30*'∂')
 # % 
     same_method = 'One space (4D or 5D)' # WE are looking for cluster using 4 or 5 dimesional spaces. If a two different cluster,found in 4 and 5 dimensional space respectively, have at least one commons star, the variable with chage to 'Two method' 
@@ -197,10 +202,10 @@ for folder in sorted(glob.glob(section_folder + 'cluster_num*'),key = os.path.ge
     
     #Here we are going to make a sigma clipping for the cluster members
     #Not really sure which dimension I should clipp...
-    sigma = 2
-    trimmed_by ='color'#TODO
+    sigma =10
+    # trimmed_by ='color'#TODO
     # trimmed_by = 'pm'#TODO
-    # trimmed_by = 'color_pm'#TODO
+    trimmed_by = 'color_pm'#TODO
     if trimmed_by =='color':   
         clus_trim = sigma_clip(cluster_unique0[:,7]-cluster_unique0[:,8],sigma = sigma,maxiters = 10)
         good_filt = np.where(np.isnan(clus_trim)==False)
@@ -246,7 +251,7 @@ for folder in sorted(glob.glob(section_folder + 'cluster_num*'),key = os.path.ge
         coord_to_save = SkyCoord(ra = cluster_unique[:,0], dec = cluster_unique[:,1],unit = 'deg', frame = 'icrs', equinox = 'J2000', obstime = 'J2014.2')
         np.savetxt(pruebas + 'fine_coord_combined_clus%s_sect%s.txt'%(plots, section),np.array([coord_to_save.ra.value,coord_to_save.dec.value]).T)
         np.savetxt(pruebas + 'combined_clus%s_sect%s.txt'%(plots, section),cluster_unique)
-        sys.exit('249')
+        
     np.savetxt(morralla+'combined_Sec_%s_clus/cluster_num/'%(section) + 'cluster_combined_clus%s_sect%s.txt'%(plots, section),cluster_unique)    
     fig, ax = plt.subplots(1,3,figsize=(30,10))
     fig.suptitle('Sec: %s. In folder --> %s'%(section,os.path.basename(folder)),fontsize=40)
