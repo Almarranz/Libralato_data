@@ -126,7 +126,7 @@ for file_to_remove in glob.glob(pruebas+'dbs_%scluster*.txt'%(pre)):#Remove the 
 
 # print(''*len('ACTIVATE ERASE FILES')+'\n'+'ACTIVATE ERASE FILES'+'\n'+''*len('ACTIVATE ERASE FILES'))
 # for g in range(len(group_lst)):
-for g in range(86,87):
+for g in range(0,1):
     seed(g)
     fig, ax = plt.subplots(1,1,figsize=(30,10))
     ax.set_ylim(0,10)
@@ -229,7 +229,9 @@ for g in range(86,87):
         clustering = DBSCAN(eps=epsilon, min_samples=samples).fit(X_stad)
         l=clustering.labels_
         loop=0
-        while len(set(l))<20:
+        while len(set(l))<6: # min number of cluster to find. It star looking at the min values of the Knn distance plot and increases epsilon until the cluster are found. BE careful cose ALL cluster will be found with the lastest (and biggest) value of eps, so it might lost some clusters, becouse of the conditions.
+                             # What I mean is that with a small epsilon it may found a cluster that fulfill the condition (max diff of color), but when increasing epsilon some other stars maybe added to the cluster with a bigger diff in color and break the rule.
+                             # This does not seem a problem when 'while <6' but it is when 'while <20' for example...
             loop +=1
             clustering = DBSCAN(eps=epsilon, min_samples=samples).fit(X_stad)
             
@@ -256,6 +258,7 @@ for g in range(86,87):
         # print(round(kneedle.elbow_y, 3))
         ax.axhline(rodilla,linestyle='dashed',color='k')
         ax.axhline(codo,linestyle='dashed',color='k')
+        ax.axhline(round(min(d_KNN),3),linestyle='dashed',color='k')
         ax.axhline(epsilon,linestyle='dashed',color='red') 
         ax.text(len(X)/2,epsilon, '%s'%(round(epsilon,3)),color='red')
 
@@ -325,6 +328,7 @@ for g in range(86,87):
                 index1=np.where((catal[:,5]==Ms[0,4]) & (catal[:,6]==Ms[0,5]) ) # looping a picking the stars coord on the Ms catalog
 
                 if max_c-min_c <0.3 and (len(min_nth))>3 and min_nth[2]<14.5:# the difference in color is smaller than 'max_c-min_c' and at least min_nth[n] stars in the cluster are brighter than 14.5
+                # if max_c-min_c <0.3 and (len(min_nth))>3 and any(min_nth<14.5):
                 # if max_c-min_c <0.3 and min_nth[2]<14.5:# the difference in color is smaller than 'max_c-min_c' and at least min_nth[n] stars in the cluster are brighter than 14.5
                     # index1=np.where((catal[:,5]==Ms[0,4]) & (catal[:,6]==Ms[0,5]) ) # looping a picking the stars coord on the Ms catalog
                     print(Ms[0,4],Ms[0,5])
@@ -498,9 +502,11 @@ for g in range(86,87):
 
 # %%
 
+# if max_c-min_c <0.3 and (len(min_nth))>3 and any(min_nth)<14.5:
 
-
-
+if any(min_nth<100):
+    print('any')
+print(min_nth)
 
 
 
