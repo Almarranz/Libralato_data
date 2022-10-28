@@ -113,7 +113,9 @@ dmu_lim = int(dmu_lim)
 vel_lim = np.where((catal[:,19]<=dmu_lim) & (catal[:,20]<=dmu_lim))
 catal=catal[vel_lim]
 gen_sim = input('shuffle or kernnel? = ')#TODO generates the simulated data by randomly shuffle it
-
+sim_lim = input('sim_lim (minimun, mean, maximun?):=')#TODO if you want to choosee the minimum value of all the minumun epsilons of the simulated sets
+print('If you are on Kernnel mode, anwer "yes" to the next question')
+mix_color = input('Do you what to shuffle color?("yes" or "no")')
 np.savetxt(pruebas + 'catal_sec%s_center.txt'%(section),catal)
 # 'ra dec x_c  y_c mua dmua mud dmud time n1 n2 ID mul mub dmul dmub '
 # catal_all = np.loadtxt(cata + '%s_pm_galactic.txt'%(name))
@@ -187,18 +189,19 @@ ang = (np.arctan(m1))
 clus_num = 0
 # x_box = 3
 
-sim_lim = 'minimun'
-clustered_by_list =['all_color','all']
+
+# clustered_by_list =['all_color','all']
+clustered_by_list =['all_color']
 
 
-xy_box_lst = [[3,1],[4,2],[6,2]]
-samples_lst =[10,9,8,7,6,5]
+# xy_box_lst = [[3,1],[4,2],[6,2]]
+# samples_lst =[10,9,8,7,6,5]
 
-# xy_box_lst = [[3,1]]
-# samples_lst =[10, 7]
+xy_box_lst = [[4,2],[6,2]]
+samples_lst =[10,9,8,7]
 
 
-for a in range(2):
+for a in range(len(clustered_by_list)):
     clustered_by = clustered_by_list[a]
     # %
     for elegant_loop in range(len(xy_box_lst)):
@@ -324,7 +327,10 @@ for a in range(2):
                                     ra_sim, dec_sim = ra_, dec_
                                     random_col = np.arange(len(datos))
                                     np.random.shuffle(random_col)
-                                    H_sim, K_sim = H_datos[random_col], K_datos[random_col]
+                                    if mix_color == 'yes':
+                                        H_sim, K_sim = H_datos[random_col], K_datos[random_col]
+                                    elif mix_color == 'no':
+                                        H_sim, K_sim = H_datos[random_col], K_datos[random_col]
                                     color_sim = H_sim-K_sim
                                     if clustered_by == 'all_color':
                                         X_sim=np.array([mul_sim,mub_sim,x_sim,y_sim,color_sim]).T
@@ -347,24 +353,16 @@ for a in range(2):
                             d_KNN_sim_av = np.mean(lst_d_KNN_sim)
                             
                     
-                            fig, ax = plt.subplots(1,1,figsize=(10,10))
-                            # ax[0].set_title('Sub_sec_%s_%s'%(col[colum],row[ro]))
-                            # ax[0].plot(np.arange(0,len(datos),1),d_KNN,linewidth=1,color ='k')
-                            # ax[0].plot(np.arange(0,len(datos),1),d_KNN_sim, color = 'r')
                             
-                            # # ax.legend(['knee=%s, min=%s, eps=%s, Dim.=%s'%(round(kneedle.elbow_y, 3),round(min(d_KNN),2),round(epsilon,2),len(X[0]))])
-                            # ax[0].set_xlabel('Point') 
-                            # ax[0].set_ylabel('%s-NN distance'%(samples)) 
-                            
-                            ax.hist(d_KNN,bins ='auto',histtype ='step',color = 'k')
-                            ax.hist(d_KNN_sim,bins ='auto',histtype ='step',color = 'r')
-                            ax.set_xlabel('%s-NN distance'%(samples_dist)) 
                             
                             if sim_lim == 'mean':
                                 eps_av = round((min(d_KNN)+d_KNN_sim_av)/2,3)
                                 valor = d_KNN_sim_av
                             elif sim_lim == 'minimun':
                                 eps_av = round((min(d_KNN)+min(lst_d_KNN_sim))/2,3)
+                                valor = min(lst_d_KNN_sim)
+                            elif sim_lim == 'maximun':
+                                eps_av = round((min(d_KNN)+max(lst_d_KNN_sim))/2,3)
                                 valor = min(lst_d_KNN_sim)
                             texto = '\n'.join(('min real d_KNN = %s'%(round(min(d_KNN),3)),
                                                 'min sim d_KNN =%s'%(round(valor,3)),
@@ -376,10 +374,14 @@ for a in range(2):
                             ax.text(0.65, 0.25, texto, transform=ax.transAxes, fontsize=20,
                                 verticalalignment='top', bbox=props)
                             
-                            ax.set_ylabel('N') 
-                            # ax.set_xlim(0,1)
-                           
-                            plt.show()
+                            # fig, ax = plt.subplots(1,1,figsize=(10,10))
+                            # ax.hist(d_KNN,bins ='auto',histtype ='step',color = 'k')
+                            # ax.hist(d_KNN_sim,bins ='auto',histtype ='step',color = 'r')
+                            # ax.set_xlabel('%s-NN distance'%(samples_dist)) 
+                            # ax.set_ylabel('N') 
+                            # # ax.set_xlim(0,1)
+                            # plt.show()
+                            
                             clus_method = 'dbs'
                     
                             clustering = DBSCAN(eps=eps_av, min_samples=samples_dist).fit(X_stad)
@@ -424,7 +426,7 @@ for a in range(2):
                                 ax[0].set_xlabel(r'$\mathrm{\mu_{l} (mas\ yr^{-1})}$',fontsize =30) 
                                 ax[0].set_ylabel(r'$\mathrm{\mu_{b} (mas\ yr^{-1})}$',fontsize =30) 
                                 ax[0].invert_xaxis()
-                                ax[0].hlines(0,-10,10,linestyle = 'dashed', color ='red')
+                                # ax[0].hlines(0,-10,10,linestyle = 'dashed', color ='red')
                                 
                                 mul_sig, mub_sig = np.std(X[:,0][colores_index[i]]), np.std(X[:,1][colores_index[i]])
                                 mul_mean, mub_mean = np.mean(X[:,0][colores_index[i]]), np.mean(X[:,1][colores_index[i]])
@@ -445,9 +447,25 @@ for a in range(2):
                                 ax[0].text(0.05, 0.15, vel_txt_all, transform=ax[0].transAxes, fontsize=20,
                                     verticalalignment='top', bbox=propiedades_all)
                                 
-                               
+                                ax[0].axvline(mul_mean_all, color ='red')
+                                ax[0].axhline(mub_mean_all, color ='red')
                                 
+                                ax[0].axvline(mul_mean_all + mul_sig_all,linestyle = 'dashed', color ='orange')
+                                ax[0].axvline(mul_mean_all - mul_sig_all,linestyle = 'dashed', color ='orange')
                                 
+                                ax[0].axhline(mub_mean_all + mub_sig_all,linestyle = 'dashed', color ='orange')
+                                ax[0].axhline(mub_mean_all - mub_sig_all,linestyle = 'dashed', color ='orange')
+                                
+                                ax[0].axvline(np.mean(catal[:,-6]), color ='red')
+                                ax[0].axhline(np.mean(catal[:,-5]), color ='red')
+                                
+                                ax[0].axvline(np.mean(catal[:,-6]) + np.std(catal[:,-6]),linestyle = 'dashed', color ='red')
+                                ax[0].axvline(np.mean(catal[:,-6]) - np.std(catal[:,-6]),linestyle = 'dashed', color ='red')
+                                
+                                ax[0].axhline(np.mean(catal[:,-5]) + np.std(catal[:,-5]),linestyle = 'dashed', color ='red')
+                                ax[0].axhline(np.mean(catal[:,-5]) - np.std(catal[:,-5]),linestyle = 'dashed', color ='red')
+
+
                                 #This calcualte the maximun distance between cluster members to have a stimation of the cluster radio
                                 c2 = SkyCoord(ra = datos[:,0][colores_index[i]]*u.deg,dec = datos[:,1][colores_index[i]]*u.deg,frame ='icrs', equinox = 'J2000', obstime = 'J2014.2')
                                 sep = [max(c2[c_mem].separation(c2)) for c_mem in range(len(c2))]
@@ -651,7 +669,7 @@ for a in range(2):
                                 
                                 
                                 
-                                
+                                plt.show()
                     # =============================================================================
                     #             Here it compare the cluster you want to save wiith the rest of the 
                     #             saved cluster if repited, it saves in the same cluster 
@@ -672,7 +690,7 @@ for a in range(2):
                                         os.makedirs(pruebas + 'Sec_%s_clus/'%(section) +'cluster_num%s_%s_knn%s_area%.2f/'%(clus_num,i,samples_dist,area))
                                         np.savetxt(pruebas + 'Sec_%s_clus/'%(section) +'cluster_num%s_%s_knn%s_area%.2f/'%(clus_num,i,samples_dist,area)+
                                                    'cluster%s_%.0f_%.0f_knn_%s_area_%.2f_%s.txt'%(clus_num,ic/0.5,jr/0.5,samples_dist,area,clustered_by),clus_array,
-                                                   fmt='%.7f '*6 + ' %.4f'*3 +' %.5f'*2 +' %.3f'*3+ ' %.0f',
+                                                   fmt='%.7f '*6 + ' %.5f'*3 +' %.5f'*2 +' %.3f'*3+ ' %.0f',
                                                    header ='ra, dec, l, b, pml, pmb,J, H, Ks,x, y, AKs_mean, dAks_mean, radio("),cluster_ID')
                                         ax[2].set_title('Saved in cluster_num%s_%s_knn%s_area%.2f/'%(clus_num,i,samples_dist,area))
                                         plt.show()
@@ -693,7 +711,7 @@ for a in range(2):
                                                     print('Same (or similar) cluster  is in %s'%(f_check))
                                                     np.savetxt(f_check+'/'+
                                                                'cluster%s_%.0f_%.0f_knn_%s_area_%.2f_%s.txt'%(clus_num,ic/0.5,jr/0.5,samples_dist,area,clustered_by),clus_array,
-                                                               fmt='%.7f '*6 + ' %.4f'*3 +' %.5f'*2+' %.3f'*3+ ' %.0f',
+                                                               fmt='%.7f '*6 + ' %.5f'*3 +' %.5f'*2+' %.3f'*3+ ' %.0f',
                                                                header ='ra, dec, l, b, pml, pmb,J, H, Ks,x, y, Aks_mean, dAks_mean, radio("),cluster_ID')
                                                     ax[2].set_title('Saved in %s'%(os.path.basename(f_check)))
                                                     plt.show()
@@ -709,7 +727,7 @@ for a in range(2):
                                             os.makedirs(pruebas + 'Sec_%s_clus/'%(section) +'cluster_num%s_%s_knn%s_area%.2f/'%(clus_num,i,samples_dist,area))
                                             np.savetxt(pruebas + 'Sec_%s_clus/'%(section) +'cluster_num%s_%s_knn%s_area%.2f/'%(clus_num,i,samples_dist,area)+
                                                        'cluster%s_%.0f_%.0f_knn_%s_area_%.2f_%s.txt'%(clus_num,ic/0.5,jr/0.5,samples_dist,area,clustered_by),clus_array,
-                                                       fmt='%.7f '*6 + ' %.4f'*3 +' %.5f'*2+' %.3f'*3 + ' %.0f',
+                                                       fmt='%.7f '*6 + ' %.5f'*3 +' %.5f'*2+' %.3f'*3 + ' %.0f',
                                                        header ='ra, dec, l, b, pml, pmb,J, H, Ks,x, y, Aks_mean,dAks_mean, radio("), cluster_ID')
                                             ax[2].set_title('Saved in cluster_num%s_%s_knn%s_area%.2f/'%(clus_num,i,samples_dist,area))
                                             plt.show()
@@ -741,27 +759,18 @@ print('\n'.join((len(frase)*'',frase,len(frase)*'')))
 save_folder = input('Awnser:')   
 if save_folder == 'yes' or save_folder == 'y':       
     source_dir = pruebas + 'Sec_%s_clus/'%(section)
-    destination_dir = '/Users/amartinez/Desktop/morralla/Sec_%s_dmu%s_at_%s'%(section,dmu_lim,datetime.now())
+    if mix_color == 'yes':
+        destination_dir = '/Users/amartinez/Desktop/morralla/Sec_%s_dmu%s_at_%s_%s_%s'%(section,dmu_lim,sim_lim,gen_sim,datetime.now())
+    elif mix_color == 'no':
+        destination_dir = '/Users/amartinez/Desktop/morralla/Sec_%s_dmu%s_at_%s_%s_nocolor_%s'%(section,dmu_lim,sim_lim,gen_sim,datetime.now())
     shutil.copytree(source_dir, destination_dir)
     sys.exit('You stoped it')
 else:
     sys.exit('You stoped it')
-sys.exit('Chao')
+sys.exit('Chiao')
 
 
-# %%
-yg_1 = (lim_pos_up - (ic)*step/np.cos(45*u.deg)) +  m*catal[:,7]
-# print(catal[:,7]*0.5)
 
-# %%
-
-print((lim_pos_up - (ic)*step/np.cos(45*u.deg)) +  m*catal[:,7])
-
-for i in range(len(catal)):
-    try:
-        print('-',catal[i,7]+lim_pos_up - (ic)*step/np.cos(45*u.deg))
-    except:
-        print('*',catal[i,7])
 
 
 
