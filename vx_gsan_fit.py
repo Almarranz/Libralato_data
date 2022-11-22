@@ -17,6 +17,9 @@ from astropy.stats import sigma_clipped_stats
 from matplotlib.ticker import FormatStrFormatter
 import pandas as pd
 import sys
+import matplotlib.patches as patches
+import matplotlib.patches as mpatches
+# %%plotiin parametres
 from matplotlib import rcParams
 rcParams.update({'xtick.major.pad': '7.0'})
 rcParams.update({'xtick.major.size': '7.5'})
@@ -30,7 +33,7 @@ rcParams.update({'ytick.major.width': '1.5'})
 rcParams.update({'ytick.minor.pad': '7.0'})
 rcParams.update({'ytick.minor.size': '3.5'})
 rcParams.update({'ytick.minor.width': '1.0'})
-rcParams.update({'font.size': 20})
+rcParams.update({'font.size': 30})
 rcParams.update({'figure.figsize':(10,5)})
 rcParams.update({
     "text.usetex": False,
@@ -39,6 +42,8 @@ rcParams.update({
 plt.rcParams["mathtext.fontset"] = 'dejavuserif'
 from matplotlib import rc
 rc('font',**{'family':'serif','serif':['Palatino']})
+# %%
+
 cata='/Users/amartinez/Desktop/PhD/Libralato_data/CATALOGS/'
 pruebas='/Users/amartinez/Desktop/PhD/Libralato_data/pruebas/'
 resultados='/Users/amartinez/Desktop/PhD/Libralato_data/results/'
@@ -95,7 +100,7 @@ dmub=gal_coor[:,3]
 #%%
 
 #%
-lim_dmul=1
+lim_dmul=2
 accu=np.where((abs(dmul)<lim_dmul) & (abs(dmub)<lim_dmul))#Are they in the paper selecting by the error of the galactic or equatorial coordintes???
 
 #%
@@ -211,7 +216,7 @@ plt.show()
 
 
 
-#%
+#%%
 from dynesty import utils as dyfunc
     
 samples, weights = res.samples, np.exp(res.logwt - res.logz[-1])
@@ -232,29 +237,51 @@ results = sampler.results
 print(results['logz'][-1])
 # %%
 # h=plt.hist(v_x*-1, bins= nbins, color='darkblue', alpha = 0.6, density =True, histtype = 'stepfilled')
-h=plt.hist(mul, bins= auto, color='royalblue', alpha = 0.6, density =True, histtype = 'stepfilled')
+h=plt.hist(mul, bins= auto, color='slategrey', alpha = 0.5, density =True, histtype = 'stepfilled')
 
 xplot = np.linspace(min(x), max(x), 1000)
 
 # plt.plot(xplot, gaussian(xplot, mean[0], mean[1], mean[2]) , color="darkorange", linewidth=3, alpha=0.6)
-
-plt.plot(xplot, gaussian(xplot, mean[0], mean[1], mean[2]) + gaussian(xplot, mean[3], mean[4], mean[5])
+fig, ax = plt.subplots(1,1,figsize=(8,8))
+ax.hist(mul, bins= auto, color='slategrey', alpha = 0.5, density =True, histtype = 'stepfilled')
+ax.plot(xplot, gaussian(xplot, mean[0], mean[1], mean[2]) + gaussian(xplot, mean[3], mean[4], mean[5])
          + gaussian(xplot, mean[6], mean[7], mean[8]), color="darkorange", linewidth=3, alpha=1)
-plt.plot(xplot, gaussian(xplot, mean[0], mean[1], mean[2])  , color="yellow", linestyle='dashed', linewidth=3, alpha=0.6)
-plt.plot(xplot, gaussian(xplot, mean[3], mean[4], mean[5])  , color="red", linestyle='dashed', linewidth=3, alpha=0.6)
-plt.plot(xplot, gaussian(xplot, mean[6], mean[7], mean[8]) , color='black', linestyle='dashed', linewidth=3, alpha=0.6)
+ax.plot(xplot, gaussian(xplot, mean[0], mean[1], mean[2])  , color="blue", linestyle='dashed', linewidth=3, alpha=0.6)
+ax.plot(xplot, gaussian(xplot, mean[3], mean[4], mean[5])  , color="red", linestyle='dashed', linewidth=3, alpha=0.6)
+ax.plot(xplot, gaussian(xplot, mean[6], mean[7], mean[8]) , color='black', linestyle='dashed', linewidth=3, alpha=0.6)
 
-plt.xlim(-20,10)
+# ax.set_ylim(0,0.16)
+ax.set_xlim(-19,10)
+
+# %%
 # =============================================================================
 # # plt.text(-10,max(h[0]-0.01),'logz=%.0f'%(results['logz'][-1]),color='b')
 # =============================================================================
+qu = [dyfunc.quantile(samps, [0.16,0.5,.84], weights=weights)
+             for samps in samples.T]
+ax.invert_xaxis()
+#ths box
+prop_0 = dict(boxstyle='round', facecolor='white' , alpha=0.2)
+bulge = ('$\mu_{l}$=%.2f$\pm$%.2f, $\sigma_{\mu_{l}}$=%.2f$\pm$ %.2f'%(mean[3],qu[3][0]-qu[3][2],mean[4],qu[4][0]-qu[4][2]))
+east =  ('$\mu_{l}$=%.2f$\pm$%.2f, $\sigma_{\mu_{l}}$=%.2f$\pm$ %.2f'%(mean[0],qu[0][0]-qu[0][2],mean[1],qu[1][0]-qu[1][2]))
+west =  ('$\mu_{l}$=%.2f$\pm$%.2f, $\sigma_{\mu_{l}}$=%.2f$\pm$ %.2f'%(mean[6],qu[6][0]-qu[6][2],mean[7],qu[7][0]-qu[7][2]))
 
-plt.gca().invert_xaxis()
-
-plt.ylabel('N')
-plt.xlabel(r'$\mathrm{\mu_{l} (mas\ yr^{-1})}$') 
-# plt.savefig('/Users/amartinez/Desktop/PhD/Charlas/Presentaciones/Brno/' + 'nsd.png', dpi=300,bbox_inches='tight')
-
+# ax.text(0.02, 0.95, bulge, transform=ax.transAxes, fontsize=15,
+#     verticalalignment='top',color='red')
+# ax.text(0.02, 0.90, east, transform=ax.transAxes, fontsize=15,
+#     verticalalignment='top',color='blue')
+# ax.text(0.02, 0.85, west, transform=ax.transAxes, fontsize=15,
+#     verticalalignment='top',color='k')
+ax.yaxis.set_major_formatter(FormatStrFormatter('%.2f'))
+ax.set_ylabel('N', fontsize = 30)
+ax.set_xlabel(r'$\mathrm{\mu_{l}\,(mas\ yr^{-1})}$',fontsize = 30) 
+article = '/Users/amartinez/Desktop/PhD/My_papers/Libralato/'
+plt.savefig(article + 'nsd_limdmu_l%s.png'%(lim_dmul), dpi=300,bbox_inches='tight')
+with open(article +'nsd_values_limdmu%s.txt'%(lim_dmul), 'w') as arch:
+    arch.write('#1.Absolute 2. Relative 3. Error\n#Bulge: pm , dispersion. East:pm , dispersion. West: pm , dispersion \n%.2f %.2f %.2f %.2f %.2f %.2f\n%.2f %.2f %.2f %.2f %.2f %.2f '%(mean[3],mean[4],mean[0],mean[1],mean[6],mean[7],mean[3]-mean[3],mean[4],mean[0]-mean[3],mean[1],mean[6]-mean[3],mean[7]))
+with open(article +'nsd_values_limdmu%s.txt'%(lim_dmul), 'a') as arch:
+    arch.write('\n%.2f %.2f %.2f %.2f %.2f %.2f'%(qu[3][0]-qu[3][2],qu[4][0]-qu[4][2],qu[0][0]-qu[0][2],qu[1][0]-qu[1][2],qu[6][0]-qu[6][2],qu[7][0]-qu[7][2]))
+# sys.exit('281')
 #%%
 print(plt.xticks()[0])
 # %%
@@ -263,11 +290,11 @@ mean, cov = dyfunc.mean_and_cov(samples, weights)
 # print(mean)
 quantiles = [dyfunc.quantile(samps, [0.16,0.5,.84], weights=weights)
              for samps in samples.T]
-for i in range(9):
-    print('medin %.2f -+ %.2f %.2f'%(quantiles[i][1],quantiles[i][1]-quantiles[i][0],quantiles[i][2]-quantiles[i][1]))
-    print(' mean %.2f -+ %.2f %.2f'%(mean[i],mean[i]-quantiles[i][0],quantiles[i][2]-mean[i])+'\n'+30*'*')
+# for i in range(9):
+#     print('medin %.2f -+ %.2f %.2f'%(quantiles[i][1],quantiles[i][1]-quantiles[i][0],quantiles[i][2]-quantiles[i][1]))
+#     print(' mean %.2f -+ %.2f %.2f'%(mean[i],mean[i]-quantiles[i][0],quantiles[i][2]-mean[i])+'\n'+30*'*')
 
-
+print(quantiles[3][0]-quantiles[3][2])
 
 # %%
 
@@ -289,7 +316,7 @@ print('Area under Gaus2:%.3f'%(gau2[0]))
 print('Area under Gaus3:%.3f'%(gau3[0]))
 print('Total area = %.3f'%(gau1[0]+gau2[0]+gau3[0]))
 print(len('Area under Gaus1: %.3f')*'&')
-np.savetxt(pruebas + 'gaus_mul_sec_%s.txt'%(section),np.array([[mean[0],mean[3],mean[6],mean[1],mean[4],mean[7],gau1[0],gau2[0],gau3[0]]]),fmt='%.3f',header ='mul_e, mul_b, mu_w, sig_e, sig_b, sig_w, area_e, area_b,area_w')
+# np.savetxt(pruebas + 'gaus_mul_sec_%s.txt'%(section),np.array([[mean[0],mean[3],mean[6],mean[1],mean[4],mean[7],gau1[0],gau2[0],gau3[0]]]),fmt='%.3f',header ='mul_e, mul_b, mu_w, sig_e, sig_b, sig_w, area_e, area_b,area_w')
 # =============================================================================
 # bs = np.arange(min(mul), max(mul), 0.25)
 # hist, edges = np.histogram(mul, bs)
@@ -336,7 +363,7 @@ plt.gca().invert_xaxis()
 
 plt.ylabel('N')
 plt.xlabel(r'$\mathrm{\mu_{l} (mas\ yr^{-1})}$') 
-plt.savefig('/Users/amartinez/Desktop/PhD/Charlas/Presentaciones/Brno/' + 'nsd_dyn_bulpm.png', dpi=300,bbox_inches='tight')
+# plt.savefig('/Users/amartinez/Desktop/PhD/Charlas/Presentaciones/Brno/' + 'nsd_dyn_bulpm.png', dpi=300,bbox_inches='tight')
 
 # %%
 
@@ -354,11 +381,11 @@ ax.plot(xplot-mean[3], gaussian(xplot, mean[0], mean[1], mean[2])  , color="yell
 ax.plot(xplot-mean[3], gaussian(xplot, mean[3], mean[4], mean[5])  , color="red", linestyle='dashed', linewidth=3, alpha=0.6)
 ax.plot(xplot-mean[3], gaussian(xplot, mean[6], mean[7], mean[8]) , color='black', linestyle='dashed', linewidth=3, alpha=0.6)
 propiedades_y = dict(boxstyle='round', facecolor='y', alpha=0.5)
-texto_y ='\n'.join(('%s $\mathrm{(mas\ yr^{-1})}$'%(round(mean[0]-mean[3],2)),'            $\downarrow$','      %s Km/s'%(round((mean[0]-mean[3])*40)))) 
+texto_y ='\n'.join(('%s $\mathrm{mas\ yr^{-1}}$'%(round(mean[0]-mean[3],2)),'            $\downarrow$','      %s Km/s'%(round((mean[0]-mean[3])*40)))) 
 ax.text(0.05, 0.85, texto_y, transform=ax.transAxes, fontsize=14,
                         verticalalignment='top', bbox=propiedades_y)
 propiedades_b = dict(boxstyle='round', facecolor='k', alpha=0.2)
-texto_b ='\n'.join(('%s $\mathrm{(mas\ yr^{-1})}$'%(round(mean[6]-mean[3],2)),'            $\downarrow$','      %s Km/s'%(round((mean[6]-mean[3])*40)))) 
+texto_b ='\n'.join(('%s $\mathrm{mas\ yr^{-1}}$'%(round(mean[6]-mean[3],2)),'            $\downarrow$','      %s Km/s'%(round((mean[6]-mean[3])*40)))) 
 ax.text(0.45, 0.45, texto_b, transform=ax.transAxes, fontsize=14,
                         verticalalignment='top', bbox=propiedades_b)
 
@@ -373,7 +400,7 @@ plt.gca().invert_xaxis()
 plt.ylabel('N')
 plt.xlabel(r'$\mathrm{\mu_{l} (mas\ yr^{-1})}$') 
 
-plt.savefig('/Users/amartinez/Desktop/PhD/Charlas/Presentaciones/Brno/' + 'nsd_dyn_nsdpm.png', dpi=300,bbox_inches='tight')
+# plt.savefig('/Users/amartinez/Desktop/PhD/Charlas/Presentaciones/Brno/' + 'nsd_dyn_nsdpm.png', dpi=300,bbox_inches='tight')
 
 
 
