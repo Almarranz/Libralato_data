@@ -284,7 +284,7 @@ hos_core = hos_cluster[id2]
 # Saving the core cluster for cluster_dectection_statistic.py
 add_clus = np.array([hos_core['pm_l'],hos_core['pm_b']
                     ,hos_core['l_abs'],hos_core['b_abs'],
-                    hos_core['F127M']-hos_core['F153M'],hos_core['Pclust']])
+                    hos_core['F127M'],hos_core['F153M'],hos_core['Pclust']])
 np.savetxt(pruebas + 'core_cluster_rad%.0f_%s.txt'%(radio.value,choosen_cluster),add_clus.T,header = 'mul, mub, l, b, f127 - f153, prob_clust', fmt ='%.6f')
 
 hos_core_coord = SkyCoord(ra = hos_core['ra_abs'], dec = hos_core['dec_abs'],frame ='icrs', obstime = 'J2016.0')
@@ -298,139 +298,139 @@ gns_core_match = AKs_center[idi[is_match]]
 # =============================================================================
 # Here you can trim the core cluster by color
 # =============================================================================
-colores_trim = []
-sig = 2
-for tr in range(len(gns_core_match)):
-    colores_trim.append(float(gns_core_match[tr,6]-gns_core_match[tr,8]))
-print(np.mean(colores_trim))
-fil_color = sigma_clip(colores_trim, sigma=sig, maxiters=10)
-good_filt = np.where(np.isnan(fil_color)==False)
+# colores_trim = []
+# sig = 2
+# for tr in range(len(gns_core_match)):
+#     colores_trim.append(float(gns_core_match[tr,6]-gns_core_match[tr,8]))
+# print(np.mean(colores_trim))
+# fil_color = sigma_clip(colores_trim, sigma=sig, maxiters=10)
+# good_filt = np.where(np.isnan(fil_color)==False)
 
-gns_core_match_trim = gns_core_match[good_filt]
-hos_core_match_trim = hos_core_match[good_filt]
-# %
-pro = 0.75
-good_pro = np.where(hos_core_match_trim['Pclust']>pro)#TODO
-hos_core_match_prob = hos_core_match_trim[good_pro]
+# gns_core_match_trim = gns_core_match[good_filt]
+# hos_core_match_trim = hos_core_match[good_filt]
+# # %
+# pro = 0.75
+# good_pro = np.where(hos_core_match_trim['Pclust']>pro)#TODO
+# hos_core_match_prob = hos_core_match_trim[good_pro]
 
 
-#Checking the matching, you can delete these tree lines
-fig, ax = plt.subplots(1,3, figsize = (30,10))
-ax[0].scatter(arches['pm_l'],arches['pm_b'],color = 'k', alpha = 0.03)
-ax[0].scatter(hos_core_match['pm_l'],hos_core_match['pm_b'],color = 'lime')
-ax[0].scatter(hos_core_match_prob['pm_l'],hos_core_match_prob['pm_b'],color = 'fuchsia')
-vel_txt = '\n'.join(('mul = %s, mub = %s'%(round(np.mean(hos_core_match['pm_l']),3), round(np.mean(hos_core_match['pm_b']),3)),
-                     '$\sigma_{mul}$ = %s, $\sigma_{mub}$ = %s'%(round(np.std(hos_core_match['pm_l']),3), round(np.std(hos_core_match['pm_b']),3)))) 
-vel_txt_all = '\n'.join(('mul = %s, mub = %s'%(round(np.mean(arches['pm_l']),3), round(np.mean(arches['pm_b']),3)),
-                     '$\sigma_{mul}$ = %s, $\sigma_{mub}$ = %s'%(round(np.std(arches['pm_l']),3), round(np.std(arches['pm_b']),3))))
-vel_txt_prob ='\n'.join(('mul = %s, mub = %s'%(round(np.mean(hos_core_match_prob['pm_l']),3), round(np.mean(hos_core_match_prob['pm_b']),3)),
-                     '$\sigma_{mul}$ = %s, $\sigma_{mub}$ = %s'%(round(np.std(hos_core_match_prob['pm_l']),3), round(np.std(hos_core_match_prob['pm_b']),3)))) 
+# #Checking the matching, you can delete these tree lines
+# fig, ax = plt.subplots(1,3, figsize = (30,10))
+# ax[0].scatter(arches['pm_l'],arches['pm_b'],color = 'k', alpha = 0.03)
+# ax[0].scatter(hos_core_match['pm_l'],hos_core_match['pm_b'],color = 'lime')
+# ax[0].scatter(hos_core_match_prob['pm_l'],hos_core_match_prob['pm_b'],color = 'fuchsia')
+# vel_txt = '\n'.join(('mul = %s, mub = %s'%(round(np.mean(hos_core_match['pm_l']),3), round(np.mean(hos_core_match['pm_b']),3)),
+#                      '$\sigma_{mul}$ = %s, $\sigma_{mub}$ = %s'%(round(np.std(hos_core_match['pm_l']),3), round(np.std(hos_core_match['pm_b']),3)))) 
+# vel_txt_all = '\n'.join(('mul = %s, mub = %s'%(round(np.mean(arches['pm_l']),3), round(np.mean(arches['pm_b']),3)),
+#                      '$\sigma_{mul}$ = %s, $\sigma_{mub}$ = %s'%(round(np.std(arches['pm_l']),3), round(np.std(arches['pm_b']),3))))
+# vel_txt_prob ='\n'.join(('mul = %s, mub = %s'%(round(np.mean(hos_core_match_prob['pm_l']),3), round(np.mean(hos_core_match_prob['pm_b']),3)),
+#                      '$\sigma_{mul}$ = %s, $\sigma_{mub}$ = %s'%(round(np.std(hos_core_match_prob['pm_l']),3), round(np.std(hos_core_match_prob['pm_b']),3)))) 
 
-prop_0 = dict(boxstyle='round', facecolor='lime', alpha=0.3)
-prop_0fuchsia = dict(boxstyle='round', facecolor='fuchsia' , alpha=0.3)
-prop_01 = dict(boxstyle='round', facecolor=colors[-1], alpha=0.1)
-ax[0].text(0.05, 0.95, vel_txt, transform=ax[0].transAxes, fontsize=30,
-    verticalalignment='top', bbox=prop_0)
-ax[0].text(0.05, 0.35, vel_txt_all, transform=ax[0].transAxes, fontsize=20,
-    verticalalignment='top', bbox=prop_01)
-ax[0].text(0.05, 0.15, vel_txt_prob, transform=ax[0].transAxes, fontsize=20,
-    verticalalignment='top', bbox=prop_0fuchsia)
-ax[0].set_xlabel(r'$\mathrm{\mu_{l} (mas\ yr^{-1})}$',fontsize =30) 
-ax[0].set_ylabel(r'$\mathrm{\mu_{b} (mas\ yr^{-1})}$',fontsize =30) 
+# prop_0 = dict(boxstyle='round', facecolor='lime', alpha=0.3)
+# prop_0fuchsia = dict(boxstyle='round', facecolor='fuchsia' , alpha=0.3)
+# prop_01 = dict(boxstyle='round', facecolor=colors[-1], alpha=0.1)
+# ax[0].text(0.05, 0.95, vel_txt, transform=ax[0].transAxes, fontsize=30,
+#     verticalalignment='top', bbox=prop_0)
+# ax[0].text(0.05, 0.35, vel_txt_all, transform=ax[0].transAxes, fontsize=20,
+#     verticalalignment='top', bbox=prop_01)
+# ax[0].text(0.05, 0.15, vel_txt_prob, transform=ax[0].transAxes, fontsize=20,
+#     verticalalignment='top', bbox=prop_0fuchsia)
+# ax[0].set_xlabel(r'$\mathrm{\mu_{l} (mas\ yr^{-1})}$',fontsize =30) 
+# ax[0].set_ylabel(r'$\mathrm{\mu_{b} (mas\ yr^{-1})}$',fontsize =30) 
 
-ax[1].set_title('%s'%(choosen_cluster))
-ax[1].scatter(hos_core_match['ra_abs'], hos_core_match['dec_abs'])
-# ax[1].scatter(gns_core_match_trim[:,0],gns_core_match_trim[:,2],color = 'r',s=1)
-ax[1].scatter(gns_core_match_trim[:,0][good_pro],gns_core_match_trim[:,2][good_pro],color = 'fuchsia',marker = 'x')
+# ax[1].set_title('%s'%(choosen_cluster))
+# ax[1].scatter(hos_core_match['ra_abs'], hos_core_match['dec_abs'])
+# # ax[1].scatter(gns_core_match_trim[:,0],gns_core_match_trim[:,2],color = 'r',s=1)
+# ax[1].scatter(gns_core_match_trim[:,0][good_pro],gns_core_match_trim[:,2][good_pro],color = 'fuchsia',marker = 'x')
 
-ax[1].scatter(arches['ra_abs'],arches['dec_abs'],color ='k',alpha = 0.03)
+# ax[1].scatter(arches['ra_abs'],arches['dec_abs'],color ='k',alpha = 0.03)
 
-prop_1 = dict(boxstyle='round', facecolor='lime' , alpha=0.2)
-prop_1fuchsia = dict(boxstyle='round', facecolor='fuchsia' , alpha=0.2)
-ax[1].text(0.15, 0.95, 'aprox cluster radio = %s"\n cluster stars = %s '%(round(radio.to(u.arcsec).value,2),len(gns_core_match_trim)), transform=ax[1].transAxes, fontsize=30,
-                                            verticalalignment='top', bbox=prop_1)
-ax[1].text(0.15, 0.15, 'stars with prob > %s =%s '%(pro, len(gns_core_match_trim[good_pro])), transform=ax[1].transAxes, fontsize=30,
-                                            verticalalignment='top', bbox=prop_1fuchsia)
+# prop_1 = dict(boxstyle='round', facecolor='lime' , alpha=0.2)
+# prop_1fuchsia = dict(boxstyle='round', facecolor='fuchsia' , alpha=0.2)
+# ax[1].text(0.15, 0.95, 'aprox cluster radio = %s"\n cluster stars = %s '%(round(radio.to(u.arcsec).value,2),len(gns_core_match_trim)), transform=ax[1].transAxes, fontsize=30,
+#                                             verticalalignment='top', bbox=prop_1)
+# ax[1].text(0.15, 0.15, 'stars with prob > %s =%s '%(pro, len(gns_core_match_trim[good_pro])), transform=ax[1].transAxes, fontsize=30,
+#                                             verticalalignment='top', bbox=prop_1fuchsia)
 
                     
-ax[1].set_xlabel('ra (deg)',fontsize =30) 
-ax[1].set_ylabel('dec (deg)',fontsize =30) 
-# ax[2].scatter(hos_core_match['F127M']-hos_core_match['F153M'], hos_core_match['F153M'],zorder =3)
-# ax[2].scatter(arches['F127M']-arches['F153M'], arches['F153M'],zorder=1)
-ax[2].set_title('Stars trimmied by color at %s$\sigma$'%(sig))
-ax[2].scatter(AKs_center[:,6]-AKs_center[:,8],AKs_center[:,8],zorder =1, color = 'k',s=0.1,alpha = 0.01)
-ax[2].scatter(gns_core_match_trim[:,6]-gns_core_match_trim[:,8],gns_core_match_trim[:,6],zorder =3, color = 'lime')
-ax[2].scatter(gns_core_match_trim[:,6][good_pro]-gns_core_match_trim[:,8][good_pro]
-              ,gns_core_match_trim[:,6][good_pro],zorder =3, color = 'fuchsia',marker = 'x')
+# ax[1].set_xlabel('ra (deg)',fontsize =30) 
+# ax[1].set_ylabel('dec (deg)',fontsize =30) 
+# # ax[2].scatter(hos_core_match['F127M']-hos_core_match['F153M'], hos_core_match['F153M'],zorder =3)
+# # ax[2].scatter(arches['F127M']-arches['F153M'], arches['F153M'],zorder=1)
+# ax[2].set_title('Stars trimmied by color at %s$\sigma$'%(sig))
+# ax[2].scatter(AKs_center[:,6]-AKs_center[:,8],AKs_center[:,8],zorder =1, color = 'k',s=0.1,alpha = 0.01)
+# ax[2].scatter(gns_core_match_trim[:,6]-gns_core_match_trim[:,8],gns_core_match_trim[:,6],zorder =3, color = 'lime')
+# ax[2].scatter(gns_core_match_trim[:,6][good_pro]-gns_core_match_trim[:,8][good_pro]
+#               ,gns_core_match_trim[:,6][good_pro],zorder =3, color = 'fuchsia',marker = 'x')
 
-ax[2].set_xlim(1.2,4)
-ax[2].invert_yaxis()
-# %
-ax[2].set_xlabel('H - Ks',fontsize =30) 
-ax[2].set_ylabel('Ks',fontsize =30)
+# ax[2].set_xlim(1.2,4)
+# ax[2].invert_yaxis()
+# # %
+# ax[2].set_xlabel('H - Ks',fontsize =30) 
+# ax[2].set_ylabel('Ks',fontsize =30)
 
-ext_cluster = []
-for ext in range(len(gns_core_match_trim[:,18])):
-    ext_cluster.append(float(gns_core_match_trim[ext,18]))
-
-
-AKs_core, dAKs_core = np.median(ext_cluster), np.std(ext_cluster)
+# ext_cluster = []
+# for ext in range(len(gns_core_match_trim[:,18])):
+#     ext_cluster.append(float(gns_core_match_trim[ext,18]))
 
 
-# %
-iso_dir = '/Users/amartinez/Desktop/PhD/Libralato_data/nsd_isochrones/'
-
-AKs_list1 =  np.arange(1.6,2.11,0.01)
-AKs_list = np.append(AKs_list1,0)#I added the 0 for the isochrones without extiction
-absolute_difference_function = lambda list_value : abs(list_value - AKs_core)
-AKs = min(AKs_list, key=absolute_difference_function)
-
-dist = 8200 # distance in parsec
-metallicity = 0.30 # Metallicity in [M/H]
-# # logAge_600 = np.log10(0.61*10**9.)
-if choosen_cluster =='Arches':
-    logAge = np.log10(0.0025*10**9.)#TODO
-elif choosen_cluster == 'Quintuplet':
-    logAge = np.log10(0.0048*10**9.)
-
-evo_model = evolution.MISTv1() 
-atm_func = atmospheres.get_merged_atmosphere
-red_law = reddening.RedLawNoguerasLara18()
-filt_list = ['hawki,J', 'hawki,H', 'hawki,Ks']
-
-iso =  synthetic.IsochronePhot(logAge, AKs, dist, metallicity=metallicity,
-                               evo_model=evo_model, atm_func=atm_func,
-                               red_law=red_law, filters=filt_list,
-                               iso_dir=iso_dir)
-
-imf_multi = multiplicity.MultiplicityUnresolved()
+# AKs_core, dAKs_core = np.median(ext_cluster), np.std(ext_cluster)
 
 
-massLimits = np.array([0.2, 0.5, 1, 120]) # Define boundaries of each mass segement
-powers = np.array([-1.3, -2.3, -2.3]) # Power law slope associated with each mass segment
-# my_imf = imf.IMF_broken_powerlaw(massLimits, powers, imf_multi)
-my_imf = imf.IMF_broken_powerlaw(massLimits, powers,multiplicity = None)
+# # %
+# iso_dir = '/Users/amartinez/Desktop/PhD/Libralato_data/nsd_isochrones/'
 
-ax[2].plot(iso.points['m_hawki_H'] - iso.points['m_hawki_Ks'], 
-                                      iso.points['m_hawki_Ks'], 'b-',   label='%.2f Myr'%(10**logAge/1e6),alpha =0.5)
-ax[2].legend()
-mass = 1*10**4.
-mass = 1 * mass
-dAks = round(dAKs_core,3)
-# dAks = 0.08
-cluster = synthetic.ResolvedClusterDiffRedden(iso, my_imf, mass,dAks)
-cluster_ndiff = synthetic.ResolvedCluster(iso, my_imf, mass)
-clus = cluster.star_systems
-clus_ndiff = cluster_ndiff.star_systems
+# AKs_list1 =  np.arange(1.6,2.11,0.01)
+# AKs_list = np.append(AKs_list1,0)#I added the 0 for the isochrones without extiction
+# absolute_difference_function = lambda list_value : abs(list_value - AKs_core)
+# AKs = min(AKs_list, key=absolute_difference_function)
 
-props = dict(boxstyle='round', facecolor='k', alpha=0.3)
-txt_AKs = '\n'.join(('AKs = %.2f'%(np.mean(ext_cluster)),
-                     'std_AKs = %.2f'%(np.std(ext_cluster))))
-ax[2].text(0.65, 0.50, txt_AKs, transform=ax[2].transAxes, fontsize=20,
-    verticalalignment='top', bbox=props)
+# dist = 8200 # distance in parsec
+# metallicity = 0.30 # Metallicity in [M/H]
+# # # logAge_600 = np.log10(0.61*10**9.)
+# if choosen_cluster =='Arches':
+#     logAge = np.log10(0.0025*10**9.)#TODO
+# elif choosen_cluster == 'Quintuplet':
+#     logAge = np.log10(0.0048*10**9.)
 
-ax[2].scatter(clus['m_hawki_H']-clus['m_hawki_Ks'],clus['m_hawki_Ks'],color = 'r',alpha=0.1)
-ax[2].scatter(clus_ndiff['m_hawki_H']-clus_ndiff['m_hawki_Ks'],clus_ndiff['m_hawki_Ks'],color = 'k',alpha=0.1,s=1)
+# evo_model = evolution.MISTv1() 
+# atm_func = atmospheres.get_merged_atmosphere
+# red_law = reddening.RedLawNoguerasLara18()
+# filt_list = ['hawki,J', 'hawki,H', 'hawki,Ks']
+
+# iso =  synthetic.IsochronePhot(logAge, AKs, dist, metallicity=metallicity,
+#                                evo_model=evo_model, atm_func=atm_func,
+#                                red_law=red_law, filters=filt_list,
+#                                iso_dir=iso_dir)
+
+# imf_multi = multiplicity.MultiplicityUnresolved()
+
+
+# massLimits = np.array([0.2, 0.5, 1, 120]) # Define boundaries of each mass segement
+# powers = np.array([-1.3, -2.3, -2.3]) # Power law slope associated with each mass segment
+# # my_imf = imf.IMF_broken_powerlaw(massLimits, powers, imf_multi)
+# my_imf = imf.IMF_broken_powerlaw(massLimits, powers,multiplicity = None)
+
+# ax[2].plot(iso.points['m_hawki_H'] - iso.points['m_hawki_Ks'], 
+#                                       iso.points['m_hawki_Ks'], 'b-',   label='%.2f Myr'%(10**logAge/1e6),alpha =0.5)
+# ax[2].legend()
+# mass = 1*10**4.
+# mass = 1 * mass
+# dAks = round(dAKs_core,3)
+# # dAks = 0.08
+# cluster = synthetic.ResolvedClusterDiffRedden(iso, my_imf, mass,dAks)
+# cluster_ndiff = synthetic.ResolvedCluster(iso, my_imf, mass)
+# clus = cluster.star_systems
+# clus_ndiff = cluster_ndiff.star_systems
+
+# props = dict(boxstyle='round', facecolor='k', alpha=0.3)
+# txt_AKs = '\n'.join(('AKs = %.2f'%(np.mean(ext_cluster)),
+#                      'std_AKs = %.2f'%(np.std(ext_cluster))))
+# ax[2].text(0.65, 0.50, txt_AKs, transform=ax[2].transAxes, fontsize=20,
+#     verticalalignment='top', bbox=props)
+
+# ax[2].scatter(clus['m_hawki_H']-clus['m_hawki_Ks'],clus['m_hawki_Ks'],color = 'r',alpha=0.1)
+# ax[2].scatter(clus_ndiff['m_hawki_H']-clus_ndiff['m_hawki_Ks'],clus_ndiff['m_hawki_Ks'],color = 'k',alpha=0.1,s=1)
 
 
 # %%
