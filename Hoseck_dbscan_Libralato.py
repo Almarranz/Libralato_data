@@ -22,7 +22,7 @@ from matplotlib.ticker import FormatStrFormatter
 from astropy.io import ascii
 import astropy.coordinates as ap_coor
 
-# %%plotting parametres
+# %%plotting pa    metres
 from matplotlib import rc
 from matplotlib import rcParams
 rcParams.update({'xtick.major.pad': '7.0'})
@@ -52,6 +52,7 @@ plt.rcParams.update({'figure.max_open_warning': 0})#
 # Only data with valid color and uncertainties in pm smaller than 0.4 and excluding foreground stars by color-cut
 catal='/Users/amartinez/Desktop/PhD/Arches_and_Quintuplet_Hosek/'
 morralla ='/Users/amartinez/Desktop/morralla/'
+cls_to_throw = '/Users/amartinez/Desktop/PhD/Libralato_data/cluster_to_throw/'
 
 choosen_cluster = 'Arches'#TODO
 # choosen_cluster = 'Quintuplet'#TODO
@@ -341,93 +342,71 @@ t = clus_dbs[:,3] / clus_dbs[:,2]
 
 dis_x, dis_y = 0.15, 0.15
 
+# This make movemnet vectors for each star along the dame direction they had, 
+# but all with the same module for the velocity
 x = np.sqrt(dis_x**2/(1+t**2))*np.sign(clus_dbs[:,2])
 y = np.sqrt(dis_y**2 - (dis_y**2/(1+t**2)))*np.sign(clus_dbs[:,3])
 
 
 cen_RA, cen_DEC = np.median(clus_dbs[:,0])*u.deg, np.median(clus_dbs[:,1])*u.deg
-fig, ax = plt.subplots(1,2, figsize = (20,10))
-ax[1].scatter(RA, DEC)
-ax[1].scatter(clus_dbs[:,0], clus_dbs[:,1])
-ax[0].scatter(pmra, pmdec)
-ax[0].scatter(clus_dbs[:,2], clus_dbs[:,3])
-ax[1].xaxis.set_major_formatter(FormatStrFormatter('%.2f'))
-# ax[1].set_xlim(min(RA.value),max(RA.value))
-# ax[1].set_ylim(min(DEC.value),max(DEC.value))
-
-RA_cl, DEC_cl = clus_dbs[:,0]*u.deg, clus_dbs[:,1]*u.deg
-
-ff = 2e6*u.yr
-
-# RA_cl = RA_cl.to(u.mas) - (clus_dbs[:,2]*u.mas/u.yr)*ff
-# DEC_cl = DEC_cl.to(u.mas) + (clus_dbs[:,3]*u.mas/u.yr)*ff
-
-RA_cl = RA_cl.to(u.mas) - (x*u.mas/u.yr)*ff
-DEC_cl = DEC_cl.to(u.mas) + (y*u.mas/u.yr)*ff
-
-RA_fut, DEC_fut = RA_cl.to(u.deg), DEC_cl.to(u.deg)
-
-cen_RA_fut, cen_DEC_fut = np.median(RA_fut), np.median(DEC_fut)
-# c2_fut = SkyCoord(ra = RA_fut,dec =DEC_fut)
-# sep_fut = [max(c2_fut[c_mem].separation(c2_fut)) for c_mem in range(len(c2_fut))]
-# rad_fut = max(sep_fut)/2
-res_RA = cen_RA - cen_RA_fut
-res_DEC = cen_DEC - cen_DEC_fut 
+for time in range(5):
+    fig, ax = plt.subplots(1,2, figsize = (20,10))
+    ax[1].scatter(RA, DEC)
+    ax[1].scatter(clus_dbs[:,0], clus_dbs[:,1])
+    ax[0].scatter(pmra, pmdec)
+    ax[0].scatter(clus_dbs[:,2], clus_dbs[:,3])
+    ax[1].xaxis.set_major_formatter(FormatStrFormatter('%.2f'))
+    ax[1].set_xlim(min(RA.value),max(RA.value))
+    ax[1].set_ylim(min(DEC.value),max(DEC.value))
+    
+    RA_cl, DEC_cl = clus_dbs[:,0]*u.deg, clus_dbs[:,1]*u.deg
 
 
 
-ax[1].scatter(RA_fut + res_RA, DEC_fut + res_DEC, color = 'pink')
-ax[1].scatter(cen_RA,cen_DEC, s = 200, color ='r')
-ax[1].scatter(cen_RA_fut,cen_DEC_fut, s = 200, color ='black')
-ax[1].invert_xaxis()
+    # ff = 2e5*u.yr  + time*5e5*u.yr
+    ff = 1e6*u.yr  + time*1e5*u.yr
+    
+    # Balistic dipesion (move each star in a straight line)
+    RA_cl = RA_cl.to(u.mas) - (clus_dbs[:,2]*u.mas/u.yr)*ff
+    DEC_cl = DEC_cl.to(u.mas) + (clus_dbs[:,3]*u.mas/u.yr)*ff
+    
+    # Sigma dispersion (move each star in the same direction they has but all with the same velocity)
+    # RA_cl = RA_cl.to(u.mas) - (x*u.mas/u.yr)*ff
+    # DEC_cl = DEC_cl.to(u.mas) + (y*u.mas/u.yr)*ff
+    
+    RA_fut, DEC_fut = RA_cl.to(u.deg), DEC_cl.to(u.deg)
+    
+    cen_RA_fut, cen_DEC_fut = np.median(RA_fut), np.median(DEC_fut)
+    # c2_fut = SkyCoord(ra = RA_fut,dec =DEC_fut)
+    # sep_fut = [max(c2_fut[c_mem].separation(c2_fut)) for c_mem in range(len(c2_fut))]
+    # rad_fut = max(sep_fut)/2
+    res_RA = cen_RA - cen_RA_fut
+    res_DEC = cen_DEC - cen_DEC_fut 
+    
+    
+    
+    ax[1].scatter(RA_fut + res_RA, DEC_fut + res_DEC, label = '%.2f Myr foward'%(ff.value/1e6))
+    ax[1].scatter(cen_RA,cen_DEC, s = 200, color ='r')
+    # ax[1].scatter(cen_RA_fut,cen_DEC_fut, s = 200, color ='black')
+    ax[1].invert_xaxis()
+    ax[1].legend()
+    
+    # clus_dbs[:,0], clus_dbs[:,1]= RA_fut + res_RA, DEC_fut + res_DEC
+    np.savetxt(cls_to_throw + '%s_%.2fMyr.txt'%(choosen_cluster,ff.value/1e6), 
+               np.c_[(RA_fut + res_RA).value,(DEC_fut + res_DEC).value,clus_dbs[:,2:6]], fmt = (2*'%.8f ' + 4*' %.4f'), header = 'RA, DEC, pmra, pmdec, f127, f153,')
 # %%
-est = 309
-v = np.sqrt(clus_dbs[est,2]**2 + clus_dbs[est,3]**2)
-ang = np.degrees(np.arctan2(clus_dbs[est,3],clus_dbs[est,2]))
+# est = 309
+# v = np.sqrt(clus_dbs[est,2]**2 + clus_dbs[est,3]**2)
+# ang = np.degrees(np.arctan2(clus_dbs[est,3],clus_dbs[est,2]))
 
-v_ = np.sqrt(x[est]**2 + y[est]**2)
-ang_ = np.degrees(np.arctan2(y[est],x[est]))
+# v_ = np.sqrt(x[est]**2 + y[est]**2)
+# ang_ = np.degrees(np.arctan2(y[est],x[est]))
 
-print('%.2f, %.2f'%(v,v_))
-print('%.2f, %.2f'%(ang,ang_))
-
-# %%
-# %%
-ind = -1
-# RA_cl, DEC_cl = clus_dbs[:,0]*u.deg, clus_dbs[:,1]*u.deg
-vx, vy = clus_dbs[:,2], clus_dbs[:,3]
-
-ang = np.degrees(np.arctan2(vy[ind], vx[ind]))
-# ang = np.arctan2(DEC_cl[0].value, RA_cl[0].value)
-
-t = vy[ind] / vx[ind]
-
-
-x = np.sqrt(0.23**2/(1+t**2))*np.sign(vx[ind])
-y = np.sqrt(0.23**2 - (0.23**2/(1+t**2)))*np.sign(vy[ind])
-
-
-ang2 = np.degrees(np.arctan2(y, x))
-
-print(y/x, np.sqrt(x**2 + y**2))
-print(vy[ind]/ vx[ind])
-
-print(round(ang-ang2,2))
+# print('%.2f, %.2f'%(v,v_))
+# print('%.2f, %.2f'%(ang,ang_))
 
 # %%
-# ind = 140
-# RA_cl, DEC_cl = clus_dbs[:,0]*u.deg, clus_dbs[:,1]*u.deg
-
-
-# ang = np.degrees(np.arctan2(DEC_cl, RA_cl))
-# # ang = np.arctan2(DEC_cl[0].value, RA_cl[0].value)
-
-# t = DEC_cl / RA_cl
-
-
-# x = np.sqrt(0.23**2/(1+t**2))*np.sign(RA_cl)
-# y = np.sqrt(0.23**2 - (0.23**2/(1+t**2)))*np.sign(DEC_cl)
-
+#
 
 # ang2 = np.degrees(np.arctan2(y, x))
 
