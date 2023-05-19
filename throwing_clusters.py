@@ -91,7 +91,7 @@ else:
 
 
 radio = 2
-age_ff = 1
+age_ff = 0
 # 'RA, DEC, pmra, pmdec, f127, f153,'
 core_cluster = np.loadtxt(cls_to_throw + 'Arches_%.2fMyr.txt'%(age_ff))
 ran_id = int(np.random.uniform(0,len(catal),1))
@@ -162,21 +162,25 @@ cluster_insert[:,9],cluster_insert[:,11] = core_cluster[:,2],core_cluster[:,3]
 
 
 # Add the cluster to libralato data
-# catal_w = np.r_[catal,cluster_insert]
-# no_clus = np.full(len(catal),0)
-# si_clus = np.full(len(cluster_insert),1)
-# indx = np.r_[no_clus,si_clus]
-# catal_w = np.c_[catal_w,indx]
+catal_w = np.r_[catal,cluster_insert]
+no_clus = np.full(len(catal),0)
+si_clus = np.full(len(cluster_insert),1)
+indx = np.r_[no_clus,si_clus]
+catal_w = np.c_[catal_w,indx]
 
-catal_w = catal
+
+
+
+
+# %%
 
 # catal_w = catal
 valid=np.where(np.isnan(catal_w[:,4])==False)# This is for the valus than make Ks magnitude valid, but shouldn´t we do the same with the H magnitudes?
 catal_w=catal_w[valid]
-# clustered_by = 'all_color'#TODO
+clustered_by = 'all_color'#TODO
 # clustered_by = 'all'#TODO1
 # clustered_by = 'vel_col'#TODO
-clustered_by = 'vel'
+# clustered_by = 'vel'
 
 # Definition of center can: m139 - Ks(libralato and GNS) or H - Ks(GNS and GNS)
 center_definition='G_G'#this variable can be L_G or G_G
@@ -192,7 +196,7 @@ catal_w=catal_w[center]
 
 
 
-samples_dist = 25
+samples_dist = 20
 RA = catal_w[:,0]
 DEC = catal_w[:,1]
 pmra, pmdec= catal_w[:,9], catal_w[:,11]
@@ -230,7 +234,7 @@ elif clustered_by == 'vel':
 
 
 lst_d_KNN_sim = []
-for d in range(20):
+for d in range(2):
     mudec_sim,  mura_sim = pmdec_kernel.resample(len(pmdec)), pmra_kernel.resample(len(pmra))
     raoff_sim, decoff_sim = raoff_kernel.resample(len(pmdec)), decoff_kernel.resample(len(pmdec))
     color_sim = color_kernel.resample(len(pmdec))
@@ -325,7 +329,7 @@ for c in u_labels:
 # default colors = '#1f77b4', '#ff7f0e'
 elements_in_cluster=[]
 for i in range(len(set(l_c))-1):
-# for i in range(2):
+# for i in range(1):
     fig, ax = plt.subplots(1,2,figsize=(20,10))
     # ax[0].set_xticks(np.arange(-12,11))
     # ax[0].grid()
@@ -401,8 +405,10 @@ for i in range(len(set(l_c))-1):
 
     # ax[0].scatter(pmra, pmdec,color = 'k')
     # ax[1].scatter(catal_w[:,0], catal_w[:,1])
-    # sys.exit('354')
-
+    plt.show()
+    # sys.exit('405')
+    
+    
 
 
 
