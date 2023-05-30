@@ -51,9 +51,8 @@ plt.rcParams.update({'figure.max_open_warning': 0})#
 # mua' 9	dmua' 10	mud' 11	dmud' 12	time' 13	n1' 14	n2' 15	ID' 16	mul' 17	mub' 18	
 # dmul' 19	dmub' 20	m139' 21	Separation'" 22		
 
-def dbscan_GC(pmra, pmdec, x, y,Ra,Dec, color_A, color_B, clustered_by, samples_dist,Ms_match):
-    ban_cluster = np.loadtxt('/Users/amartinez/Desktop/PhD/Libralato_data/CATALOGS/'+'ban_cluster.txt')
-    ban_coord = SkyCoord(ra = ban_cluster[:,0]*u.deg, dec = ban_cluster[:,1]*u.deg, frame ='icrs', equinox = 'J2000', obstime = 'J2015.5')
+def dbscan_GC(pmra, pmdec, x, y,Ra,Dec, color_A, color_B, clustered_by, samples_dist,Ms_match,gen_sim, sim_lim):
+    mix_color = 'yes'
     
     coordenadas = SkyCoord(ra = Ra,dec=Dec, unit='degree')
     colorines = color_A-color_B
@@ -88,50 +87,109 @@ def dbscan_GC(pmra, pmdec, x, y,Ra,Dec, color_A, color_B, clustered_by, samples_
         d_KNN=sorted(dist[:,-1])#distance to the Kth neighbour
 
     lst_d_KNN_sim = []
-    for d in range(20):
-        mudec_sim,  mura_sim = pmdec_kernel.resample(len(pmdec)), pmra_kernel.resample(len(pmra))
-        x_sim, y_sim = x_kernel.resample(len(x)), y_kernel.resample(len(y))
-        color_sim = color_kernel.resample(len(pmdec))
-        if clustered_by == 'all_color':
-            X_sim=np.array([mura_sim[0],mudec_sim[0],x_sim[0],y_sim[0],color_sim[0]]).T
-            X_stad_sim = StandardScaler().fit_transform(X_sim)
-            tree_sim =  KDTree(X_stad_sim, leaf_size=2)
+    if gen_sim == 'kernnel':
+        for d in range(20):
+            mudec_sim,  mura_sim = pmdec_kernel.resample(len(pmdec)), pmra_kernel.resample(len(pmra))
+            x_sim, y_sim = x_kernel.resample(len(x)), y_kernel.resample(len(y))
+            color_sim = color_kernel.resample(len(pmdec))
+            if clustered_by == 'all_color':
+                X_sim=np.array([mura_sim[0],mudec_sim[0],x_sim[0],y_sim[0],color_sim[0]]).T
+                X_stad_sim = StandardScaler().fit_transform(X_sim)
+                tree_sim =  KDTree(X_stad_sim, leaf_size=2)
+                
+                dist_sim, ind_sim = tree_sim.query(X_stad_sim, k=samples_dist) #DistNnce to the 1,2,3...k neighbour
+                d_KNN_sim=sorted(dist_sim[:,-1])#distance to the Kth neighbour
+                
+                lst_d_KNN_sim.append(min(d_KNN_sim))
+            elif clustered_by =='all':
+                X_sim=np.array([mura_sim[0],mudec_sim[0],x_sim[0],y_sim[0]]).T
+                X_stad_sim = StandardScaler().fit_transform(X_sim)
+                tree_sim =  KDTree(X_stad_sim, leaf_size=2)
+                
+                dist_sim, ind_sim = tree_sim.query(X_stad_sim, k=samples_dist) #DistNnce to the 1,2,3...k neighbour
+                d_KNN_sim=sorted(dist_sim[:,-1])#distance to the Kth neighbour
+                
+                lst_d_KNN_sim.append(min(d_KNN_sim))
+            elif clustered_by =='vel_col':
+                X_sim=np.array([mura_sim[0],mudec_sim[0],color_sim[0]]).T
+                X_stad_sim = StandardScaler().fit_transform(X_sim)
+                tree_sim =  KDTree(X_stad_sim, leaf_size=2)
+                
+                dist_sim, ind_sim = tree_sim.query(X_stad_sim, k=samples_dist) #DistNnce to the 1,2,3...k neighbour
+                d_KNN_sim=sorted(dist_sim[:,-1])#distance to the Kth neighbour
+                
+                lst_d_KNN_sim.append(min(d_KNN_sim))
+                
+            elif clustered_by =='vel':
+                X_sim=np.array([mura_sim[0],mudec_sim[0]]).T
+                X_stad_sim = StandardScaler().fit_transform(X_sim)
+                tree_sim =  KDTree(X_stad_sim, leaf_size=2)
+                
+                dist_sim, ind_sim = tree_sim.query(X_stad_sim, k=samples_dist) #DistNnce to the 1,2,3...k neighbour
+                d_KNN_sim=sorted(dist_sim[:,-1])#distance to the Kth neighbour
+                
+                lst_d_KNN_sim.append(min(d_KNN_sim))
+    if gen_sim == 'shuffle':
+        for d in range(5):
+            randomize = np.arange(len(pmdec))
+            np.random.shuffle(randomize)
+            mudec_sim,  mura_sim= pmdec[randomize], pmra[randomize]
+            x_sim, y_sim = x, y
             
-            dist_sim, ind_sim = tree_sim.query(X_stad_sim, k=samples_dist) #DistNnce to the 1,2,3...k neighbour
-            d_KNN_sim=sorted(dist_sim[:,-1])#distance to the Kth neighbour
-            
-            lst_d_KNN_sim.append(min(d_KNN_sim))
-        elif clustered_by =='all':
-            X_sim=np.array([mura_sim[0],mudec_sim[0],x_sim[0],y_sim[0]]).T
-            X_stad_sim = StandardScaler().fit_transform(X_sim)
-            tree_sim =  KDTree(X_stad_sim, leaf_size=2)
-            
-            dist_sim, ind_sim = tree_sim.query(X_stad_sim, k=samples_dist) #DistNnce to the 1,2,3...k neighbour
-            d_KNN_sim=sorted(dist_sim[:,-1])#distance to the Kth neighbour
-            
-            lst_d_KNN_sim.append(min(d_KNN_sim))
-        elif clustered_by =='vel_col':
-            X_sim=np.array([mura_sim[0],mudec_sim[0],color_sim[0]]).T
-            X_stad_sim = StandardScaler().fit_transform(X_sim)
-            tree_sim =  KDTree(X_stad_sim, leaf_size=2)
-            
-            dist_sim, ind_sim = tree_sim.query(X_stad_sim, k=samples_dist) #DistNnce to the 1,2,3...k neighbour
-            d_KNN_sim=sorted(dist_sim[:,-1])#distance to the Kth neighbour
-            
-            lst_d_KNN_sim.append(min(d_KNN_sim))
-            
-        elif clustered_by =='vel':
-            X_sim=np.array([mura_sim[0],mudec_sim[0]]).T
-            X_stad_sim = StandardScaler().fit_transform(X_sim)
-            tree_sim =  KDTree(X_stad_sim, leaf_size=2)
-            
-            dist_sim, ind_sim = tree_sim.query(X_stad_sim, k=samples_dist) #DistNnce to the 1,2,3...k neighbour
-            d_KNN_sim=sorted(dist_sim[:,-1])#distance to the Kth neighbour
-            
-            lst_d_KNN_sim.append(min(d_KNN_sim))
-
+            random_col = np.arange(len(pmdec))
+            np.random.shuffle(random_col)
+            if mix_color == 'yes':
+                H_sim, K_sim = color_A[random_col], color_B[random_col]
+            elif mix_color == 'no':
+                H_sim, K_sim = color_A, color_B
+            color_sim = H_sim-K_sim
+            if clustered_by == 'all_color':
+                X_sim=np.array([mura_sim,mudec_sim,x_sim,y_sim,color_sim]).T
+                X_stad_sim = StandardScaler().fit_transform(X_sim)
+                tree_sim =  KDTree(X_stad_sim, leaf_size=2)
+                
+                dist_sim, ind_sim = tree_sim.query(X_stad_sim, k=samples_dist) #DistNnce to the 1,2,3...k neighbour
+                d_KNN_sim=sorted(dist_sim[:,-1])#distance to the Kth neighbour
+                
+                lst_d_KNN_sim.append(min(d_KNN_sim))
+            elif clustered_by =='all':
+                X_sim=np.array([mura_sim,mudec_sim,x_sim,y_sim]).T
+                X_stad_sim = StandardScaler().fit_transform(X_sim)
+                tree_sim =  KDTree(X_stad_sim, leaf_size=2)
+                
+                dist_sim, ind_sim = tree_sim.query(X_stad_sim, k=samples_dist) #DistNnce to the 1,2,3...k neighbour
+                d_KNN_sim=sorted(dist_sim[:,-1])#distance to the Kth neighbour
+                
+                lst_d_KNN_sim.append(min(d_KNN_sim))
+            elif clustered_by =='vel_col':
+                X_sim=np.array([mura_sim,mudec_sim,color_sim]).T
+                X_stad_sim = StandardScaler().fit_transform(X_sim)
+                tree_sim =  KDTree(X_stad_sim, leaf_size=2)
+                
+                dist_sim, ind_sim = tree_sim.query(X_stad_sim, k=samples_dist) #DistNnce to the 1,2,3...k neighbour
+                d_KNN_sim=sorted(dist_sim[:,-1])#distance to the Kth neighbour
+                
+                lst_d_KNN_sim.append(min(d_KNN_sim))
+                
+            elif clustered_by =='vel':
+                X_sim=np.array([mura_sim,mudec_sim]).T
+                X_stad_sim = StandardScaler().fit_transform(X_sim)
+                tree_sim =  KDTree(X_stad_sim, leaf_size=2)
+                
+                dist_sim, ind_sim = tree_sim.query(X_stad_sim, k=samples_dist) #DistNnce to the 1,2,3...k neighbour
+                d_KNN_sim=sorted(dist_sim[:,-1])#distance to the Kth neighbour
+                
+                lst_d_KNN_sim.append(min(d_KNN_sim))
     d_KNN_sim_av = np.mean(lst_d_KNN_sim)
-    eps_av = round((min(d_KNN)+d_KNN_sim_av)/2,3)
+    if sim_lim == 'mean':
+        eps_av = round((min(d_KNN)+d_KNN_sim_av)/2,3)
+        valor = d_KNN_sim_av
+    elif sim_lim == 'minimun':
+        eps_av = round((min(d_KNN)+min(lst_d_KNN_sim))/2,3)
+        valor = min(lst_d_KNN_sim)
+    elif sim_lim == 'maximun':
+        eps_av = round((min(d_KNN)+max(lst_d_KNN_sim))/2,3)
+        valor = min(lst_d_KNN_sim)
     
     
     clus_method = 'dbs'
@@ -162,22 +220,14 @@ def dbscan_GC(pmra, pmdec, x, y,Ra,Dec, color_A, color_B, clustered_by, samples_
         ms_in_clus = np.where((Ra[colores_index[i]] == Ms_match[0]) & (Dec[colores_index[i]] == Ms_match[1]))
         if len(ms_in_clus[0]) > 0:
             fig, ax = plt.subplots(1,1,figsize=(10,10))
-            # ax[0].set_title('Sub_sec_%s_%s'%(col[colum],row[ro]))
-            # ax[0].plot(np.arange(0,len(datos),1),d_KNN,linewidth=1,color ='k')
-            # ax[0].plot(np.arange(0,len(datos),1),d_KNN_sim, color = 'r')
-            
-            # # ax.legend(['knee=%s, min=%s, eps=%s, Dim.=%s'%(round(kneedle.elbow_y, 3),round(min(d_KNN),2),round(epsilon,2),len(X[0]))])
-            # ax[0].set_xlabel('Point') 
-            # ax[0].set_ylabel('%s-NN distance'%(samples)) 
-            
             ax.hist(d_KNN,bins ='auto',histtype ='step',color = 'k')
             ax.hist(d_KNN_sim,bins ='auto',histtype ='step',color = 'r')
             ax.set_xlabel('%s-NN distance'%(samples_dist)) 
             
             
             texto = '\n'.join(('min real d_KNN = %s'%(round(min(d_KNN),3)),
-                                'min sim d_KNN =%s'%(round(d_KNN_sim_av,3)),'average = %s'%(eps_av)))
-            
+                                'limit set for sim d_KNN =%s'%(round(valor,3)),
+                                'average = %s'%(eps_av),'%s'%(sim_lim),'%s'%(gen_sim)))
 
             props = dict(boxstyle='round', facecolor='w', alpha=0.5)
             # place a text box in upper left in axes coords
@@ -212,10 +262,10 @@ def dbscan_GC(pmra, pmdec, x, y,Ra,Dec, color_A, color_B, clustered_by, samples_
             mul_mean_all, mub_mean_all = np.mean(X[:,0]), np.mean(X[:,1])
         
         
-            vel_txt = '\n'.join(('mul = %s, mub = %s'%(round(mul_mean,3), round(mub_mean,3)),
-                                  '$\sigma_{mul}$ = %s, $\sigma_{mub}$ = %s'%(round(mul_sig,3), round(mub_sig,3)))) 
-            vel_txt_all = '\n'.join(('mul = %s, mub = %s'%(round(mul_mean_all,3), round(mub_mean_all,3)),
-                                  '$\sigma_{mul}$ = %s, $\sigma_{mub}$ = %s'%(round(mul_sig_all,3), round(mub_sig_all,3))))
+            vel_txt = '\n'.join(('mura = %s, mudec = %s'%(round(mul_mean,3), round(mub_mean,3)),
+                                  '$\sigma_{mura}$ = %s, $\sigma_{mudec}$ = %s'%(round(mul_sig,3), round(mub_sig,3)))) 
+            vel_txt_all = '\n'.join(('mura = %s, mudec = %s'%(round(mul_mean_all,3), round(mub_mean_all,3)),
+                                  '$\sigma_{mura}$ = %s, $\sigma_{mudec}$ = %s'%(round(mul_sig_all,3), round(mub_sig_all,3))))
             
             propiedades = dict(boxstyle='round', facecolor=color_de_cluster , alpha=0.2)
             propiedades_all = dict(boxstyle='round', facecolor=colors[-1], alpha=0.1)
@@ -247,12 +297,12 @@ def dbscan_GC(pmra, pmdec, x, y,Ra,Dec, color_A, color_B, clustered_by, samples_
             ax[1].scatter(Ra, Dec, color=colors[-1],s=50,zorder=1,alpha=0.2)#plots in galactic
             
             ax[1].scatter(Ra[colores_index[i]], Dec[colores_index[i]], color=color_de_cluster ,s=50,zorder=3)#plots in galactic
-            # ax[1].quiver(X[:,2][colores_index[i]], X[:,3][colores_index[i]], X[:,0][colores_index[i]]*-1, X[:,1][colores_index[i]], alpha=0.5, color=color_de_cluster )#colors[i]
+            ax[1].quiver(Ra[colores_index[i]], Dec[colores_index[i]], X[:,0][colores_index[i]], X[:,1][colores_index[i]], alpha=1, color='black' )#colors[i]
             # ax[1].scatter(datos[:,7][group_md],datos[:,8][group_md],s=50,color='r',alpha =0.1,marker ='x')
-            ax[1].set_xlabel('x',fontsize =30) 
-            ax[1].set_ylabel('y',fontsize =30) 
-            ax[1].yaxis.set_major_formatter(FormatStrFormatter('%.0f'))
-            ax[1].xaxis.set_major_formatter(FormatStrFormatter('%.0f'))
+            ax[1].set_xlabel('Ra',fontsize =30) 
+            ax[1].set_ylabel('Dec',fontsize =30) 
+            ax[1].yaxis.set_major_formatter(FormatStrFormatter('%.3f'))
+            ax[1].xaxis.set_major_formatter(FormatStrFormatter('%.3f'))
             
             
             # ms_in_clus = np.where((Ra[colores_index[i]] == Ms_match[0]) & (Dec[colores_index[i]] == Ms_match[1]))
@@ -286,16 +336,23 @@ def dbscan_GC(pmra, pmdec, x, y,Ra,Dec, color_A, color_B, clustered_by, samples_
                 verticalalignment='top', bbox=props)
             # ax[2].text(0.65, 0.85, txt_srn, transform=ax[2].transAxes, fontsize=14,
             #     verticalalignment='top', bbox=props)
-            
+            ax[2].set_xlabel('H - Ks',fontsize =30)
+            ax[2].set_ylabel('Ks',fontsize =30)
             ax[2].set_xlim(1.3,2.5)
             ax[2].invert_yaxis()   
             print('+++++++++++++++')
             print(len(ms_in_clus[0]))
             print('+++++++++++++++')
             # return len(ms_in_clus[0]) 
-                
-            plt.show()
-            return len(ms_in_clus[0])
+            
+            print(type(ms_in_clus[0]), type(Ra[colores_index[i]]), 
+                  type(Dec[colores_index[i]]), type(X[:,0][colores_index[i]]),
+                  type(X[:,1][colores_index[i]]))
+            if len(ms_in_clus[0]) >0:
+                return len(ms_in_clus[0]), Ra[colores_index[i]], Dec[colores_index[i]], X[:,0][colores_index[i]],X[:,1][colores_index[i]]
+            else:
+                return [0,0,0,0,0]
+        
 # %%
 # lis, oli = 300000, 70000
 # val = 0.3

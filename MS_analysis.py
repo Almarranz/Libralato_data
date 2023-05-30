@@ -56,7 +56,7 @@ pruebas='/Users/amartinez/Desktop/PhD/Libralato_data/pruebas/'
 results='/Users/amartinez/Desktop/PhD/Libralato_data/results/'
 name='WFC3IR'
 # name='ACSWFC'
-trimmed_data='no'
+trimmed_data='yes'
 only_match = 'yes'
 if trimmed_data=='yes':
     pre=''
@@ -69,6 +69,7 @@ else:
 #ra, dec, ID(in ACSWFC_PM or WFC3IR_PM),Original list, Altervative Id
 yso=np.loadtxt(cata+'GALCEN_TABLE_D.cat',usecols=(0,1,2))
 tipo=np.loadtxt(cata+'GALCEN_TABLE_D.cat',unpack=True, usecols=(3),dtype='str')
+ban_cluster = np.loadtxt(cata +'ban_cluster.txt')
 
 # "'RA_gns' 0	DE_gns' 1	Jmag' 2	Hmag' 3	Ksmag' 4	ra' 5	dec' 6	x_c' 7	y_c' 8	
 # mua' 9	dmua' 10	mud' 11	dmud' 12	time' 13	n1' 14	n2' 15	ID' 16	mul' 17	mub' 18	
@@ -88,15 +89,15 @@ elif center_definition =='G_G':
     catal=catal[valid]
     center=np.where(catal[:,3]-catal[:,4]>1.3)
 catal=catal[center]
-dmu_lim = 2
+dmu_lim = 1
 vel_lim = np.where((catal[:,19]<=dmu_lim) & (catal[:,20]<=dmu_lim))
 catal=catal[vel_lim]
-# mag_cut = np.where((catal[:,-2] > 13) & ((catal[:,-2] < 160)))# this magnitude cut is maden by Libralato et al. 
-# catal = catal[mag_cut]
-# %%
+mag_cut = np.where((catal[:,-2] > 13) & ((catal[:,-2] < 160)))# this magnitude cut is maden by Libralato et al. 
+catal = catal[mag_cut]
+# %
 catal[:,17] =catal[:,17]*-1 - 5.74
 catal[:,18] = catal[:,18]-0.20
-# %%
+# %
 
 ms_coord = SkyCoord(ra = yso[:,0], dec = yso[:,1], unit = 'degree')
 lib_coord = SkyCoord(ra = catal[:,5], dec = catal[:,6], unit = 'degree')
@@ -107,7 +108,7 @@ sep_constraint = d2d < max_sep
 ms_match = yso[sep_constraint]
 tipo_match = tipo[sep_constraint]
 lib_match = catal[idx[sep_constraint]]
-
+print(np.where(ms_match[:,2]==14996))
 
 # %%
 # REGIONS ZONE
@@ -173,45 +174,70 @@ lib_match = catal[idx[sep_constraint]]
 # %%
 # clus_sizes = ascii.read(cata + 'Arches_Quintuplet_sizes.dat')
 # %%
-r_u = 50*u.arcsec
+# r_u = 100*u.arcsec
 from dbscan_GC import dbscan_GC as cluster_search
-import time
+
+# rad_lis = [50*u.arcsec,100*u.arcsec,150*u.arcsec]
+rad_lis = [50*u.arcsec]
+
+# list_clus= ['all_color','all','vel_col', 'vel']
+list_clus= ['all_color']
+
+gen_sim = 'kernnel'
+# gen_sim = 'shuffle'
+
+# sim_lim = 'mean'
+sim_lim = 'minimun'
+# sim_lim = 'maximun'
+
+# k_nn = [10, 15, 20, 25, 30]
+k_nn = [10]
+dic_all_color = {}
+for knn in k_nn:
+    for radio in rad_lis:
+        for clus_by in list_clus:
+            fig, ax = plt.subplots(1,1)
+            ax.text(0.05 ,0.5,'%s,%s,%s'%(clus_by,radio,knn), fontsize = 70)
+            plt.show()
+            count = 0
+            tic = np.datetime64('now')
+            # for j in range(len(ms_match)):
+            for j in range(9,10):
+                count +=1
+                ms_match_c =  SkyCoord(ra = [ms_match[j][0]], dec = [ms_match[j][1]], unit = 'degree')
+                idxc, group, d2d,d3d = lib_coord.search_around_sky(ms_match_c,radio)
+               
+                
+            
+                # "'RA_gns' 0	DE_gns' 1	Jmag' 2	Hmag' 3	Ksmag' 4	ra' 5	dec' 6	x_c' 7	y_c' 8	
+                # mua' 9	dmua' 10	mud' 11	dmud' 12	time' 13	n1' 14	n2' 15	ID' 16	mul' 17	mub' 18	
+                # dmul' 19	dmub' 20	m139' 21	Separation'" 22		
+                
+                # dbscan_GC(pmra, pmdec, x, y,Ra,Dec, color_A, color_B, clustered_by, samples_dist, Ms_ra, Ms_dec)
+                cluster_search(catal[:,9][group], catal[:,11][group], catal[:,7][group], catal[:,8][group], 
+                               catal[:,0][group], catal[:,1][group],catal[:,3][group], catal[:,4][group], clus_by, knn,
+                               lib_match[j],gen_sim, sim_lim)
+                if type(returned[0]) is int:
+                    fig, ax = plt.subplots(1,1,figsize=(10,10))
+                    ax.scatter(catal[:,0], catal[:,1], color = 'k', alpha = 0.01)
+                    ax.scatter(catal[:,0][group], catal[:,1][group])
+                    ax.scatter(ms_match_c.ra, ms_match_c.dec, s =10, label = '%.0f, %s'%(ms_match[j][2],tipo_match[j]))
+                    ax.scatter(ban_cluster[:,0], ban_cluster[:,1],marker = 'x', color = 'fuchsia')
+                    ax.invert_xaxis()
+                    ax.legend()
+                    plt.show()
+                    print('+++++++++++++++')
+                    print(ms_match[j][2])
+                    print('+++++++++++++++')
+                # print(star_n, type(something))
+            toc =  np.datetime64('now')
+            sys.exit()
+            tic_toc = toc - tic
+            # print('%s,  took %s'%(clus_by, (tic_toc)))
+# %%
+
+# to_save = np.c_[Ra_cl, Dec_cl, mura_cl,mudec_cl]
+# np.savetxt(pruebas+'tail_test.txt',to_save, fmt = '%.8f',header = 'Ra_cl, Dec_cl, mura_cl,mudec_cl')
 
 
-# list_clus= ['all_color','all','vel_col']
-list_clus= ['vel']
-
-for clus_by in list_clus:
-    star_n=0
-    tic = np.datetime64('now')
-    # for j in range(len(ms_match)):
-    for j in range(1,6):
-        star_n +=1
-        ms_match_c =  SkyCoord(ra = [ms_match[j][0]], dec = [ms_match[j][1]], unit = 'degree')
-        idxc, group, d2d,d3d = lib_coord.search_around_sky(ms_match_c,r_u)
-       
-        
-    
-        # "'RA_gns' 0	DE_gns' 1	Jmag' 2	Hmag' 3	Ksmag' 4	ra' 5	dec' 6	x_c' 7	y_c' 8	
-        # mua' 9	dmua' 10	mud' 11	dmud' 12	time' 13	n1' 14	n2' 15	ID' 16	mul' 17	mub' 18	
-        # dmul' 19	dmub' 20	m139' 21	Separation'" 22		
-        
-        # dbscan_GC(pmra, pmdec, x, y,Ra,Dec, color_A, color_B, clustered_by, samples_dist, Ms_ra, Ms_dec)
-        something = cluster_search(catal[:,9][group], catal[:,11][group], catal[:,7][group], catal[:,8][group], 
-                       catal[:,0][group], catal[:,1][group],catal[:,3][group], catal[:,4][group], clus_by, 20,
-                       lib_match[j])
-        if type(something) is int:
-            fig, ax = plt.subplots(1,1,figsize=(10,10))
-            ax.scatter(catal[:,0], catal[:,1], color = 'k', alpha = 0.01)
-            ax.scatter(catal[:,0][group], catal[:,1][group])
-            ax.scatter(ms_match_c.ra, ms_match_c.dec, s =10, label = '%s, %s'%(star_n,tipo_match[j]))
-            ax.invert_xaxis()
-            ax.legend()
-        
-    
-        print(star_n, type(something))
-    toc =  np.datetime64('now')
-    
-    tic_toc = toc - tic
-    print('%s took %s'%(clus_by, (tic_toc)))
 
