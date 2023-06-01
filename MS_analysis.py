@@ -261,7 +261,7 @@ for knn in k_nn:
                     fig, ax = plt.subplots(1,1,figsize=(10,10))
                     ax.scatter(catal[:,0], catal[:,1], color = 'k', alpha = 0.01)
                     ax.scatter(catal[:,0][group], catal[:,1][group],color = 'black')
-                    ax.scatter(returned[:,0], returned[:,1],color = 'red', marker = 'o')
+                    ax.scatter(returned[1], returned[2],color = 'red', marker = 'o')
                     ax.scatter(ms_match_c.ra, ms_match_c.dec, s =10, label = '%.0f, %s'%(ms_match[j][2],tipo_match[j]))
                     ax.scatter(ban_cluster[:,0], ban_cluster[:,1],marker = 'x', color = 'fuchsia')
                     ax.set_ylim(min(catal[:,1]),max(catal[:,1]))
