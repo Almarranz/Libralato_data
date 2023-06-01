@@ -25,7 +25,7 @@ from sklearn.preprocessing import StandardScaler
 from matplotlib.ticker import FormatStrFormatter
 from astropy.io import ascii
 import astropy.coordinates as ap_coor
-
+from astropy.io import fits
 # %%plotting pa    metres
 from matplotlib import rc
 from matplotlib import rcParams
@@ -95,8 +95,20 @@ catal=catal[vel_lim]
 mag_cut = np.where((catal[:,-2] > 13) & ((catal[:,-2] < 160)))# this magnitude cut is maden by Libralato et al. 
 catal = catal[mag_cut]
 # %
-catal[:,17] =catal[:,17]*-1 - 5.74
-catal[:,18] = catal[:,18]-0.20
+# =============================================================================
+# # To change the reference relativce to SgA*
+# 
+# # Sg A* pm in galactic coordenades
+# pml_sgA, pmb_sgA = 6.396, -0.20 # According to Gordon D. et al. 2023
+# # pml_sgA, pmb_sgA = - 5.74, -0.20 # Accordint to the Gussian fit of Libralato data
+# catal[:,17] =catal[:,17]*-1 - pml_sgA
+# catal[:,18] = catal[:,18]- pmb_sgA
+# 
+# pmra_sgA, pmdec_sgA= -3.156, -5.585
+# catal[:,9] = catal[:,9] - pmra_sgA
+# catal[:,11] = catal[:,11] - pmdec_sgA
+# =============================================================================
+
 # %
 
 ms_coord = SkyCoord(ra = yso[:,0], dec = yso[:,1], unit = 'degree')
@@ -112,52 +124,50 @@ print(np.where(ms_match[:,2]==14996))
 
 # %%
 # REGIONS ZONE
-# =============================================================================
-# # generates a region file with arrows for the massive stars from wich we have pms.
-# with open(pruebas+ 'pm_of_Ms_in_%s.reg'%(name), 'w') as f:
-#          f.write('# Region file format: DS9 version 4.1\nglobal color=cyan dashlist=8 3 width=1 font="helvetica 10 normal roman" select=1 highlite=1 dash=0 fixed=0 edit=1 move=1 delete=1 include=1 source=1\ngalactic')
-# 
-# 
-#          f.close
-#          
-# # "'RA_gns' 0	DE_gns' 1	Jmag' 2	Hmag' 3	Ksmag' 4	 ra' 5	dec' 6	x_c' 7	y_c' 8	
-# # mua' 9	 dmua' 10	mud' 11	dmud' 12	time' 13	n1' 14	n2' 15	ID' 16	mul' 17	mub' 18	
-# # dmul' 19	dmub' 20	m139' 21	Separation'" 22		
-# 
-# # a, b = 9,11
-# a, b = 17,18
-# 
-# for s in range(len(lib_match)):
-#     with open(pruebas+ 'pm_of_Ms_in_%s.reg'%(name), 'a') as f:   
-#         lib_gal = SkyCoord(ra = lib_match[s][0],dec = lib_match[s][1], unit ='degree').galactic
-#         f.write('\n'.join(('\npoint(%s,%s) # point=x'%(lib_gal.l.value,lib_gal.b.value),'# vector(%s,%s,%s",%s)'%(lib_gal.l.value,lib_gal.b.value,
-#                                                                                                                 np.sqrt(lib_match[s][a]**2+lib_match[s][b]**2)*20,
-#                                                                                                                 np.degrees(np.arctan2(lib_match[s][b],lib_match[s][a])))
-#                            ,'# text(%s,%s) text={%.2f}'%(lib_gal.l.value,lib_gal.b.value,lib_match[s][16]))))  
-# 
-# 
-# clark = ascii.read(cata + 'clark_2018_.dat')
-# 
-# 
-# 
-# ra_clark = []
-# dec_clark = []
-# 
-# for i in range(len(clark)):
-#     ra_clark.append('%sh%sm%s'%(clark['RAh'][i],clark['RAm'][i],clark['RAs'][i]))
-#     dec_clark.append('%sh%sm%s'%(clark['DEd'][i],clark['DEm'][i],clark['DEs'][i]))
-# 
-# 
-# with open(pruebas+ 'MS_Clark.reg', 'w') as f:
-#          f.write('# Region file format: DS9 version 4.1\nglobal color=pink dashlist=8 3 width=1 font="helvetica 10 normal roman" select=1 highlite=1 dash=0 fixed=0 edit=1 move=1 delete=1 include=1 source=1\nfk5')
-# 
-# 
-#          f.close
-#          
-# with open(pruebas+ 'MS_Clark.reg', 'a') as f:
-#     for i in range(len(clark)):
-#         f.write('\npoint(%s:%s:%s,-%s:%s:%s) # point=x'%(clark['RAh'][i],clark['RAm'][i],clark['RAs'][i],clark['DEd'][i],clark['DEm'][i],clark['DEs'][i]))
-# =============================================================================
+# generates a region file with arrows for the massive stars from wich we have pms.
+with open(pruebas+ 'pm_of_Ms_in_%s.reg'%(name), 'w') as f:
+         f.write('# Region file format: DS9 version 4.1\nglobal color=cyan dashlist=8 3 width=1 font="helvetica 10 normal roman" select=1 highlite=1 dash=0 fixed=0 edit=1 move=1 delete=1 include=1 source=1\ngalactic')
+
+
+         f.close
+         
+# "'RA_gns' 0	DE_gns' 1	Jmag' 2	Hmag' 3	Ksmag' 4	 ra' 5	dec' 6	x_c' 7	y_c' 8	
+# mua' 9	 dmua' 10	mud' 11	dmud' 12	time' 13	n1' 14	n2' 15	ID' 16	mul' 17	mub' 18	
+# dmul' 19	dmub' 20	m139' 21	Separation'" 22		
+
+# a, b = 9,11
+a, b = 17,18
+
+for s in range(len(lib_match)):
+    with open(pruebas+ 'pm_of_Ms_in_%s.reg'%(name), 'a') as f:   
+        lib_gal = SkyCoord(ra = lib_match[s][0],dec = lib_match[s][1], unit ='degree').galactic
+        f.write('\n'.join(('\npoint(%s,%s) # point=x'%(lib_gal.l.value,lib_gal.b.value),'# vector(%s,%s,%s",%s)'%(lib_gal.l.value,lib_gal.b.value,
+                                                                                                                np.sqrt(lib_match[s][a]**2+lib_match[s][b]**2)*20,
+                                                                                                                np.degrees(np.arctan2(lib_match[s][b],lib_match[s][a])))
+                           ,'# text(%s,%s) text={%.2f}'%(lib_gal.l.value,lib_gal.b.value,lib_match[s][16]))))  
+
+
+clark = ascii.read(cata + 'clark_2018_.dat')
+
+
+
+ra_clark = []
+dec_clark = []
+
+for i in range(len(clark)):
+    ra_clark.append('%sh%sm%s'%(clark['RAh'][i],clark['RAm'][i],clark['RAs'][i]))
+    dec_clark.append('%sh%sm%s'%(clark['DEd'][i],clark['DEm'][i],clark['DEs'][i]))
+
+
+with open(pruebas+ 'MS_Clark.reg', 'w') as f:
+         f.write('# Region file format: DS9 version 4.1\nglobal color=pink dashlist=8 3 width=1 font="helvetica 10 normal roman" select=1 highlite=1 dash=0 fixed=0 edit=1 move=1 delete=1 include=1 source=1\nfk5')
+
+
+         f.close
+         
+with open(pruebas+ 'MS_Clark.reg', 'a') as f:
+    for i in range(len(clark)):
+        f.write('\npoint(%s:%s:%s,-%s:%s:%s) # point=x'%(clark['RAh'][i],clark['RAm'][i],clark['RAs'][i],clark['DEd'][i],clark['DEm'][i],clark['DEs'][i]))
 # %%
 
 # =============================================================================
@@ -171,39 +181,63 @@ print(np.where(ms_match[:,2]==14996))
 # catal_E_sig = np.std(catal[:,17][all_E])
 # =============================================================================
 
-# %%
+# %% Size of Arches and Quintuplet table
 # clus_sizes = ascii.read(cata + 'Arches_Quintuplet_sizes.dat')
+# %% Orbits for Arches and Quintuplet
+orbits='/Users/amartinez/Desktop/PhD/Arches_and_Quintuplet_Hosek/Orbits/'
+t1,t2 = 0, 60
+ind = -1
+A_orbit = fits.open(orbits + 'orbits_arches_pro.fits',memmap=True) 
+Q_orbit = fits.open(orbits + 'orbits_quint_pro.fits',memmap=True) 
+
+lA_deg = A_orbit[1].data['obs_l'][ind][t1:t2]
+bA_deg = A_orbit[1].data['obs_b'][ind][t1:t2]
+zA = A_orbit[1].data['galpy_x'][ind][t1:t2]
+A_front = np.where(zA >0)
+
+lQ_deg = Q_orbit[1].data['obs_l'][ind][t1:t2]
+bQ_deg = Q_orbit[1].data['obs_b'][ind][t1:t2]
+zQ = Q_orbit[1].data['galpy_x'][ind][t1:t2]
+Q_front = np.where(zQ <0)
+
+AR_orb = SkyCoord(l = lA_deg, b = bA_deg, unit ='degree', frame ='galactic').fk5
+QU_orb = SkyCoord(l = lQ_deg, b = bQ_deg, unit ='degree', frame ='galactic').fk5
+# l_sgr, b_sgr = 359.94422947 -0.04615714 #SgrA* galactic coordenates from Aladin 
+# ra_sgr, dec_sgr = 17:45:40.03599 -29:00:28.1699 #SgrA* ecuatorial coordenates from Aladin 
 # %%
+
 # r_u = 100*u.arcsec
 from dbscan_GC import dbscan_GC as cluster_search
 
-# rad_lis = [50*u.arcsec,100*u.arcsec,150*u.arcsec]
-rad_lis = [50*u.arcsec]
+ref_f = 'ecu'
+# ref_f = 'gal'
 
-# list_clus= ['all_color','all','vel_col', 'vel']
-list_clus= ['all_color']
+rad_lis = [50*u.arcsec,100*u.arcsec,150*u.arcsec]
+# rad_lis = [50*u.arcsec]
+
+list_clus= ['all_color','all','vel_col', 'vel']
+# list_clus= ['all_color']
 
 gen_sim = 'kernnel'
 # gen_sim = 'shuffle'
 
-# sim_lim = 'mean'
-sim_lim = 'minimun'
+sim_lim = 'mean'
+# sim_lim = 'minimun'
 # sim_lim = 'maximun'
 
-# k_nn = [10, 15, 20, 25, 30]
-k_nn = [10]
-dic_all_color = {}
+k_nn = [10, 15, 20, 25, 30]
+# k_nn = [20]
+count = 0
+ms_w_clus = []
 for knn in k_nn:
     for radio in rad_lis:
         for clus_by in list_clus:
-            fig, ax = plt.subplots(1,1)
-            ax.text(0.05 ,0.5,'%s,%s,%s'%(clus_by,radio,knn), fontsize = 70)
-            plt.show()
-            count = 0
+            
+            
             tic = np.datetime64('now')
             # for j in range(len(ms_match)):
             for j in range(9,10):
-                count +=1
+                # count +=1
                 ms_match_c =  SkyCoord(ra = [ms_match[j][0]], dec = [ms_match[j][1]], unit = 'degree')
                 idxc, group, d2d,d3d = lib_coord.search_around_sky(ms_match_c,radio)
                
@@ -213,31 +247,73 @@ for knn in k_nn:
                 # mua' 9	dmua' 10	mud' 11	dmud' 12	time' 13	n1' 14	n2' 15	ID' 16	mul' 17	mub' 18	
                 # dmul' 19	dmub' 20	m139' 21	Separation'" 22		
                 
+                inds = [17, 18] if ref_f == 'gal' else [9,11]
                 # dbscan_GC(pmra, pmdec, x, y,Ra,Dec, color_A, color_B, clustered_by, samples_dist, Ms_ra, Ms_dec)
-                cluster_search(catal[:,9][group], catal[:,11][group], catal[:,7][group], catal[:,8][group], 
+                returned = cluster_search(catal[:,inds[0]][group], catal[:,inds[1]][group], catal[:,7][group], catal[:,8][group], 
                                catal[:,0][group], catal[:,1][group],catal[:,3][group], catal[:,4][group], clus_by, knn,
-                               lib_match[j],gen_sim, sim_lim)
-                if type(returned[0]) is int:
+                               lib_match[j],gen_sim, sim_lim, ref_f)
+                
+                if returned[0] > 0:
+                    count +=1
+                    fig, ax = plt.subplots(1,1)
+                    ax.text(0.05 ,0.5,'%s,%s,\n%s,count = %s'%(clus_by,radio,knn, count), fontsize = 70)
+                    plt.show()
                     fig, ax = plt.subplots(1,1,figsize=(10,10))
                     ax.scatter(catal[:,0], catal[:,1], color = 'k', alpha = 0.01)
-                    ax.scatter(catal[:,0][group], catal[:,1][group])
+                    ax.scatter(catal[:,0][group], catal[:,1][group],color = 'black')
+                    ax.scatter(returned[:,0], returned[:,1],color = 'red', marker = 'o')
                     ax.scatter(ms_match_c.ra, ms_match_c.dec, s =10, label = '%.0f, %s'%(ms_match[j][2],tipo_match[j]))
                     ax.scatter(ban_cluster[:,0], ban_cluster[:,1],marker = 'x', color = 'fuchsia')
+                    ax.set_ylim(min(catal[:,1]),max(catal[:,1]))
+                    ax.set_xlim(min(catal[:,0]),max(catal[:,0]))
                     ax.invert_xaxis()
-                    ax.legend()
-                    plt.show()
+                    
+                   
                     print('+++++++++++++++')
                     print(ms_match[j][2])
                     print('+++++++++++++++')
+                    plt.plot(AR_orb.ra[A_front], AR_orb.dec[A_front], color = 'green', label = 'AR orbit')
+                    plt.plot(QU_orb.ra[Q_front], QU_orb.dec[Q_front], color = 'orange', label = 'QU orbit')
+                    ax.legend()
+                    plt.show()
+                    ms_w_clus.append([ms_match[j][2],clus_by,radio,knn, gen_sim,sim_lim,count])
+                    
                 # print(star_n, type(something))
             toc =  np.datetime64('now')
-            sys.exit()
+            
             tic_toc = toc - tic
             # print('%s,  took %s'%(clus_by, (tic_toc)))
-# %%
+            
+ms_w_clus =np.array(ms_w_clus)
+np.savetxt(pruebas+'ms_w_clus_%s_%s_%s_len%s.txt'%(ref_f, gen_sim,sim_lim, len(ms_w_clus)),ms_w_clus,fmt = '%s',header = 'ID,clustered_by, searcg RADIO ,k-nn, simulation method, simulations lower limint, Ms w pm counts')
 
-# to_save = np.c_[Ra_cl, Dec_cl, mura_cl,mudec_cl]
-# np.savetxt(pruebas+'tail_test.txt',to_save, fmt = '%.8f',header = 'Ra_cl, Dec_cl, mura_cl,mudec_cl')
+     # %%       
+# to_save = np.array(returned[1:5]).T
+# np.savetxt(pruebas+'returned_%s_%s_%s.txt'%(ref_f, gen_sim,sim_lim),to_save, fmt = '%.8f',header = 'Ra_cl, Dec_cl, mura_cl,mudec_cl')
+
+
+
+# %%
+# tl = np.loadtxt(pruebas + 'ms_w_clus_%s_%s_%s.txt'%(ref_f, gen_sim,sim_lim), dtype = '<U32')
+# ms_in = [float(tl[x][0]) for x in range(len(tl))]
+# to_save = np.array(returned[1:5]).T
+# np.savetxt(pruebas+'returned_%s_%s_%s.txt'%(ref_f, gen_sim,sim_lim),to_save, fmt = '%.8f',header = 'Ra_cl, Dec_cl, mura_cl,mudec_cl')
+
+# # %
+# ms_ID = [ms_w_clus[x][0] for x in range(len(ms_w_clus))]
+
+# # 
+# ms_ID = np.array(ms_ID)
+# #%
+
+# repe = np.unique(ms_ID,return_counts=True)
+
+
+
+
+
+
+
 
 
 
