@@ -128,7 +128,7 @@ clustered_by = 'all_color'#TODO
 # clustered_by = 'vel_col'#TODO
 
 
-samples_dist = 20
+samples_dist = 40
 RA_ = np.array(RA.value)
 DEC_ = np.array(DEC.value)
 
@@ -153,7 +153,7 @@ elif clustered_by == 'vel_col':
     d_KNN=sorted(dist[:,-1])#distance to the Kth neighbour
 
 lst_d_KNN_sim = []
-for d in range(20):
+for d in range(2):
     mudec_sim,  mura_sim = pmdec_kernel.resample(len(pmdec)), pmra_kernel.resample(len(pmra))
     raoff_sim, decoff_sim = raoff_kernel.resample(len(pmdec)), decoff_kernel.resample(len(pmdec))
     color_sim = color_kernel.resample(len(pmdec))
@@ -207,7 +207,7 @@ props = dict(boxstyle='round', facecolor='w', alpha=0.5)
 #     verticalalignment='top', bbox=props)
 
 ax.set_ylabel('N') 
-plt.savefig('/Users/amartinez/Desktop/PhD/My_papers/Libralato/hist_arches.png',dpi =300)
+plt.savefig('/Users/amartinez/Desktop/PhD/My_papers/Libralato/hist_%a.png'%(choosen_cluster),dpi =300)
 
 # %%
 fig, ax = plt.subplots(1,2,figsize=(20,10))
@@ -243,8 +243,8 @@ for c in u_labels:
 # %%
 # default colors = '#1f77b4', '#ff7f0e'
 elements_in_cluster=[]
-for i in range(len(set(l_c))-1):
-# for i in range(2):
+# for i in range(len(set(l_c))-1):
+for i in range(1):
     fig, ax = plt.subplots(1,3,figsize=(30,10))
     # ax[0].set_xticks(np.arange(-12,11))
     # ax[0].grid()
@@ -310,7 +310,23 @@ for i in range(len(set(l_c))-1):
     ax[2].scatter(arches['F127M'][colores_index[-1]]-arches['F153M'][colores_index[-1]],arches['F153M'][colores_index[-1]],color=colors[-1],zorder=1)
     ax[2].set_xlabel('f127m-f153m',fontsize =30) 
     ax[2].set_ylabel('f153m',fontsize =30) 
-    plt.savefig('/Users/amartinez/Desktop/PhD/My_papers/Libralato/arches_hos.png',dpi =300)
+    plt.savefig('/Users/amartinez/Desktop/PhD/My_papers/Libralato/%s_hos.png'%(choosen_cluster),dpi =300)
+    # %%
+    # Now we ara going to select the cluster stars with prob. of being part of
+    # the cluster > 0.7, and then those would be the ones that we will send to 
+    # the furute
+    arches_prob = arches[colores_index[i]]
+    prob_mem = arches_prob['Pclust']
+    fig, ax = plt.subplots(1,1)
+    ax.hist(prob_mem,bins = 30,label ='mean = %.2f.\n$\sigma$=%.2f'%(np.mean(prob_mem), np.std(prob_mem)))
+    ax.legend()
+    hi_prob = np.where(prob_mem >= 0.7)
+    low_prob = np.where(prob_mem < 0.7)
+    # %%
+    fig, ax = plt.subplots(1,1)
+    # ax.scatter(RA, DEC, color = 'k', alpha = 0.01)
+    ax.scatter(RA[colores_index[i]][low_prob], DEC[colores_index[i]][low_prob], color = 'red')
+    ax.scatter(RA[colores_index[i]][hi_prob], DEC[colores_index[i]][hi_prob], color = 'blue')
 # %%
 bins_ =20
 fig, ax = plt.subplots(1,2,figsize=(20,10))
@@ -349,7 +365,7 @@ y = np.sqrt(dis_y**2 - (dis_y**2/(1+t**2)))*np.sign(clus_dbs[:,3])
 
 
 cen_RA, cen_DEC = np.median(clus_dbs[:,0])*u.deg, np.median(clus_dbs[:,1])*u.deg
-for time in range(5):
+for time in range(1):
     fig, ax = plt.subplots(1,2, figsize = (20,10))
     ax[1].scatter(RA, DEC)
     ax[1].scatter(clus_dbs[:,0], clus_dbs[:,1])
@@ -364,15 +380,15 @@ for time in range(5):
 
 
     # ff = 2e5*u.yr  + time*5e5*u.yr
-    ff = 1e6*u.yr  + time*1e5*u.yr
+    ff = 0*u.yr  + time*10e5*u.yr
     
     # Balistic dipesion (move each star in a straight line)
-    RA_cl = RA_cl.to(u.mas) - (clus_dbs[:,2]*u.mas/u.yr)*ff
-    DEC_cl = DEC_cl.to(u.mas) + (clus_dbs[:,3]*u.mas/u.yr)*ff
+    # RA_cl = RA_cl.to(u.mas) - (clus_dbs[:,2]*u.mas/u.yr)*ff
+    # DEC_cl = DEC_cl.to(u.mas) + (clus_dbs[:,3]*u.mas/u.yr)*ff
     
     # Sigma dispersion (move each star in the same direction they has but all with the same velocity)
-    # RA_cl = RA_cl.to(u.mas) - (x*u.mas/u.yr)*ff
-    # DEC_cl = DEC_cl.to(u.mas) + (y*u.mas/u.yr)*ff
+    RA_cl = RA_cl.to(u.mas) - (x*u.mas/u.yr)*ff
+    DEC_cl = DEC_cl.to(u.mas) + (y*u.mas/u.yr)*ff
     
     RA_fut, DEC_fut = RA_cl.to(u.deg), DEC_cl.to(u.deg)
     
