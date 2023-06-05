@@ -348,15 +348,32 @@ for i in range(1):
             break
         pass
     print('yomamma')
-    
-    
    
+    # %%
+    cent_sep = clus_cent.separation(clus_coord)
+    flux = np.array([synphot.magnitude_to_flux(arches['F153M'][colores_index[i]][mag], error=0.2, zp_flux=None)[0] for mag in range(len(arches['F153M'][colores_index[i]]))])
+    clus_sep =np.c_[RA[colores_index[i]].value,DEC[colores_index[i]].value,arches['F153M'][colores_index[i]].value,flux,cent_sep.value]
+    
+    clus_sep = clus_sep[clus_sep[:, -1].argsort()]
+    cum = np.cumsum(clus_sep[:,3])
+    fig, ax = plt.subplots(1,1)
+    ax.scatter(clus_sep[:,-1],cum)
+    ax.axhline(light/2)
+    hl_ind = np.where(cum < light/2)
+    fig, ax = plt.subplots(1,1)
+    ax.set_title('%s'%(choosen_cluster))
+    ax.scatter(RA, DEC, color = 'k', alpha = 0.05)
+    ax.scatter(RA[colores_index[i]],DEC[colores_index[i]])
+    ax.scatter(clus_sep[:,0][hl_ind],clus_sep[:,1][hl_ind], label = 'hl radio = %.2f'%(clus_sep[hl_ind[0][-1]][-1]*3600))
+    ax.legend()
+    # mag_sep = 
     # half_clus =
     
+    if choosen_cluster == 'Quintuplet':
+        sys.exit('Out becouse Quintuplet')
     
     
-    
-    
+
 # %%
 bins_ =20
 fig, ax = plt.subplots(1,2,figsize=(20,10))
@@ -401,10 +418,10 @@ y = np.sqrt(dis_y**2 - (dis_y**2/(1+t**2)))*np.sign(clus_dbs[:,3])
 
 # %%
 cen_RA, cen_DEC = np.median(clus_dbs[:,0])*u.deg, np.median(clus_dbs[:,1])*u.deg
-for time in range(15):
+for time in range(6):
     fig, ax = plt.subplots(1,2, figsize = (20,10))
     ax[1].scatter(RA, DEC)
-    ax[1].scatter(clus_dbs[:,0], clus_dbs[:,1])
+    ax[1].scatter(RA[colores_index[i]].value,DEC[colores_index[i]])
     ax[0].scatter(pmra, pmdec)
     ax[0].scatter(clus_dbs[:,2], clus_dbs[:,3])
     ax[1].xaxis.set_major_formatter(FormatStrFormatter('%.2f'))
@@ -416,7 +433,7 @@ for time in range(15):
 
 
     # ff = 2e5*u.yr  + time*5e5*u.yr
-    ff = 0*u.yr  + time*1e4*u.yr
+    ff = 0*u.yr  + time*2.0e4*u.yr
     
     # Balistic dipesion (move each star in a straight line)
     # RA_cl = RA_cl.to(u.mas) - (clus_dbs[:,2]*u.mas/u.yr)*ff
@@ -433,78 +450,53 @@ for time in range(15):
     RA_fut, DEC_fut = RA_cl.to(u.deg), DEC_cl.to(u.deg)
     
     cen_RA_fut, cen_DEC_fut = np.median(RA_fut), np.median(DEC_fut)
-    # c2_fut = SkyCoord(ra = RA_fut,dec =DEC_fut)
-    # sep_fut = [max(c2_fut[c_mem].separation(c2_fut)) for c_mem in range(len(c2_fut))]
-    # rad_fut = max(sep_fut)/2
+    
     res_RA = cen_RA - cen_RA_fut
     res_DEC = cen_DEC - cen_DEC_fut 
-    
-    sig = 2
-    # hl_points = np.where(clus_dbs[:,-1]==1)
-    # hl_vel = np.sqrt(clus_dbs[:,2][hl_points]**2 + clus_dbs[:,3][hl_points]**2)
-    # hl_vel_sig = sigma_clip(hl_vel,sigma=sig,maxiters=10,cenfunc='median',masked=True)
-    # hl_points = hl_all_points[hl_vel_sig.mask == False]    
-    
-    
-    
-    clus_vel = np.sqrt(clus_dbs[:,2]**2 + clus_dbs[:,3]**2)
-    clus_vel_sig = sigma_clip(clus_vel,sigma=sig,maxiters=10,cenfunc='median',masked=True)
 
-# =============================================================================
-#     Ra_hl, Dec_hl = (RA_fut + res_RA)[hl_points[0]], (DEC_fut + res_DEC)[hl_points[0]]
-#     c2_hl = SkyCoord(ra = Ra_hl, dec = Dec_hl, unit ='degree',  equinox = 'J2000', obstime = 'J2015.4')
-#     sep_hl = [max(c2_hl[c_mem].separation(c2_hl)) for c_mem in range(len(c2_hl))]
-#     rad_hl = max(sep_hl)/2
-# =============================================================================
     Ra_f, Dec_f= (RA_fut + res_RA), (DEC_fut + res_DEC)
 
-    c2_f = SkyCoord(ra = Ra_f, dec = Dec_f, unit ='degree',  equinox = 'J2000', obstime = 'J2015.4')
-    sep_f = [max(c2_f[c_mem].separation(c2_f)) for c_mem in range(len(c2_f))]
-    rad_f = max(sep_f)/2
-    
     clus_dbs[:,0], clus_dbs[:,1] = Ra_f, Dec_f
-    clus_coord = SkyCoord(ra = Ra_f, dec = Dec_f, unit = 'degree')
-    radaii = np.arange(4,10,0.1)
-    # for r in range(1,int(rad.value*3600)):
-    for r in radaii:
-        idxc, hl_group, d2d,d3d =  ap_coor.search_around_sky(clus_cent,clus_coord, r*u.arcsec)
-        mag_clus = clus_dbs[:,5] 
-        flux = np.array([synphot.magnitude_to_flux(mag_clus[mag], error=0.2, zp_flux=None)[0] for mag in range(len(mag_clus))])
-        if sum(flux) > light/2:
-            fig, ax = plt.subplots(1,1)
-            ax.set_title('%s'%(choosen_cluster))
-            ax.scatter(RA, DEC, color = 'k', alpha = 0.05)
-            ax.scatter(RA[colores_index[i]],DEC[colores_index[i]])
-            ax.scatter(RA[colores_index[i]][hl_group],DEC[colores_index[i]][hl_group], label = 'hl radio = %.2f'%(r))
-            ax.legend()
-            break
-        pass
-    print('yomamma')
-
-    ax[1].scatter(RA_fut + res_RA, DEC_fut + res_DEC, label = '%.2f Myr foward, rad = %.2f'%(ff.value/1e6,rad_f.to(u.arcsec).value))
-    # ax[1].scatter((RA_fut + res_RA)[hl_points[0]], 
-    #              (DEC_fut + res_DEC)[hl_points[0]], s = 300, color = 'k',
-    #              alpha = 1,
-    #              label = 'Half_light rad =%2.f'%(rad_hl.to(u.arcsec).value))
-    ax[1].scatter((RA_fut + res_RA)[clus_vel_sig.mask == False], 
-                  (DEC_fut + res_DEC)[clus_vel_sig.mask == False], s = 300, color = 'fuchsia',
-                  alpha = 0.4,
-                  label = 'Half_light %.2f Myr foward'%(ff.value/1e6))
+    clus_coord_f = SkyCoord(ra = Ra_f, dec = Dec_f, unit = 'degree')
     
+    # Let figure out the halflight radious for the future cluster
+    cent_sep_f = clus_cent.separation(clus_coord_f)
+    flux_f = np.array([synphot.magnitude_to_flux(clus_dbs[:,5][mag], error=0.2, zp_flux=None)[0] for mag in range(len(clus_dbs[:,5]))])
+    clus_sep_f =[]
+    clus_sep_f =np.c_[clus_dbs[:,0],clus_dbs[:,1],clus_dbs[:,5],flux_f,cent_sep_f.value]
+    clus_sep_f = clus_sep_f[clus_sep_f[:,-1].argsort()]
+    cum_f = np.cumsum(clus_sep_f[:,3])
+    hl_f = np.where(cum_f < light/2)
+    r_i = clus_sep_f[hl_f[0][-1]][-1]*3600
+    
+# =============================================================================
+#     r_f = np.arange(4,20,0.05)
+#     for r_i in r_f:
+#         idxc, hl_f, d2d,d3d =  ap_coor.search_around_sky(clus_cent,clus_coord_f, r_i*u.arcsec)
+#         mag_clus_f = clus_dbs[:,5][hl_f]
+#         flux_f = np.array([synphot.magnitude_to_flux(mag_clus_f[mag], error=0.2, zp_flux=None)[0] for mag in range(len(mag_clus_f))])
+#         if sum(flux_f) > light/2:
+#             print(r_i)
+#             break
+#         pass
+#     ax[1].scatter(clus_dbs[:,0][hl_f], clus_dbs[:,1][hl_f], color = 'fuchsia', label = 'hl_rad =%.2f, Time = %.3fMyr\n it =%s'%(r_i,ff.value/1e6,time))    
+# 
+# =============================================================================
+    
+    ax[1].scatter(clus_dbs[:,0], clus_dbs[:,1])    
+    ax[1].scatter(clus_sep_f[:,0][hl_f], clus_sep_f[:,1][hl_f], color = 'fuchsia', label = 'hl_rad =%.2f, Time = %.3fMyr\n it =%s'%(r_i,ff.value/1e6,time))    
     ax[1].scatter(cen_RA,cen_DEC, s = 200, color ='r')
-    # ax[1].scatter(cen_RA_fut,cen_DEC_fut, s = 200, color ='black')
     ax[1].invert_xaxis()
     ax[1].legend()
     plt.show()
     # clus_dbs[:,0], clus_dbs[:,1]= RA_fut + res_RA, DEC_fut + res_DEC
     # np.savetxt(cls_to_throw + '%s_%.2fMyr.txt'%(choosen_cluster,ff.value/1e6), 
     #            np.c_[(RA_fut + res_RA).value,(DEC_fut + res_DEC).value,clus_dbs[:,2:6]], fmt = (2*'%.8f ' + 4*' %.4f'), header = 'RA, DEC, pmra, pmdec, f127, f153,')
-# %%
 # Ra_hl, Dec_hl = (RA_fut + res_RA)[hl_points[0]], (DEC_fut + res_DEC)[hl_points[0]]
 # c2_hl = SkyCoord(ra = Ra_hl, dec = Dec_hl, unit ='degree',  equinox = 'J2000', obstime = 'J2015.4')
 # sep_hl = [max(c2[c_mem].separation(c2)) for c_mem in range(len(c2))]
 # rad_hl = max(sep)/2
-# %%
+
 
 # hl_vel = np.sqrt(clus_dbs[:,2][hl_points]**2 + clus_dbs[:,3][hl_points]**2)
 # hl_vek_sig = sigma_clip(hl_vel,sigma=2,maxiters=10,cenfunc='median',masked=True)
@@ -512,7 +504,6 @@ for time in range(15):
 # hl_ls=np.array(d_pmra)[sig_ra.mask==False]
 # sig_dec=sigma_clip(d_pmdec,sigma=sig,maxiters=10,cenfunc='median',masked=True)
 # d_pmdec_del_ls=np.array(d_pmdec)[sig_dec.mask==False]
-# %%
 # est = 309
 # v = np.sqrt(clus_dbs[est,2]**2 + clus_dbs[est,3]**2)
 # ang = np.degrees(np.arctan2(clus_dbs[est,3],clus_dbs[est,2]))
@@ -523,7 +514,6 @@ for time in range(15):
 # print('%.2f, %.2f'%(v,v_))
 # print('%.2f, %.2f'%(ang,ang_))
 
-# %%
 #
 
 # ang2 = np.degrees(np.arctan2(y, x))
