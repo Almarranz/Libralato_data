@@ -21,7 +21,9 @@ from sklearn.preprocessing import StandardScaler
 from matplotlib.ticker import FormatStrFormatter
 from astropy.io import ascii
 import astropy.coordinates as ap_coor
-
+import species
+import random
+from astropy.stats import sigma_clip
 # %%plotting pa    metres
 from matplotlib import rc
 from matplotlib import rcParams
@@ -210,9 +212,9 @@ ax.set_ylabel('N')
 plt.savefig('/Users/amartinez/Desktop/PhD/My_papers/Libralato/hist_%a.png'%(choosen_cluster),dpi =300)
 
 # %%
-fig, ax = plt.subplots(1,2,figsize=(20,10))
-ax[0].scatter(pmra, pmdec)
-ax[1].scatter(raoff,decoff)
+# fig, ax = plt.subplots(1,2,figsize=(20,10))
+# ax[0].scatter(pmra, pmdec)
+# ax[1].scatter(raoff,decoff)
 # %%
 # =============================================================================
 # DBSCAN part
@@ -268,11 +270,11 @@ for i in range(1):
     mura_mean, mudec_mean = np.mean(pmra[colores_index[i]]), np.mean(pmdec[colores_index[i]])
     mura_sig,  mudec_sig = np.std(pmra[colores_index[i]]), np.std(pmdec[colores_index[i]])
     if ref_frame =='ecuatorial':
-        vel_txt = '\n'.join(('$\mu_{ra}$ = %s,$\mu_{dec}$ = %s'%(round(mura_mean,3), round(mudec_mean,3)),
-                             '$\sigma_{\mu ra}$ = %s, $\sigma_{\mu dec}$ = %s'%(round(mura_sig,3), round(mudec_sig,3))))   
+        vel_txt = '\n'.join(('$\\mu_{ra}$ = %s,$\\mu_{dec}$ = %s'%(round(mura_mean,3), round(mudec_mean,3)),
+                             '$\\sigma_{\\mu ra}$ = %s, $\\sigma_{\\mu dec}$ = %s'%(round(mura_sig,3), round(mudec_sig,3))))   
     if ref_frame =='galactic':
-        vel_txt = '\n'.join(('$\mu_{l}$ = %s,$\mu_{b}$ = %s'%(round(mura_mean,3), round(mudec_mean,3)),
-                             '$\sigma_{mul}$ = %s, $\sigma_{mub}$ = %s'%(round(mura_sig,3), round(mudec_sig,3))))   
+        vel_txt = '\n'.join(('$\\mu_{l}$ = %s,$\\mu_{b}$ = %s'%(round(mura_mean,3), round(mudec_mean,3)),
+                             '$\\sigma_{mul}$ = %s, $\\sigma_{mub}$ = %s'%(round(mura_sig,3), round(mudec_sig,3))))   
     # propiedades = dict(boxstyle='round', facecolor=colors[i] , alpha=0.2)
     propiedades = dict(boxstyle='round', facecolor= '#ff7f0e', alpha=0.2)
 
@@ -284,7 +286,7 @@ for i in range(1):
     ax[1].text(0.15, 0.95, 'aprox cluster radio = %s"\n cluster stars = %s '%(round(rad.to(u.arcsec).value,2),len(colores_index[i][0])), transform=ax[1].transAxes, fontsize=30,
                             verticalalignment='top', bbox=prop)
     txt_color = '\n'.join(('H-Ks =%.3f'%(np.median(arches['F127M'][colores_index[i]]-arches['F153M'][colores_index[i]])),
-                                            '$\sigma_{H-Ks}$ = %.3f'%(np.std(arches['F127M'][colores_index[i]]-arches['F153M'][colores_index[i]]))))
+                                            '$\\sigma_{H-Ks}$ = %.3f'%(np.std(arches['F127M'][colores_index[i]]-arches['F153M'][colores_index[i]]))))
                                             # 'diff_color = %.3f'%(max(arches['F127M'][colores_index[i]]-arches['F153M'][colores_index[i]])-min(arches['F127M'][colores_index[i]]-arches['F153M'][colores_index[i]]))))
     # props = dict(boxstyle='round', facecolor=colors[i], alpha=0.2)
     props = dict(boxstyle='round', facecolor='#ff7f0e', alpha=0.2)
@@ -293,8 +295,8 @@ for i in range(1):
                             verticalalignment='top', bbox=props)
     ax[0].scatter(pmra[colores_index[-1]], pmdec[colores_index[-1]],color=colors[-1],zorder=1)
     
-    ax[0].set_xlabel(r'$\mathrm{\mu_{ra*} (mas\ yr^{-1})}$',fontsize =30) 
-    ax[0].set_ylabel(r'$\mathrm{\mu_{dec} (mas\ yr^{-1})}$',fontsize =30) 
+    ax[0].set_xlabel('$\\mu_{ra*} (mas\\,yr^{-1})$',fontsize =30) 
+    ax[0].set_ylabel('$\\mu_{dec} (mas\\,yr^{-1})$',fontsize =30) 
     # ax[1].scatter(l[colores_index[-1]], b[colores_index[-1]],color=colors[-1],zorder=1)
     ax[1].scatter(RA[colores_index[-1]],DEC[colores_index[-1]],color=colors[-1],zorder=3,s=100,alpha = 0.01)
     # ax[1].scatter(RA,DEC,color=colors[-1],zorder=3,s=100,alpha = 0.01)
@@ -310,46 +312,78 @@ for i in range(1):
     ax[2].scatter(arches['F127M'][colores_index[-1]]-arches['F153M'][colores_index[-1]],arches['F153M'][colores_index[-1]],color=colors[-1],zorder=1)
     ax[2].set_xlabel('f127m-f153m',fontsize =30) 
     ax[2].set_ylabel('f153m',fontsize =30) 
-    plt.savefig('/Users/amartinez/Desktop/PhD/My_papers/Libralato/%s_hos.png'%(choosen_cluster),dpi =300)
+    # plt.savefig('/Users/amartinez/Desktop/PhD/My_papers/Libralato/%s_hos.png'%(choosen_cluster),dpi =300)
+    # %%  
+    # names=('Name','F127M','e_F127M','F139M','e_F139M','F153M','e_F153M','dRA',
+    # 'e_dRA','dDE','e_dDE','pmRA','e_pmRA','pmDE','e_pmDE','t0','Nobs','chi2RA',
+    # 'chi2DE','Pclust','pml','pmb')>
+    # We are going to calculate the halflight radio, and select the stars in
+    # that area for expanding the cluster into the future
+    arches_dbs = arches[colores_index[i]]
+    all_mag_clus = arches_dbs['F153M']
+    # Ra_clus, Dec_clus = np.mean(RA[colores_index[i]]),np.mean(DEC[colores_index[i]])
+    
+    clus_cent = SkyCoord(ra =[np.mean(RA[colores_index[i]])], dec = [np.mean(DEC[colores_index[i]])],
+                       unit = 'degree')
+    clus_coord = SkyCoord(ra = RA[colores_index[i]], dec = DEC[colores_index[i]],unit = 'degree' )
+    
+    species.SpeciesInit()   
+    synphot = species.SyntheticPhotometry('HST/WFC3_IR.F153M')
+    all_flux = np.array([synphot.magnitude_to_flux(all_mag_clus[mag], error=0.2, zp_flux=None)[0] for mag in range(len(arches_dbs))])
+    light = sum(all_flux)
     # %%
-    # Now we ara going to select the cluster stars with prob. of being part of
-    # the cluster > 0.7, and then those would be the ones that we will send to 
-    # the furute
-    arches_prob = arches[colores_index[i]]
-    prob_mem = arches_prob['Pclust']
-    fig, ax = plt.subplots(1,1)
-    ax.hist(prob_mem,bins = 30,label ='mean = %.2f.\n$\sigma$=%.2f'%(np.mean(prob_mem), np.std(prob_mem)))
-    ax.legend()
-    hi_prob = np.where(prob_mem >= 0.7)
-    low_prob = np.where(prob_mem < 0.7)
-    # %%
-    fig, ax = plt.subplots(1,1)
-    # ax.scatter(RA, DEC, color = 'k', alpha = 0.01)
-    ax.scatter(RA[colores_index[i]][low_prob], DEC[colores_index[i]][low_prob], color = 'red')
-    ax.scatter(RA[colores_index[i]][hi_prob], DEC[colores_index[i]][hi_prob], color = 'blue')
+    radaii = np.arange(4,10,0.1)
+    # for r in range(1,int(rad.value*3600)):
+    for r in radaii:
+        idxc, hl_group, d2d,d3d =  ap_coor.search_around_sky(clus_cent,clus_coord, r*u.arcsec)
+        mag_clus = arches_dbs['F153M'][hl_group] 
+        flux = np.array([synphot.magnitude_to_flux(mag_clus[mag], error=0.2, zp_flux=None)[0] for mag in range(len(mag_clus))])
+        if sum(flux) > light/2:
+            fig, ax = plt.subplots(1,1)
+            ax.set_title('%s'%(choosen_cluster))
+            ax.scatter(RA, DEC, color = 'k', alpha = 0.05)
+            ax.scatter(RA[colores_index[i]],DEC[colores_index[i]])
+            ax.scatter(RA[colores_index[i]][hl_group],DEC[colores_index[i]][hl_group], label = 'hl radio = %.2f'%(r))
+            ax.legend()
+            break
+        pass
+    print('yomamma')
+    
+    
+   
+    # half_clus =
+    
+    
+    
+    
+    
 # %%
 bins_ =20
 fig, ax = plt.subplots(1,2,figsize=(20,10))
-ax[0].hist(pmra, bins =bins_, label = '$\overline{\mu_{ra}}$ =%.2f\n$\sigma_{ra}$ =%.2f'%(np.mean(pmra),np.std(pmra)))
+ax[0].hist(pmra, bins =bins_, label = '$\\overline{\\mu_{ra}}$ =%.2f\n$\\sigma_{ra}$ =%.2f'%(np.mean(pmra),np.std(pmra)))
 ax[0].legend()
-ax[1].hist(pmdec, bins =bins_, label = '$\overline{\mu_{dec}}$ =%.2f\n$\sigma_{dec}$ =%.2f'%(np.mean(pmdec),np.std(pmdec)))
+ax[1].hist(pmdec, bins =bins_, label = '$\\overline{\\mu_{dec}}$ =%.2f\n$\\sigma_{dec}$ =%.2f'%(np.mean(pmdec),np.std(pmdec)))
 ax[1].legend()
 
 ax[0].axvline(np.mean(pmra), color ='red')
 ax[1].axvline(np.mean(pmdec), color ='red')
 # ax[0].set_xlim(-15,15)
 # ax[1].set_xlim(-15,15)
-ax[0].set_xlabel('$\mu_{ra}$ (mas/yr)')
-ax[1].set_xlabel('$\mu_{dec}$ (mas/yr)')
+ax[0].set_xlabel('$\\mu_{ra}$ (mas/yr)')
+ax[1].set_xlabel('$\\mu_{dec}$ (mas/yr)')
 
 # %%
 # We are going to disolve the cluster and then run dbscan again. The goal is to
 # check how dissolve the cluster have to be for be invisible to dbscan.
 
+hl_men = np.full(len(arches_dbs), 0)
+hl_men[hl_group] = 1
 clus_dbs = np.c_[RA[colores_index[i]].value,DEC[colores_index[i]].value,
                  pmra[colores_index[i]].value, pmdec[colores_index[i]].value,
                  np.array(arches['F127M'][colores_index[i]]),
-                 np.array(arches['F153M'][colores_index[i]])]
+                 np.array(arches['F153M'][colores_index[i]]),
+                 arches['e_pmRA'][colores_index[i]], arches['e_pmDE'][colores_index[i]]
+                 ,hl_men]
 
 
 
@@ -358,14 +392,16 @@ t = clus_dbs[:,3] / clus_dbs[:,2]
 
 dis_x, dis_y = 0.15, 0.15
 
-# This make movemnet vectors for each star along the dame direction they had, 
+# This make movemnet vectors for each star along the same direction they had, 
 # but all with the same module for the velocity
+# To be used with the sigam dispersion simulation, see below
 x = np.sqrt(dis_x**2/(1+t**2))*np.sign(clus_dbs[:,2])
 y = np.sqrt(dis_y**2 - (dis_y**2/(1+t**2)))*np.sign(clus_dbs[:,3])
 
 
+# %%
 cen_RA, cen_DEC = np.median(clus_dbs[:,0])*u.deg, np.median(clus_dbs[:,1])*u.deg
-for time in range(1):
+for time in range(15):
     fig, ax = plt.subplots(1,2, figsize = (20,10))
     ax[1].scatter(RA, DEC)
     ax[1].scatter(clus_dbs[:,0], clus_dbs[:,1])
@@ -380,15 +416,19 @@ for time in range(1):
 
 
     # ff = 2e5*u.yr  + time*5e5*u.yr
-    ff = 0*u.yr  + time*10e5*u.yr
+    ff = 0*u.yr  + time*1e4*u.yr
     
     # Balistic dipesion (move each star in a straight line)
     # RA_cl = RA_cl.to(u.mas) - (clus_dbs[:,2]*u.mas/u.yr)*ff
     # DEC_cl = DEC_cl.to(u.mas) + (clus_dbs[:,3]*u.mas/u.yr)*ff
     
+    # Balistic dipesion with uncertainty (move each star in a straight line)
+    RA_cl = RA_cl.to(u.mas) - ((clus_dbs[:,2] + random.uniform(-clus_dbs[:,-3],clus_dbs[:,-3]))*u.mas/u.yr)*ff
+    DEC_cl = DEC_cl.to(u.mas) + ((clus_dbs[:,3] +  random.uniform(-clus_dbs[:,-2],clus_dbs[:,-2]))*u.mas/u.yr)*ff
+    
     # Sigma dispersion (move each star in the same direction they has but all with the same velocity)
-    RA_cl = RA_cl.to(u.mas) - (x*u.mas/u.yr)*ff
-    DEC_cl = DEC_cl.to(u.mas) + (y*u.mas/u.yr)*ff
+    # RA_cl = RA_cl.to(u.mas) - (x*u.mas/u.yr)*ff
+    # DEC_cl = DEC_cl.to(u.mas) + (y*u.mas/u.yr)*ff
     
     RA_fut, DEC_fut = RA_cl.to(u.deg), DEC_cl.to(u.deg)
     
@@ -399,9 +439,25 @@ for time in range(1):
     res_RA = cen_RA - cen_RA_fut
     res_DEC = cen_DEC - cen_DEC_fut 
     
+    sig = 2
+    hl_points = np.where(clus_dbs[:,-1]==1)
+    hl_vel = np.sqrt(clus_dbs[:,2][hl_points]**2 + clus_dbs[:,3][hl_points]**2)
+    hl_vel_sig = sigma_clip(hl_vel,sigma=sig,maxiters=10,cenfunc='median',masked=True)
+    # hl_points = hl_all_points[hl_vel_sig.mask == False]    
     
-    
+    Ra_hl, Dec_hl = (RA_fut + res_RA)[hl_points[0]], (DEC_fut + res_DEC)[hl_points[0]]
+    c2_hl = SkyCoord(ra = Ra_hl, dec = Dec_hl, unit ='degree',  equinox = 'J2000', obstime = 'J2015.4')
+    sep_hl = [max(c2_hl[c_mem].separation(c2_hl)) for c_mem in range(len(c2_hl))]
+    rad_hl = max(sep_hl)/2
     ax[1].scatter(RA_fut + res_RA, DEC_fut + res_DEC, label = '%.2f Myr foward'%(ff.value/1e6))
+    ax[1].scatter((RA_fut + res_RA)[hl_points[0]], 
+                 (DEC_fut + res_DEC)[hl_points[0]], s = 300, color = 'k',
+                 alpha = 1,
+                 label = 'Half_light rad =%2.f'%(rad_hl.to(u.arcsec).value))
+    ax[1].scatter((RA_fut + res_RA)[hl_points[0][hl_vel_sig.mask == False]], 
+                 (DEC_fut + res_DEC)[hl_points[0][hl_vel_sig.mask == False]], s = 300, color = 'fuchsia',
+                 alpha = 0.4,
+                 label = 'Half_light %.2f Myr foward'%(ff.value/1e6))
     ax[1].scatter(cen_RA,cen_DEC, s = 200, color ='r')
     # ax[1].scatter(cen_RA_fut,cen_DEC_fut, s = 200, color ='black')
     ax[1].invert_xaxis()
@@ -410,6 +466,19 @@ for time in range(1):
     # clus_dbs[:,0], clus_dbs[:,1]= RA_fut + res_RA, DEC_fut + res_DEC
     np.savetxt(cls_to_throw + '%s_%.2fMyr.txt'%(choosen_cluster,ff.value/1e6), 
                np.c_[(RA_fut + res_RA).value,(DEC_fut + res_DEC).value,clus_dbs[:,2:6]], fmt = (2*'%.8f ' + 4*' %.4f'), header = 'RA, DEC, pmra, pmdec, f127, f153,')
+# %%
+Ra_hl, Dec_hl = (RA_fut + res_RA)[hl_points[0]], (DEC_fut + res_DEC)[hl_points[0]]
+c2_hl = SkyCoord(ra = Ra_hl, dec = Dec_hl, unit ='degree',  equinox = 'J2000', obstime = 'J2015.4')
+sep_hl = [max(c2[c_mem].separation(c2)) for c_mem in range(len(c2))]
+rad_hl = max(sep)/2
+# %%
+
+hl_vel = np.sqrt(clus_dbs[:,2][hl_points]**2 + clus_dbs[:,3][hl_points]**2)
+hl_vek_sig = sigma_clip(hl_vel,sigma=2,maxiters=10,cenfunc='median',masked=True)
+
+# hl_ls=np.array(d_pmra)[sig_ra.mask==False]
+# sig_dec=sigma_clip(d_pmdec,sigma=sig,maxiters=10,cenfunc='median',masked=True)
+# d_pmdec_del_ls=np.array(d_pmdec)[sig_dec.mask==False]
 # %%
 # est = 309
 # v = np.sqrt(clus_dbs[est,2]**2 + clus_dbs[est,3]**2)
