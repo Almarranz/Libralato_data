@@ -440,41 +440,74 @@ for time in range(15):
     res_DEC = cen_DEC - cen_DEC_fut 
     
     sig = 2
-    hl_points = np.where(clus_dbs[:,-1]==1)
-    hl_vel = np.sqrt(clus_dbs[:,2][hl_points]**2 + clus_dbs[:,3][hl_points]**2)
-    hl_vel_sig = sigma_clip(hl_vel,sigma=sig,maxiters=10,cenfunc='median',masked=True)
+    # hl_points = np.where(clus_dbs[:,-1]==1)
+    # hl_vel = np.sqrt(clus_dbs[:,2][hl_points]**2 + clus_dbs[:,3][hl_points]**2)
+    # hl_vel_sig = sigma_clip(hl_vel,sigma=sig,maxiters=10,cenfunc='median',masked=True)
     # hl_points = hl_all_points[hl_vel_sig.mask == False]    
     
-    Ra_hl, Dec_hl = (RA_fut + res_RA)[hl_points[0]], (DEC_fut + res_DEC)[hl_points[0]]
-    c2_hl = SkyCoord(ra = Ra_hl, dec = Dec_hl, unit ='degree',  equinox = 'J2000', obstime = 'J2015.4')
-    sep_hl = [max(c2_hl[c_mem].separation(c2_hl)) for c_mem in range(len(c2_hl))]
-    rad_hl = max(sep_hl)/2
-    ax[1].scatter(RA_fut + res_RA, DEC_fut + res_DEC, label = '%.2f Myr foward'%(ff.value/1e6))
-    ax[1].scatter((RA_fut + res_RA)[hl_points[0]], 
-                 (DEC_fut + res_DEC)[hl_points[0]], s = 300, color = 'k',
-                 alpha = 1,
-                 label = 'Half_light rad =%2.f'%(rad_hl.to(u.arcsec).value))
-    ax[1].scatter((RA_fut + res_RA)[hl_points[0][hl_vel_sig.mask == False]], 
-                 (DEC_fut + res_DEC)[hl_points[0][hl_vel_sig.mask == False]], s = 300, color = 'fuchsia',
-                 alpha = 0.4,
-                 label = 'Half_light %.2f Myr foward'%(ff.value/1e6))
+    
+    
+    clus_vel = np.sqrt(clus_dbs[:,2]**2 + clus_dbs[:,3]**2)
+    clus_vel_sig = sigma_clip(clus_vel,sigma=sig,maxiters=10,cenfunc='median',masked=True)
+
+# =============================================================================
+#     Ra_hl, Dec_hl = (RA_fut + res_RA)[hl_points[0]], (DEC_fut + res_DEC)[hl_points[0]]
+#     c2_hl = SkyCoord(ra = Ra_hl, dec = Dec_hl, unit ='degree',  equinox = 'J2000', obstime = 'J2015.4')
+#     sep_hl = [max(c2_hl[c_mem].separation(c2_hl)) for c_mem in range(len(c2_hl))]
+#     rad_hl = max(sep_hl)/2
+# =============================================================================
+    Ra_f, Dec_f= (RA_fut + res_RA), (DEC_fut + res_DEC)
+
+    c2_f = SkyCoord(ra = Ra_f, dec = Dec_f, unit ='degree',  equinox = 'J2000', obstime = 'J2015.4')
+    sep_f = [max(c2_f[c_mem].separation(c2_f)) for c_mem in range(len(c2_f))]
+    rad_f = max(sep_f)/2
+    
+    clus_dbs[:,0], clus_dbs[:,1] = Ra_f, Dec_f
+    clus_coord = SkyCoord(ra = Ra_f, dec = Dec_f, unit = 'degree')
+    radaii = np.arange(4,10,0.1)
+    # for r in range(1,int(rad.value*3600)):
+    for r in radaii:
+        idxc, hl_group, d2d,d3d =  ap_coor.search_around_sky(clus_cent,clus_coord, r*u.arcsec)
+        mag_clus = clus_dbs[:,5] 
+        flux = np.array([synphot.magnitude_to_flux(mag_clus[mag], error=0.2, zp_flux=None)[0] for mag in range(len(mag_clus))])
+        if sum(flux) > light/2:
+            fig, ax = plt.subplots(1,1)
+            ax.set_title('%s'%(choosen_cluster))
+            ax.scatter(RA, DEC, color = 'k', alpha = 0.05)
+            ax.scatter(RA[colores_index[i]],DEC[colores_index[i]])
+            ax.scatter(RA[colores_index[i]][hl_group],DEC[colores_index[i]][hl_group], label = 'hl radio = %.2f'%(r))
+            ax.legend()
+            break
+        pass
+    print('yomamma')
+
+    ax[1].scatter(RA_fut + res_RA, DEC_fut + res_DEC, label = '%.2f Myr foward, rad = %.2f'%(ff.value/1e6,rad_f.to(u.arcsec).value))
+    # ax[1].scatter((RA_fut + res_RA)[hl_points[0]], 
+    #              (DEC_fut + res_DEC)[hl_points[0]], s = 300, color = 'k',
+    #              alpha = 1,
+    #              label = 'Half_light rad =%2.f'%(rad_hl.to(u.arcsec).value))
+    ax[1].scatter((RA_fut + res_RA)[clus_vel_sig.mask == False], 
+                  (DEC_fut + res_DEC)[clus_vel_sig.mask == False], s = 300, color = 'fuchsia',
+                  alpha = 0.4,
+                  label = 'Half_light %.2f Myr foward'%(ff.value/1e6))
+    
     ax[1].scatter(cen_RA,cen_DEC, s = 200, color ='r')
     # ax[1].scatter(cen_RA_fut,cen_DEC_fut, s = 200, color ='black')
     ax[1].invert_xaxis()
     ax[1].legend()
-    
+    plt.show()
     # clus_dbs[:,0], clus_dbs[:,1]= RA_fut + res_RA, DEC_fut + res_DEC
-    np.savetxt(cls_to_throw + '%s_%.2fMyr.txt'%(choosen_cluster,ff.value/1e6), 
-               np.c_[(RA_fut + res_RA).value,(DEC_fut + res_DEC).value,clus_dbs[:,2:6]], fmt = (2*'%.8f ' + 4*' %.4f'), header = 'RA, DEC, pmra, pmdec, f127, f153,')
+    # np.savetxt(cls_to_throw + '%s_%.2fMyr.txt'%(choosen_cluster,ff.value/1e6), 
+    #            np.c_[(RA_fut + res_RA).value,(DEC_fut + res_DEC).value,clus_dbs[:,2:6]], fmt = (2*'%.8f ' + 4*' %.4f'), header = 'RA, DEC, pmra, pmdec, f127, f153,')
 # %%
-Ra_hl, Dec_hl = (RA_fut + res_RA)[hl_points[0]], (DEC_fut + res_DEC)[hl_points[0]]
-c2_hl = SkyCoord(ra = Ra_hl, dec = Dec_hl, unit ='degree',  equinox = 'J2000', obstime = 'J2015.4')
-sep_hl = [max(c2[c_mem].separation(c2)) for c_mem in range(len(c2))]
-rad_hl = max(sep)/2
+# Ra_hl, Dec_hl = (RA_fut + res_RA)[hl_points[0]], (DEC_fut + res_DEC)[hl_points[0]]
+# c2_hl = SkyCoord(ra = Ra_hl, dec = Dec_hl, unit ='degree',  equinox = 'J2000', obstime = 'J2015.4')
+# sep_hl = [max(c2[c_mem].separation(c2)) for c_mem in range(len(c2))]
+# rad_hl = max(sep)/2
 # %%
 
-hl_vel = np.sqrt(clus_dbs[:,2][hl_points]**2 + clus_dbs[:,3][hl_points]**2)
-hl_vek_sig = sigma_clip(hl_vel,sigma=2,maxiters=10,cenfunc='median',masked=True)
+# hl_vel = np.sqrt(clus_dbs[:,2][hl_points]**2 + clus_dbs[:,3][hl_points]**2)
+# hl_vek_sig = sigma_clip(hl_vel,sigma=2,maxiters=10,cenfunc='median',masked=True)
 
 # hl_ls=np.array(d_pmra)[sig_ra.mask==False]
 # sig_dec=sigma_clip(d_pmdec,sigma=sig,maxiters=10,cenfunc='median',masked=True)
