@@ -55,6 +55,7 @@ plt.rcParams.update({'figure.max_open_warning': 0})#
 catal='/Users/amartinez/Desktop/PhD/Arches_and_Quintuplet_Hosek/'
 morralla ='/Users/amartinez/Desktop/morralla/'
 cls_to_throw = '/Users/amartinez/Desktop/PhD/Libralato_data/cluster_to_throw/'
+pruebas = '/Users/amartinez/Desktop/PhD/Arches_and_Quintuplet_Hosek/pruebas/'
 
 choosen_cluster = 'Arches'#TODO
 # choosen_cluster = 'Quintuplet'#TODO
@@ -133,247 +134,254 @@ clustered_by = 'all_color'#TODO
 samples_dist = 40
 RA_ = np.array(RA.value)
 DEC_ = np.array(DEC.value)
-
-if clustered_by == 'all_color':
-    # X = np.array([pmra,pmdec,raoff,decoff,colorines]).T
-    X = np.array([pmra,pmdec,RA,DEC,colorines]).T
-    X_stad = StandardScaler().fit_transform(X)
-    tree = KDTree(X_stad, leaf_size=2) 
-    dist, ind = tree.query(X_stad, k=samples_dist) #DistNnce to the 1,2,3...k neighbour
-    d_KNN=sorted(dist[:,-1])#distance to the Kth neighbour
-elif clustered_by == 'all':
-    X = np.array([pmra,pmdec,raoff,decoff]).T
-    X_stad = StandardScaler().fit_transform(X)
-    tree = KDTree(X_stad, leaf_size=2) 
-    dist, ind = tree.query(X_stad, k=samples_dist) #DistNnce to the 1,2,3...k neighbour
-    d_KNN=sorted(dist[:,-1])#distance to the Kth neighbour
-elif clustered_by == 'vel_col':
-    X = np.array([pmra,pmdec,colorines]).T
-    X_stad = StandardScaler().fit_transform(X)
-    tree = KDTree(X_stad, leaf_size=2) 
-    dist, ind = tree.query(X_stad, k=samples_dist) #DistNnce to the 1,2,3...k neighbour
-    d_KNN=sorted(dist[:,-1])#distance to the Kth neighbour
-
-lst_d_KNN_sim = []
-for d in range(2):
-    mudec_sim,  mura_sim = pmdec_kernel.resample(len(pmdec)), pmra_kernel.resample(len(pmra))
-    raoff_sim, decoff_sim = raoff_kernel.resample(len(pmdec)), decoff_kernel.resample(len(pmdec))
-    color_sim = color_kernel.resample(len(pmdec))
+with open(pruebas + '%s_dbs_statistic.txt'%(choosen_cluster), 'w') as file:
+    file.write('# pm_ra pm_dec sig_pmra sig_dec radio eff_radio #stars\n')
+    file.close()
+    
+for rep in range(50):
     if clustered_by == 'all_color':
-        X_sim=np.array([mura_sim[0],mudec_sim[0],raoff_sim[0],decoff_sim[0],color_sim[0]]).T
-        X_stad_sim = StandardScaler().fit_transform(X_sim)
-        tree_sim =  KDTree(X_stad_sim, leaf_size=2)
-        
-        dist_sim, ind_sim = tree_sim.query(X_stad_sim, k=samples_dist) #DistNnce to the 1,2,3...k neighbour
-        d_KNN_sim=sorted(dist_sim[:,-1])#distance to the Kth neighbour
-        
-        lst_d_KNN_sim.append(min(d_KNN_sim))
-    elif clustered_by =='all':
-        X_sim=np.array([mura_sim[0],mudec_sim[0],raoff_sim[0],decoff_sim[0]]).T
-        X_stad_sim = StandardScaler().fit_transform(X_sim)
-        tree_sim =  KDTree(X_stad_sim, leaf_size=2)
-        
-        dist_sim, ind_sim = tree_sim.query(X_stad_sim, k=samples_dist) #DistNnce to the 1,2,3...k neighbour
-        d_KNN_sim=sorted(dist_sim[:,-1])#distance to the Kth neighbour
-        
-        lst_d_KNN_sim.append(min(d_KNN_sim))
-    elif clustered_by =='vel_col':
-        X_sim=np.array([mura_sim[0],mudec_sim[0],color_sim[0]]).T
-        X_stad_sim = StandardScaler().fit_transform(X_sim)
-        tree_sim =  KDTree(X_stad_sim, leaf_size=2)
-        
-        dist_sim, ind_sim = tree_sim.query(X_stad_sim, k=samples_dist) #DistNnce to the 1,2,3...k neighbour
-        d_KNN_sim=sorted(dist_sim[:,-1])#distance to the Kth neighbour
-        
-        lst_d_KNN_sim.append(min(d_KNN_sim))
-
-d_KNN_sim_av = np.mean(lst_d_KNN_sim)
-# %%
-
-fig, ax = plt.subplots(1,1,figsize=(10,10))
-# ax.set_title('Number of points = %s '%(len(pmdec)))
-
-ax.hist(d_KNN,bins ='auto',histtype ='step',color = 'k', linewidth = 5,label = 'Arches (min. = %.2f)'%(min(d_KNN)))
-ax.hist(d_KNN_sim,bins ='auto',histtype ='step',color = 'r', linewidth = 5,alpha = 0.5,label = 'Simulated (min. = %.2f)'%(d_KNN_sim_av))
-ax.set_xlabel('%s-NN distance'%(samples_dist)) 
-ax.legend()
-
-eps_av = round((min(d_KNN)+d_KNN_sim_av)/2,3)
-texto = '\n'.join(('min real d_KNN = %s'%(round(min(d_KNN),3)),
-                    'min sim d_KNN =%s'%(round(d_KNN_sim_av,3)),'average = %s'%(eps_av)))
-
-ax.set_xlim(0,1)
-props = dict(boxstyle='round', facecolor='w', alpha=0.5)
-# place a text box in upper left in axes coords
-# ax.text(0.55, 0.25, texto, transform=ax.transAxes, fontsize=20,
-#     verticalalignment='top', bbox=props)
-
-ax.set_ylabel('N') 
-plt.savefig('/Users/amartinez/Desktop/PhD/My_papers/Libralato/hist_%a.png'%(choosen_cluster),dpi =300)
-
-# %%
-# fig, ax = plt.subplots(1,2,figsize=(20,10))
-# ax[0].scatter(pmra, pmdec)
-# ax[1].scatter(raoff,decoff)
-# %%
-# =============================================================================
-# DBSCAN part
-# =============================================================================
-
-clustering = DBSCAN(eps = eps_av, min_samples=samples_dist).fit(X_stad)
-
-l_c=clustering.labels_
-
-n_clusters = len(set(l_c)) - (1 if -1 in l_c else 0)
-n_noise=list(l_c).count(-1)
-
-u_labels = set(l_c)
-colors=[plt.cm.rainbow(i) for i in np.linspace(0,1,len(set(l_c)))]# Returns a color for each cluster. Each color consists in four number, RGBA, red, green, blue and alpha. Full opacity black would be then 0,0,0,1
-# colors =['#1f77b4', '#ff7f0e', '#2ca02c', '#d62728', '#9467bd', '#8c564b', '#e377c2',
-#  '#7f7f7f', '#bcbd22', '#17becf']
-# colors =[(0,1,0,1)]
-
-for k in range(len(colors)): #give noise color black with opacity 0.1
-    if list(u_labels)[k] == -1:
-        colors[k]=[0,0,0,0.1]
-        
-colores_index=[]      
-for c in u_labels:
-    cl_color=np.where(l_c==c)
-    colores_index.append(cl_color)
+        # X = np.array([pmra,pmdec,raoff,decoff,colorines]).T
+        X = np.array([pmra,pmdec,RA,DEC,colorines]).T
+        X_stad = StandardScaler().fit_transform(X)
+        tree = KDTree(X_stad, leaf_size=2) 
+        dist, ind = tree.query(X_stad, k=samples_dist) #DistNnce to the 1,2,3...k neighbour
+        d_KNN=sorted(dist[:,-1])#distance to the Kth neighbour
+    elif clustered_by == 'all':
+        X = np.array([pmra,pmdec,raoff,decoff]).T
+        X_stad = StandardScaler().fit_transform(X)
+        tree = KDTree(X_stad, leaf_size=2) 
+        dist, ind = tree.query(X_stad, k=samples_dist) #DistNnce to the 1,2,3...k neighbour
+        d_KNN=sorted(dist[:,-1])#distance to the Kth neighbour
+    elif clustered_by == 'vel_col':
+        X = np.array([pmra,pmdec,colorines]).T
+        X_stad = StandardScaler().fit_transform(X)
+        tree = KDTree(X_stad, leaf_size=2) 
+        dist, ind = tree.query(X_stad, k=samples_dist) #DistNnce to the 1,2,3...k neighbour
+        d_KNN=sorted(dist[:,-1])#distance to the Kth neighbour
     
-# %%
-# default colors = '#1f77b4', '#ff7f0e'
-elements_in_cluster=[]
-# for i in range(len(set(l_c))-1):
-for i in range(1):
-    fig, ax = plt.subplots(1,3,figsize=(30,10))
-    # ax[0].set_xticks(np.arange(-12,11))
-    # ax[0].grid()
-    ax[0].invert_xaxis()
-    ax[2].invert_yaxis()
-    c2 = SkyCoord(ra = RA[colores_index[i]],dec =DEC[colores_index[i]], unit ='degree',  equinox = 'J2000', obstime = 'J2015.4')
-    sep = [max(c2[c_mem].separation(c2)) for c_mem in range(len(c2))]
-    rad = max(sep)/2
-    ax[0].set_title('%s'%(choosen_cluster))
-    # ax[0].scatter(pmra[colores_index[i]], pmdec[colores_index[i]],color=colors[i],zorder=3)
-    ax[0].scatter(pmra[colores_index[i]], pmdec[colores_index[i]],color = '#ff7f0e',zorder=3)
-
-    # ax[1].scatter(l[colores_index[i]], b[colores_index[i]],color=colors[i],zorder=3)
-    # ax[1].scatter(RA[colores_index[i]],DEC[colores_index[i]],color=colors[i],zorder=3,s=100,alpha =0.3)
-    ax[1].scatter(RA[colores_index[i]],DEC[colores_index[i]],color = '#ff7f0e',zorder=3,s=100,alpha =0.3)
-
-    # ax[1].scatter(gns_match[colores_index[i]][:,0],gns_match[colores_index[i]][:,2],color=colors[i],zorder=3,s=100)
-    # ax[2].scatter(arches['F127M'][colores_index[i]]-arches['F153M'][colores_index[i]],arches['F153M'][colores_index[i]],color=colors[i],zorder=13)
-    ax[2].scatter(arches['F127M'][colores_index[i]]-arches['F153M'][colores_index[i]],arches['F153M'][colores_index[i]],color = '#ff7f0e',zorder=13)
-
-    mura_mean, mudec_mean = np.mean(pmra[colores_index[i]]), np.mean(pmdec[colores_index[i]])
-    mura_sig,  mudec_sig = np.std(pmra[colores_index[i]]), np.std(pmdec[colores_index[i]])
-    if ref_frame =='ecuatorial':
-        vel_txt = '\n'.join(('$\\mu_{ra}$ = %s,$\\mu_{dec}$ = %s'%(round(mura_mean,3), round(mudec_mean,3)),
-                             '$\\sigma_{\\mu ra}$ = %s, $\\sigma_{\\mu dec}$ = %s'%(round(mura_sig,3), round(mudec_sig,3))))   
-    if ref_frame =='galactic':
-        vel_txt = '\n'.join(('$\\mu_{l}$ = %s,$\\mu_{b}$ = %s'%(round(mura_mean,3), round(mudec_mean,3)),
-                             '$\\sigma_{mul}$ = %s, $\\sigma_{mub}$ = %s'%(round(mura_sig,3), round(mudec_sig,3))))   
-    # propiedades = dict(boxstyle='round', facecolor=colors[i] , alpha=0.2)
-    propiedades = dict(boxstyle='round', facecolor= '#ff7f0e', alpha=0.2)
-
-    ax[0].text(0.15, 0.95, vel_txt, transform=ax[0].transAxes, fontsize=30,
-        verticalalignment='top', bbox=propiedades)
-    # prop = dict(boxstyle='round', facecolor=colors[i] , alpha=0.2)
-    prop = dict(boxstyle='round', facecolor='#ff7f0e' , alpha=0.2)
-
-    ax[1].text(0.15, 0.95, 'aprox cluster radio = %s"\n cluster stars = %s '%(round(rad.to(u.arcsec).value,2),len(colores_index[i][0])), transform=ax[1].transAxes, fontsize=30,
-                            verticalalignment='top', bbox=prop)
-    txt_color = '\n'.join(('H-Ks =%.3f'%(np.median(arches['F127M'][colores_index[i]]-arches['F153M'][colores_index[i]])),
-                                            '$\\sigma_{H-Ks}$ = %.3f'%(np.std(arches['F127M'][colores_index[i]]-arches['F153M'][colores_index[i]]))))
-                                            # 'diff_color = %.3f'%(max(arches['F127M'][colores_index[i]]-arches['F153M'][colores_index[i]])-min(arches['F127M'][colores_index[i]]-arches['F153M'][colores_index[i]]))))
-    # props = dict(boxstyle='round', facecolor=colors[i], alpha=0.2)
-    props = dict(boxstyle='round', facecolor='#ff7f0e', alpha=0.2)
-
-    ax[2].text(0.50, 0.95, txt_color, transform=ax[2].transAxes, fontsize=30,
-                            verticalalignment='top', bbox=props)
-    ax[0].scatter(pmra[colores_index[-1]], pmdec[colores_index[-1]],color=colors[-1],zorder=1)
+    lst_d_KNN_sim = []
+    for d in range(2):
+        mudec_sim,  mura_sim = pmdec_kernel.resample(len(pmdec)), pmra_kernel.resample(len(pmra))
+        raoff_sim, decoff_sim = raoff_kernel.resample(len(pmdec)), decoff_kernel.resample(len(pmdec))
+        color_sim = color_kernel.resample(len(pmdec))
+        if clustered_by == 'all_color':
+            X_sim=np.array([mura_sim[0],mudec_sim[0],raoff_sim[0],decoff_sim[0],color_sim[0]]).T
+            X_stad_sim = StandardScaler().fit_transform(X_sim)
+            tree_sim =  KDTree(X_stad_sim, leaf_size=2)
+            
+            dist_sim, ind_sim = tree_sim.query(X_stad_sim, k=samples_dist) #DistNnce to the 1,2,3...k neighbour
+            d_KNN_sim=sorted(dist_sim[:,-1])#distance to the Kth neighbour
+            
+            lst_d_KNN_sim.append(min(d_KNN_sim))
+        elif clustered_by =='all':
+            X_sim=np.array([mura_sim[0],mudec_sim[0],raoff_sim[0],decoff_sim[0]]).T
+            X_stad_sim = StandardScaler().fit_transform(X_sim)
+            tree_sim =  KDTree(X_stad_sim, leaf_size=2)
+            
+            dist_sim, ind_sim = tree_sim.query(X_stad_sim, k=samples_dist) #DistNnce to the 1,2,3...k neighbour
+            d_KNN_sim=sorted(dist_sim[:,-1])#distance to the Kth neighbour
+            
+            lst_d_KNN_sim.append(min(d_KNN_sim))
+        elif clustered_by =='vel_col':
+            X_sim=np.array([mura_sim[0],mudec_sim[0],color_sim[0]]).T
+            X_stad_sim = StandardScaler().fit_transform(X_sim)
+            tree_sim =  KDTree(X_stad_sim, leaf_size=2)
+            
+            dist_sim, ind_sim = tree_sim.query(X_stad_sim, k=samples_dist) #DistNnce to the 1,2,3...k neighbour
+            d_KNN_sim=sorted(dist_sim[:,-1])#distance to the Kth neighbour
+            
+            lst_d_KNN_sim.append(min(d_KNN_sim))
     
-    ax[0].set_xlabel('$\\mu_{ra*} (mas\\,yr^{-1})$',fontsize =30) 
-    ax[0].set_ylabel('$\\mu_{dec} (mas\\,yr^{-1})$',fontsize =30) 
-    # ax[1].scatter(l[colores_index[-1]], b[colores_index[-1]],color=colors[-1],zorder=1)
-    ax[1].scatter(RA[colores_index[-1]],DEC[colores_index[-1]],color=colors[-1],zorder=3,s=100,alpha = 0.01)
-    # ax[1].scatter(RA,DEC,color=colors[-1],zorder=3,s=100,alpha = 0.01)
-    ax[1].yaxis.set_major_formatter(FormatStrFormatter('%.2f'))
-    ax[1].xaxis.set_major_formatter(FormatStrFormatter('%.2f'))
-    
-   
-    ax[1].set_yticks([-28.85, -28.84, -28.83, -28.81, -28.8 , -28.79])
-    ax[1].set_xlabel('ra(deg)',fontsize =30) 
-    ax[1].set_ylabel('dec(deg)',fontsize =30)
-    ax[1].yaxis.set_label_coords(-0.05, 0.5)
-    
-    ax[2].scatter(arches['F127M'][colores_index[-1]]-arches['F153M'][colores_index[-1]],arches['F153M'][colores_index[-1]],color=colors[-1],zorder=1)
-    ax[2].set_xlabel('f127m-f153m',fontsize =30) 
-    ax[2].set_ylabel('f153m',fontsize =30) 
-    # plt.savefig('/Users/amartinez/Desktop/PhD/My_papers/Libralato/%s_hos.png'%(choosen_cluster),dpi =300)
-    # %%  
-    # names=('Name','F127M','e_F127M','F139M','e_F139M','F153M','e_F153M','dRA',
-    # 'e_dRA','dDE','e_dDE','pmRA','e_pmRA','pmDE','e_pmDE','t0','Nobs','chi2RA',
-    # 'chi2DE','Pclust','pml','pmb')>
-    # We are going to calculate the halflight radio, and select the stars in
-    # that area for expanding the cluster into the future
-    arches_dbs = arches[colores_index[i]]
-    all_mag_clus = arches_dbs['F153M']
-    # Ra_clus, Dec_clus = np.mean(RA[colores_index[i]]),np.mean(DEC[colores_index[i]])
-    
-    clus_cent = SkyCoord(ra =[np.mean(RA[colores_index[i]])], dec = [np.mean(DEC[colores_index[i]])],
-                       unit = 'degree')
-    clus_coord = SkyCoord(ra = RA[colores_index[i]], dec = DEC[colores_index[i]],unit = 'degree' )
-    
-    species.SpeciesInit()   
-    synphot = species.SyntheticPhotometry('HST/WFC3_IR.F153M')
-    all_flux = np.array([synphot.magnitude_to_flux(all_mag_clus[mag], error=0.2, zp_flux=None)[0] for mag in range(len(arches_dbs))])
-    light = sum(all_flux)
+    d_KNN_sim_av = np.mean(lst_d_KNN_sim)
     # %%
-    radaii = np.arange(4,10,0.1)
-    # for r in range(1,int(rad.value*3600)):
-    for r in radaii:
-        idxc, hl_group, d2d,d3d =  ap_coor.search_around_sky(clus_cent,clus_coord, r*u.arcsec)
-        mag_clus = arches_dbs['F153M'][hl_group] 
-        flux = np.array([synphot.magnitude_to_flux(mag_clus[mag], error=0.2, zp_flux=None)[0] for mag in range(len(mag_clus))])
-        if sum(flux) > light/2:
-            fig, ax = plt.subplots(1,1)
-            ax.set_title('%s'%(choosen_cluster))
-            ax.scatter(RA, DEC, color = 'k', alpha = 0.05)
-            ax.scatter(RA[colores_index[i]],DEC[colores_index[i]])
-            ax.scatter(RA[colores_index[i]][hl_group],DEC[colores_index[i]][hl_group], label = 'hl radio = %.2f'%(r))
-            ax.legend()
-            break
-        pass
-    print('yomamma')
-   
-    # %%
-    cent_sep = clus_cent.separation(clus_coord)
-    flux = np.array([synphot.magnitude_to_flux(arches['F153M'][colores_index[i]][mag], error=0.2, zp_flux=None)[0] for mag in range(len(arches['F153M'][colores_index[i]]))])
-    clus_sep =np.c_[RA[colores_index[i]].value,DEC[colores_index[i]].value,arches['F153M'][colores_index[i]].value,flux,cent_sep.value]
     
-    clus_sep = clus_sep[clus_sep[:, -1].argsort()]
-    cum = np.cumsum(clus_sep[:,3])
-    fig, ax = plt.subplots(1,1)
-    ax.scatter(clus_sep[:,-1],cum)
-    ax.axhline(light/2)
-    hl_ind = np.where(cum < light/2)
-    fig, ax = plt.subplots(1,1)
-    ax.set_title('%s'%(choosen_cluster))
-    ax.scatter(RA, DEC, color = 'k', alpha = 0.05)
-    ax.scatter(RA[colores_index[i]],DEC[colores_index[i]])
-    ax.scatter(clus_sep[:,0][hl_ind],clus_sep[:,1][hl_ind], label = 'hl radio = %.2f'%(clus_sep[hl_ind[0][-1]][-1]*3600))
+    fig, ax = plt.subplots(1,1,figsize=(10,10))
+    # ax.set_title('Number of points = %s '%(len(pmdec)))
+    
+    ax.hist(d_KNN,bins ='auto',histtype ='step',color = 'k', linewidth = 5,label = 'Arches (min. = %.2f)'%(min(d_KNN)))
+    ax.hist(d_KNN_sim,bins ='auto',histtype ='step',color = 'r', linewidth = 5,alpha = 0.5,label = 'Simulated (min. = %.2f)'%(d_KNN_sim_av))
+    ax.set_xlabel('%s-NN distance'%(samples_dist)) 
     ax.legend()
-    # mag_sep = 
-    # half_clus =
     
-    if choosen_cluster == 'Quintuplet':
-        sys.exit('Out becouse Quintuplet')
+    eps_av = round((min(d_KNN)+d_KNN_sim_av)/2,3)
+    texto = '\n'.join(('min real d_KNN = %s'%(round(min(d_KNN),3)),
+                        'min sim d_KNN =%s'%(round(d_KNN_sim_av,3)),'average = %s'%(eps_av)))
     
+    ax.set_xlim(0,1)
+    props = dict(boxstyle='round', facecolor='w', alpha=0.5)
+    # place a text box in upper left in axes coords
+    # ax.text(0.55, 0.25, texto, transform=ax.transAxes, fontsize=20,
+    #     verticalalignment='top', bbox=props)
     
-
+    ax.set_ylabel('N') 
+    # plt.savefig('/Users/amartinez/Desktop/PhD/My_papers/Libralato/hist_%a.png'%(choosen_cluster),dpi =300)
+    
+    # %%
+    # fig, ax = plt.subplots(1,2,figsize=(20,10))
+    # ax[0].scatter(pmra, pmdec)
+    # ax[1].scatter(raoff,decoff)
+    # %%
+    # =============================================================================
+    # DBSCAN part
+    # =============================================================================
+    
+    clustering = DBSCAN(eps = eps_av, min_samples=samples_dist).fit(X_stad)
+    
+    l_c=clustering.labels_
+    
+    n_clusters = len(set(l_c)) - (1 if -1 in l_c else 0)
+    n_noise=list(l_c).count(-1)
+    
+    u_labels = set(l_c)
+    colors=[plt.cm.rainbow(i) for i in np.linspace(0,1,len(set(l_c)))]# Returns a color for each cluster. Each color consists in four number, RGBA, red, green, blue and alpha. Full opacity black would be then 0,0,0,1
+    # colors =['#1f77b4', '#ff7f0e', '#2ca02c', '#d62728', '#9467bd', '#8c564b', '#e377c2',
+    #  '#7f7f7f', '#bcbd22', '#17becf']
+    # colors =[(0,1,0,1)]
+    
+    for k in range(len(colors)): #give noise color black with opacity 0.1
+        if list(u_labels)[k] == -1:
+            colors[k]=[0,0,0,0.1]
+            
+    colores_index=[]      
+    for c in u_labels:
+        cl_color=np.where(l_c==c)
+        colores_index.append(cl_color)
+        
+    # %%
+    # default colors = '#1f77b4', '#ff7f0e'
+    elements_in_cluster=[]
+    # for i in range(len(set(l_c))-1):
+    for i in range(1):
+        fig, ax = plt.subplots(1,3,figsize=(30,10))
+        # ax[0].set_xticks(np.arange(-12,11))
+        # ax[0].grid()
+        ax[0].invert_xaxis()
+        ax[2].invert_yaxis()
+        c2 = SkyCoord(ra = RA[colores_index[i]],dec =DEC[colores_index[i]], unit ='degree',  equinox = 'J2000', obstime = 'J2015.4')
+        sep = [max(c2[c_mem].separation(c2)) for c_mem in range(len(c2))]
+        rad = max(sep)/2
+        ax[0].set_title('%s'%(choosen_cluster))
+        # ax[0].scatter(pmra[colores_index[i]], pmdec[colores_index[i]],color=colors[i],zorder=3)
+        ax[0].scatter(pmra[colores_index[i]], pmdec[colores_index[i]],color = '#ff7f0e',zorder=3)
+    
+        # ax[1].scatter(l[colores_index[i]], b[colores_index[i]],color=colors[i],zorder=3)
+        # ax[1].scatter(RA[colores_index[i]],DEC[colores_index[i]],color=colors[i],zorder=3,s=100,alpha =0.3)
+        ax[1].scatter(RA[colores_index[i]],DEC[colores_index[i]],color = '#ff7f0e',zorder=3,s=100,alpha =0.3)
+    
+        # ax[1].scatter(gns_match[colores_index[i]][:,0],gns_match[colores_index[i]][:,2],color=colors[i],zorder=3,s=100)
+        # ax[2].scatter(arches['F127M'][colores_index[i]]-arches['F153M'][colores_index[i]],arches['F153M'][colores_index[i]],color=colors[i],zorder=13)
+        ax[2].scatter(arches['F127M'][colores_index[i]]-arches['F153M'][colores_index[i]],arches['F153M'][colores_index[i]],color = '#ff7f0e',zorder=13)
+    
+        mura_mean, mudec_mean = np.mean(pmra[colores_index[i]]), np.mean(pmdec[colores_index[i]])
+        mura_sig,  mudec_sig = np.std(pmra[colores_index[i]]), np.std(pmdec[colores_index[i]])
+        if ref_frame =='ecuatorial':
+            vel_txt = '\n'.join(('$\\mu_{ra}$ = %s,$\\mu_{dec}$ = %s'%(round(mura_mean,3), round(mudec_mean,3)),
+                                 '$\\sigma_{\\mu ra}$ = %s, $\\sigma_{\\mu dec}$ = %s'%(round(mura_sig,3), round(mudec_sig,3))))   
+        if ref_frame =='galactic':
+            vel_txt = '\n'.join(('$\\mu_{l}$ = %s,$\\mu_{b}$ = %s'%(round(mura_mean,3), round(mudec_mean,3)),
+                                 '$\\sigma_{mul}$ = %s, $\\sigma_{mub}$ = %s'%(round(mura_sig,3), round(mudec_sig,3))))   
+        # propiedades = dict(boxstyle='round', facecolor=colors[i] , alpha=0.2)
+        propiedades = dict(boxstyle='round', facecolor= '#ff7f0e', alpha=0.2)
+    
+        ax[0].text(0.15, 0.95, vel_txt, transform=ax[0].transAxes, fontsize=30,
+            verticalalignment='top', bbox=propiedades)
+        # prop = dict(boxstyle='round', facecolor=colors[i] , alpha=0.2)
+        prop = dict(boxstyle='round', facecolor='#ff7f0e' , alpha=0.2)
+    
+        ax[1].text(0.15, 0.95, 'aprox cluster radio = %s"\n cluster stars = %s '%(round(rad.to(u.arcsec).value,2),len(colores_index[i][0])), transform=ax[1].transAxes, fontsize=30,
+                                verticalalignment='top', bbox=prop)
+        txt_color = '\n'.join(('H-Ks =%.3f'%(np.median(arches['F127M'][colores_index[i]]-arches['F153M'][colores_index[i]])),
+                                                '$\\sigma_{H-Ks}$ = %.3f'%(np.std(arches['F127M'][colores_index[i]]-arches['F153M'][colores_index[i]]))))
+                                                # 'diff_color = %.3f'%(max(arches['F127M'][colores_index[i]]-arches['F153M'][colores_index[i]])-min(arches['F127M'][colores_index[i]]-arches['F153M'][colores_index[i]]))))
+        # props = dict(boxstyle='round', facecolor=colors[i], alpha=0.2)
+        props = dict(boxstyle='round', facecolor='#ff7f0e', alpha=0.2)
+    
+        ax[2].text(0.50, 0.95, txt_color, transform=ax[2].transAxes, fontsize=30,
+                                verticalalignment='top', bbox=props)
+        ax[0].scatter(pmra[colores_index[-1]], pmdec[colores_index[-1]],color=colors[-1],zorder=1)
+        
+        ax[0].set_xlabel('$\\mu_{ra*} (mas\\,yr^{-1})$',fontsize =30) 
+        ax[0].set_ylabel('$\\mu_{dec} (mas\\,yr^{-1})$',fontsize =30) 
+        # ax[1].scatter(l[colores_index[-1]], b[colores_index[-1]],color=colors[-1],zorder=1)
+        ax[1].scatter(RA[colores_index[-1]],DEC[colores_index[-1]],color=colors[-1],zorder=3,s=100,alpha = 0.01)
+        # ax[1].scatter(RA,DEC,color=colors[-1],zorder=3,s=100,alpha = 0.01)
+        ax[1].yaxis.set_major_formatter(FormatStrFormatter('%.2f'))
+        ax[1].xaxis.set_major_formatter(FormatStrFormatter('%.2f'))
+        
+       
+        ax[1].set_yticks([-28.85, -28.84, -28.83, -28.81, -28.8 , -28.79])
+        ax[1].set_xlabel('ra(deg)',fontsize =30) 
+        ax[1].set_ylabel('dec(deg)',fontsize =30)
+        ax[1].yaxis.set_label_coords(-0.05, 0.5)
+        
+        ax[2].scatter(arches['F127M'][colores_index[-1]]-arches['F153M'][colores_index[-1]],arches['F153M'][colores_index[-1]],color=colors[-1],zorder=1)
+        ax[2].set_xlabel('f127m-f153m',fontsize =30) 
+        ax[2].set_ylabel('f153m',fontsize =30) 
+        # plt.savefig('/Users/amartinez/Desktop/PhD/My_papers/Libralato/%s_hos.png'%(choosen_cluster),dpi =300)
+        # %%  
+        # names=('Name','F127M','e_F127M','F139M','e_F139M','F153M','e_F153M','dRA',
+        # 'e_dRA','dDE','e_dDE','pmRA','e_pmRA','pmDE','e_pmDE','t0','Nobs','chi2RA',
+        # 'chi2DE','Pclust','pml','pmb')>
+        # We are going to calculate the halflight radio, and select the stars in
+        # that area for expanding the cluster into the future
+        arches_dbs = arches[colores_index[i]]
+        all_mag_clus = arches_dbs['F153M']
+        # Ra_clus, Dec_clus = np.mean(RA[colores_index[i]]),np.mean(DEC[colores_index[i]])
+        
+        clus_cent = SkyCoord(ra =[np.mean(RA[colores_index[i]])], dec = [np.mean(DEC[colores_index[i]])],
+                           unit = 'degree')
+        clus_coord = SkyCoord(ra = RA[colores_index[i]], dec = DEC[colores_index[i]],unit = 'degree' )
+        
+        species.SpeciesInit()   
+        synphot = species.SyntheticPhotometry('HST/WFC3_IR.F153M')
+        all_flux = np.array([synphot.magnitude_to_flux(all_mag_clus[mag], error=0.2, zp_flux=None)[0] for mag in range(len(arches_dbs))])
+        light = sum(all_flux)
+        # %%
+        # radaii = np.arange(4,10,0.1)
+        # # for r in range(1,int(rad.value*3600)):
+        # for r in radaii:
+        #     idxc, hl_group, d2d,d3d =  ap_coor.search_around_sky(clus_cent,clus_coord, r*u.arcsec)
+        #     mag_clus = arches_dbs['F153M'][hl_group] 
+        #     flux = np.array([synphot.magnitude_to_flux(mag_clus[mag], error=0.2, zp_flux=None)[0] for mag in range(len(mag_clus))])
+        #     if sum(flux) > light/2:
+        #         fig, ax = plt.subplots(1,1)
+        #         ax.set_title('%s'%(choosen_cluster))
+        #         ax.scatter(RA, DEC, color = 'k', alpha = 0.05)
+        #         ax.scatter(RA[colores_index[i]],DEC[colores_index[i]])
+        #         ax.scatter(RA[colores_index[i]][hl_group],DEC[colores_index[i]][hl_group], label = 'hl radio = %.2f'%(r))
+        #         ax.legend()
+        #         break
+        #     pass
+        # print('yomamma')
+       
+        # %%
+        cent_sep = clus_cent.separation(clus_coord)
+        flux = np.array([synphot.magnitude_to_flux(arches['F153M'][colores_index[i]][mag], error=0.2, zp_flux=None)[0] for mag in range(len(arches['F153M'][colores_index[i]]))])
+        clus_sep =np.c_[RA[colores_index[i]].value,DEC[colores_index[i]].value,arches['F153M'][colores_index[i]].value,flux,cent_sep.value]
+        
+        clus_sep = clus_sep[clus_sep[:, -1].argsort()]
+        cum = np.cumsum(clus_sep[:,3])
+        fig, ax = plt.subplots(1,1)
+        ax.scatter(clus_sep[:,-1],cum)
+        ax.axhline(light/2)
+        hl_ind = np.where(cum < light/2)
+        fig, ax = plt.subplots(1,1)
+        ax.set_title('%s'%(choosen_cluster))
+        ax.scatter(RA, DEC, color = 'k', alpha = 0.05)
+        ax.scatter(RA[colores_index[i]],DEC[colores_index[i]])
+        eff_rad = clus_sep[hl_ind[0][-1]][-1]*3600
+        ax.scatter(clus_sep[:,0][hl_ind],clus_sep[:,1][hl_ind], label = 'hl radio = %.2f'%(eff_rad))
+        ax.legend()
+        # mag_sep = 
+        # half_clus =
+        
+        # if choosen_cluster == 'Quintuplet':
+        #     sys.exit('Out becouse Quintuplet')
+        #TODO
+    with open(pruebas + '%s_dbs_statistic.txt'%(choosen_cluster), 'a') as file:
+        file.write('%.2f %.2f %.2f %.2f %.2f %.2f %s\n'%(mura_mean, mudec_mean,mura_sig, mudec_sig, rad.to(u.arcsec).value,eff_rad,len(colores_index[i][0])))
+        
+sys.exit('383')
 # %%
 bins_ =20
 fig, ax = plt.subplots(1,2,figsize=(20,10))
@@ -433,7 +441,7 @@ for time in range(6):
 
 
     # ff = 2e5*u.yr  + time*5e5*u.yr
-    ff = 0*u.yr  + time*2.0e4*u.yr
+    ff = 0*u.yr  + time*1.0e4*u.yr
     
     # Balistic dipesion (move each star in a straight line)
     # RA_cl = RA_cl.to(u.mas) - (clus_dbs[:,2]*u.mas/u.yr)*ff
