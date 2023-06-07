@@ -73,51 +73,45 @@ ax[1].scatter(gns[:,2], gns[:,4], color = 'k', alpha = 0.1)
 ax[1].scatter(core_cluster[:,0], core_cluster[:,1])
 
 ax[2].scatter(gns[:,20]- gns[:,22],gns[:,20], color = 'k', alpha = 0.1)
-ax[2].scatter(core_cluster[:,-2]-core_cluster[:,-1],core_cluster[:,-2])
+ax[2].scatter(core_cluster[:,-2]-core_cluster[:,-1],core_cluster[:,-1])
 ax[2].invert_yaxis()
 # %%
 H_map = WCS(maps +  'H2HK_C.fit')
 Ks_map = WCS(maps + 'K2HK_C.fit')
-ra, dec = core_cluster[0][0], core_cluster[0][1]
 ra_dec =[[core_cluster[i][0],core_cluster[i][1]] for i in range(len(core_cluster))]
 
 pix_H =   H_map.wcs_world2pix(ra_dec,1)
 pix_Ks =  Ks_map.wcs_world2pix(ra_dec,1)
 
-# pix_H =   H_map.wcs_world2pix([[266.46006398, -28.8228582]],1)
-# pix_Ks =  Ks_map.wcs_world2pix([[266.46006398, -28.8228582]],1)
-
-
-H_ext = H_map.wcs_pix2world(pix_H,1)
-Ks_ext = Ks_map.wcs_pix2world(pix_Ks,1)
-# %%
 AH_clus =[AH[0].data[pix_H[i][1].astype(int)][pix_H[i][0].astype(int)] for i in range(len(pix_H))]
-# AH_clus = AH[0].data[pix_H[0].astype(int)][pix_H[:,1].astype(int)]
-# AH_clus = AH[0].data[12483][8576]
-# %%
-w = WCS(maps + 'K2HK_C.fit')
-pixcrd = np.array([[24, 38], [45, 98]])
-world = w.wcs_pix2world([[24, 38], [45, 98]], 0)
-pixel,p = w.wcs_world2pix([[266.3965635,-28.9364309],[266.3965635,-28.9364309]],1)
-print(pixel)
-
+AKs_clus =[AKs[0].data[pix_Ks[i][1].astype(int)][pix_Ks[i][0].astype(int)] for i in range(len(pix_Ks))]
 
 # %%
+ff = 1
+clus_future = np.loadtxt(cls_to_throw + 'Arches_%.2fevol_times.txt'%(ff))
 
-ra_test =[[core_cluster[i][0],core_cluster[i][1]] for i in range(len(core_cluster))]
-# ra_test =[ra[i] for i in range(len(ra))]
+clus_future[:,-2] -= AH_clus
+clus_future[:,-1] -= AKs_clus
 
-
-
-
-
-
-
+clus_future[:,0] += 50/3600
+clus_future[:,1] += 15/3600
 
 
+ax[1].scatter(clus_future[:,0],clus_future[:,1])
 
 
+ra_dec_f =[[clus_future[i][0],clus_future[i][1]] for i in range(len(clus_future))]
 
+pix_H_f =   H_map.wcs_world2pix(ra_dec_f,1)
+pix_Ks_f =  Ks_map.wcs_world2pix(ra_dec_f,1)
+
+AH_clus_f = [AH[0].data[pix_H_f[i][1].astype(int)][pix_H_f[i][0].astype(int)] for i in range(len(pix_H_f))]
+AKs_clus_f =[AKs[0].data[pix_Ks_f[i][1].astype(int)][pix_Ks_f[i][0].astype(int)] for i in range(len(pix_Ks_f))]
+
+clus_future[:,-2] += AH_clus_f
+clus_future[:,-1] += AKs_clus_f
+
+ax[2].scatter(clus_future[:,-2]-clus_future[:,-1],clus_future[:,-1])
 
 
 
