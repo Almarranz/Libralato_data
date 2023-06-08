@@ -34,7 +34,10 @@ import os
 import math
 import shutil
 from datetime import datetime
-
+from tabulate import tabulate
+from texttable import Texttable
+import latextable
+from extinction_simulation import extinction_sim
 # %%plotting pa    metres
 from matplotlib import rc
 from matplotlib import rcParams
@@ -90,23 +93,25 @@ else:
 
 
 
-radio = 2
+# radio = 2
 age_ff = 0
-samples_dist = 20
-# clustered_by = 'all_color'#TODO
-clustered_by = 'all'#TODO1
+samples_dist = 35
+clustered_by = 'all_color'#TODO
+# clustered_by = 'all'#TODO1
 # clustered_by = 'vel_col'#TODO
 # clustered_by = 'vel'
 # 'RA, DEC, pmra, pmdec, f127, f153,'
-core_cluster = np.loadtxt(cls_to_throw + 'Arches_%.2fMyr.txt'%(age_ff))
+clus_now = np.loadtxt(cls_to_throw + 'Arches_0.00evol_times.txt')
+core_cluster = np.loadtxt(cls_to_throw + 'Arches_%.2fevol_times.txt'%(age_ff))
+
 c2 = SkyCoord(ra = core_cluster[:,0],dec =core_cluster[:,1], unit ='degree',  equinox = 'J2000', obstime = 'J2015.4')
 sep = [max(c2[c_mem].separation(c2)) for c_mem in range(len(c2))]
 rad = max(sep)/2
-with open(pruebas + 'stad_arches_nn%s_clustby_(%s)_%.2fMyr.txt'%(samples_dist,clustered_by,age_ff), 'w') as file:
-    file.write('# pm_ra pm_dec sigma_{pmra} sigma_{pmdec} radio #stars (first line: data of the original thrown cluster)\n%.4f %.4f %.4f %.4f %.2f %s\n'%(np.mean(core_cluster[:,2]),np.mean(core_cluster[:,3]),
+with open(pruebas + 'stad_arches_nn%s_clustby_(%s)_%.2fevol_times.txt'%(samples_dist,clustered_by,age_ff), 'w') as file:
+    file.write('# pm_ra pm_dec sigma_{pmra} sigma_{pmdec} radio #stars %% of the origibal custrer found (first line: data of the original thrown cluster)\n%.4f %.4f %.4f %.4f %.2f %s\n'%(np.mean(core_cluster[:,2]),np.mean(core_cluster[:,3]),
                                       np.std(core_cluster[:,2]),np.std(core_cluster[:,3]),rad.to(u.arcsec).value, len(core_cluster)))
     file.close()
-for loop in range(3):
+for loop in range(3):# This is the number of times that the cluster is thrwon into the data
    
     ran_id = int(np.random.uniform(0,len(catal),1))
     
@@ -121,51 +126,10 @@ for loop in range(3):
     core_cluster[:,0] += ra_rand
     core_cluster[:,1] += dec_rand
     
-# =============================================================================
-#     # Plottin libralato plus cluster
-#     fig, ax = plt.subplots(1,1,figsize=(10,10))
-#     
-#     ax.scatter(catal[:,0],catal[:,1],s = 5, alpha = 0.1)
-#     ax.scatter(core_cluster[:,0],core_cluster[:,1], label = '#stars =%s\n radio = %.2f"\n$\mu_{ra}$=%.2f, $\mu_{dec}$=%.2f \n $\sigma_{ra}$ = %.2f, $\sigma_{dec}$ = %.2f'
-#                %(len(core_cluster),rad.to(u.arcsec).value,np.mean(core_cluster[:,2]),np.mean(core_cluster[:,3]),np.std(core_cluster[:,2]),np.std(core_cluster[:,2])))
-#     ax.legend()
-# =============================================================================
-    
-    # x_lim = 0.02
-    # ax.set_xlim(np.mean(core_cluster[:,0])-x_lim,np.mean(core_cluster[:,0])+x_lim)
-    # ax.set_ylim(np.mean(core_cluster[:,1])-x_lim,np.mean(core_cluster[:,1])+x_lim)
-    
-    
-    # This is for matching with GNS1 with H and Ks in it.
-    # =============================================================================
-    # # Macthing the cluster with GNS1 in order to add H and Ks magnitudes
-    # 
-    # # ['_RAJ2000'0, '_DEJ2000'1, 'RAJ2000'2, 'e_RAJ2000'3, 'DEJ2000'4, 'e_DEJ2000'5, 'RAJdeg'6, 
-    # #  'e_RAJdeg'7, 'DEJdeg'8, 'e_DEJdeg'9, 'RAHdeg'10, 'e_RAHdeg'11, 'DEHdeg'12, 
-    # #  'e_DEHdeg'13, 'RAKsdeg'14, 'e_RAKsdeg'15, 'DEKsdeg'16, 'e_DEKsdeg'17, 
-    # #  'Jmag'18, 'e_Jmag'19, 'Hmag'20, 'e_Hmag'21, 'Ksmag'22, 'e_Ksmag'23, 'iJ'24, 'iH'25, 'iKs'26]
-    # # gns= pd.read_csv(cata + 'GNS_central.csv')# tCentral region of GNS
-    # =============================================================================
-    
-    
-    # # 'ra1 0, dec1 1, x1 2, y1 3, f1 4, H1 5, dx1 6, dy1 7, df1 8, dH1 9')
-    # GNS_2off = '/Users/amartinez/Desktop/PhD/HAWK/GNS_2off_comb/lists/7/chip1/'
-    # gns = np.loadtxt(GNS_2off +'stars_calibrated_H_chip%s_on_gns1_f%sc%s_sxy%s.txt'%(1,7,4,10))
-    
-    # gns_np= gns
-    # gns_coord = SkyCoord(ra=gns_np[:,0]*u.degree, dec=gns_np[:,1]*u.degree, frame = 'icrs', equinox = 'J2000',obstime='J2015.5')
-    
-    # clus_coord =  SkyCoord(ra=core_cluster[:,0]*u.degree, dec=core_cluster[:,1]*u.degree,frame = 'icrs',equinox ='J2000',obstime='J2015')
-    # idx = clus_coord.match_to_catalog_sky(gns_coord)
-    
-    # valid = np.where(idx[1]<0.8*u.arcsec)
-    
-    # core_cluster=core_cluster[valid]
-    # gns_match=gns_np[idx[0][valid]]
-    # # core_cluster[:,-2], core_cluster[:,-1] = gns_match[:,20], gns_match[:,22]
-    
-    # malas = len(np.where((np.isnan(core_cluster[:,-2])==True) | (np.isnan(core_cluster[:,-1])==True ))[0])
-    # ax.set_title('After cross_matching with GNS #stars = %s'%(len(core_cluster)-malas))
+    # Give the cluster the values for H and Ks according with the extiction of the area where it has been thrown
+    core_cluster = extinction_sim(clus_now, core_cluster)
+        
+   
     # %%
     # We insert the core_cluster into the Libralato data by creating an array of 
     # zeros with the same shape and filling it with the values of the core_cluster
@@ -174,7 +138,6 @@ for loop in range(3):
     cluster_insert[:,0:2] = core_cluster[:,0:2]
     cluster_insert[:,3:5] = core_cluster[:,-2:]
     cluster_insert[:,9],cluster_insert[:,11] = core_cluster[:,2],core_cluster[:,3]
-    
     
     # Add the cluster to libralato data
     catal_w = np.r_[catal,cluster_insert]
@@ -346,109 +309,186 @@ for loop in range(3):
     # default colors = '#1f77b4', '#ff7f0e'
     elements_in_cluster=[]
     # Make the stadistics without plotting anything (faster)
-    for i in range(len(set(l_c))-1):
-        mura_mean, mudec_mean = np.mean(pmra[colores_index[i]]), np.mean(pmdec[colores_index[i]])
-        mura_sig,  mudec_sig = np.std(pmra[colores_index[i]]), np.std(pmdec[colores_index[i]])
-        c2 = SkyCoord(ra = RA[colores_index[i]],dec =DEC[colores_index[i]], unit ='degree',  equinox = 'J2000', obstime = 'J2015.4')
-        sep = [max(c2[c_mem].separation(c2)) for c_mem in range(len(c2))]
-        rad = max(sep)/2
-        print(len('loop numer %s')*'_'+'\n'+'loop numer %s'%(loop)+'n'+len('loop numer %s')*'_')
-        with open(pruebas + 'stad_arches_nn%s_clustby_(%s)_%.2fMyr.txt'%(samples_dist,clustered_by,age_ff), 'a') as file:
-            file.write('%.4f %.4f %.4f %.4f %.2f %s\n'%(mura_mean,mudec_mean,mura_sig,mudec_sig,rad.to(u.arcsec).value,len(colores_index[i][0])))
-    # Makes the plotting
 # =============================================================================
 #     for i in range(len(set(l_c))-1):
-#     # for i in range(1):
-#         fig, ax = plt.subplots(1,2,figsize=(20,10))
-#         # ax[0].set_xticks(np.arange(-12,11))
-#         # ax[0].grid()
-#         ax[0].invert_xaxis()
-#         # ax[1].invert_xaxis()
-#         # ax[2].invert_yaxis()
+#         mura_mean, mudec_mean = np.mean(pmra[colores_index[i]]), np.mean(pmdec[colores_index[i]])
+#         mura_sig,  mudec_sig = np.std(pmra[colores_index[i]]), np.std(pmdec[colores_index[i]])
 #         c2 = SkyCoord(ra = RA[colores_index[i]],dec =DEC[colores_index[i]], unit ='degree',  equinox = 'J2000', obstime = 'J2015.4')
 #         sep = [max(c2[c_mem].separation(c2)) for c_mem in range(len(c2))]
 #         rad = max(sep)/2
-#         # ax[0].scatter(pmra[colores_index[i]], pmdec[colores_index[i]],color=colors[i],zorder=3)
-#         ax[0].scatter(pmra[colores_index[i]], pmdec[colores_index[i]],color = '#ff7f0e',zorder=3)
-#     
-#         # ax[1].scatter(l[colores_index[i]], b[colores_index[i]],color=colors[i],zorder=3)
-#         # ax[1].scatter(RA[colores_index[i]],DEC[colores_index[i]],color=colors[i],zorder=3,s=100,alpha =0.3)
-#         ax[1].scatter(RA[colores_index[i]],DEC[colores_index[i]],color = '#ff7f0e',s=100,alpha =1,zorder =2)
-#     
-#         # ax[1].scatter(gns_match[colores_index[i]][:,0],gns_match[colores_index[i]][:,2],color=colors[i],zorder=3,s=100)
-#         # ax[2].scatter(arches['F127M'][colores_index[i]]-arches['F153M'][colores_index[i]],arches['F153M'][colores_index[i]],color=colors[i],zorder=13)
-#         # ax[2].scatter(catal_w[:,3][colores_index[i]]-catal_w[:,4][colores_index[i]],catal_w[:,4][colores_index[i]],color = '#ff7f0e',zorder=3)
-#     
-#         mura_mean, mudec_mean = np.mean(pmra[colores_index[i]]), np.mean(pmdec[colores_index[i]])
-#         mura_sig,  mudec_sig = np.std(pmra[colores_index[i]]), np.std(pmdec[colores_index[i]])
-#         if ref_frame =='ecuatorial':
-#             vel_txt = '\n'.join(('$\mu_{ra}$ = %s,$\mu_{dec}$ = %s'%(round(mura_mean,3), round(mudec_mean,3)),
-#                                  '$\sigma_{\mu ra}$ = %s, $\sigma_{\mu dec}$ = %s'%(round(mura_sig,3), round(mudec_sig,3))))   
-#         if ref_frame =='galactic':
-#             vel_txt = '\n'.join(('$\mu_{l}$ = %s,$\mu_{b}$ = %s'%(round(mura_mean,3), round(mudec_mean,3)),
-#                                  '$\sigma_{mul}$ = %s, $\sigma_{mub}$ = %s'%(round(mura_sig,3), round(mudec_sig,3))))   
-#         # propiedades = dict(boxstyle='round', facecolor=colors[i] , alpha=0.2)
-#         propiedades = dict(boxstyle='round', facecolor= '#ff7f0e', alpha=0.2)
-#     
-#         ax[0].text(0.15, 0.95, vel_txt, transform=ax[0].transAxes, fontsize=30,
-#             verticalalignment='top', bbox=propiedades)
-#         # prop = dict(boxstyle='round', facecolor=colors[i] , alpha=0.2)
-#         prop = dict(boxstyle='round', facecolor='#ff7f0e' , alpha=0.2)
-#     
-#         ax[1].text(0.15, 0.95, 'aprox cluster radio = %s"\n cluster stars = %s '%(round(rad.to(u.arcsec).value,2),len(colores_index[i][0])), transform=ax[1].transAxes, fontsize=30,
-#                                 verticalalignment='top', bbox=prop)
-#         txt_color = '\n'.join(('H-Ks =%.3f'%(np.median(catal_w[:,3][colores_index[i]]-catal_w[:,4][colores_index[i]])),
-#                                                 '$\sigma_{H-Ks}$ = %.3f'%(np.std(catal_w[:,3][colores_index[i]]-catal_w[:,4][colores_index[i]]))))
-#                                                 # 'diff_color = %.3f'%(max(arches['F127M'][colores_index[i]]-arches['F153M'][colores_index[i]])-min(arches['F127M'][colores_index[i]]-arches['F153M'][colores_index[i]]))))
-#         # props = dict(boxstyle='round', facecolor=colors[i], alpha=0.2)
-#         props = dict(boxstyle='round', facecolor='#ff7f0e', alpha=0.2)
-#     
-#         # ax[2].text(0.50, 0.95, txt_color, transform=ax[2].transAxes, fontsize=30,
-#                                 # verticalalignment='top', bbox=props)
-#         ax[0].scatter(pmra[colores_index[-1]], pmdec[colores_index[-1]],color=colors[-1],zorder=1, alpha=0.01)
-#         
-#         ax[0].set_xlabel(r'$\mathrm{\mu_{ra*} (mas\ yr^{-1})}$',fontsize =30) 
-#         ax[0].set_ylabel(r'$\mathrm{\mu_{dec} (mas\ yr^{-1})}$',fontsize =30) 
-#         # ax[1].scatter(l[colores_index[-1]], b[colores_index[-1]],color=colors[-1],zorder=1)
-#         ax[1].scatter(RA[colores_index[-1]],DEC[colores_index[-1]],color=colors[-1],s=5,alpha = 0.01,zorder = 1)
-#         # ax[1].scatter(RA,DEC,color=colors[-1],zorder=3,s=100,alpha = 0.01)
-#         ax[1].yaxis.set_major_formatter(FormatStrFormatter('%.2f'))
-#         ax[1].xaxis.set_major_formatter(FormatStrFormatter('%.2f'))
-#         # ax[1].invert_xaxis()
-#     
 #         ori_clus = np.where(catal_w[:,-1][colores_index[i]] == 1)
-#         if len(ori_clus[0]) > 0:
-#             ax[1].scatter(catal_w[:,0][colores_index[i]][ori_clus],catal_w[:,1][colores_index[i]][ori_clus],color = 'green',s=20,zorder =3, label = 'Original Recovered stars = %s'%(len(ori_clus[0])))
-#             ax[1].legend(loc = 4)
-#         # ax[1].set_yticks([-29.025, -29.   , -28.975, -28.95, -28.9  , -28.875,
-#         #         -28.85 , -28.825])
-#         # nt = np.array([list(ax[1].get_yticks()).remove(-28.925)])
-#         # ax[1].set_yticks(nt)
-#         ax[1].set_xlabel('ra(deg)',fontsize =30) 
-#         ax[1].set_ylabel('dec(deg)',fontsize =30)
-#         # ax[1].yaxis.set_label_coords(-0.05, 0.5)
-#         
-#         # ax[2].scatter(catal_w[:,3][colores_index[-1]]-catal_w[:,4][colores_index[-1]],catal_w[:,4][colores_index[-1]],color=colors[-1],zorder=1)
-#         # ax[2].set_xlabel('H-Ks',fontsize =30) 
-#         # ax[2].set_ylabel('Ks',fontsize =30) 
-#     
-#         # ax[0].scatter(pmra, pmdec,color = 'k')
-#         # ax[1].scatter(catal_w[:,0], catal_w[:,1])
-#         with open(pruebas + 'stad_arches_nn%s_clustby_(%s)_%.2fMyr.txt'%(samples_dist,clustered_by,age_ff), 'a') as file:
-#             file.write('%.4f %.4f %.4f %.4f %.2f %s\n'%(mura_mean,mudec_mean,mura_sig,mudec_sig,rad.to(u.arcsec).value,len(colores_index[i][0])))
-#             
-#         plt.show()
+#         K_ts = catal_w[:,4][colores_index[i]]
+#         print(len('loop numer %s')*'_'+'\n'+'loop numer %s'%(loop)+'\n'+len('loop numer %s')*'_')
+#         if len(ori_clus[0])>0:
+#             with open(pruebas + 'stad_arches_nn%s_clustby_(%s)_%.2fevol_times.txt'%(samples_dist,clustered_by,age_ff), 'a') as file:
+#                 file.write('%.4f %.4f %.4f %.4f %.2f %s %.0f\n'%(mura_mean,mudec_mean,mura_sig,mudec_sig,rad.to(u.arcsec).value,len(colores_index[i][0]),len(ori_clus[0])/len(core_cluster)*100))
 # =============================================================================
-        # sys.exit('405')
-        
+    # Makes the plotting
+    for i in range(len(set(l_c))-1):
+    # for i in range(1):
+        fig, ax = plt.subplots(1,3,figsize=(30,10))
+        ax[0].set_title('%s evol times (%.2f Myr)'%(age_ff, age_ff*1.5))
+        # ax[0].set_xticks(np.arange(-12,11))
+        # ax[0].grid()
+        ax[0].invert_xaxis()
+        # ax[1].invert_xaxis()
+        # ax[2].invert_yaxis()
+        ax[1].set_xlim(min(catal[:,0]),max(catal[:,0]))
+        ax[1].set_ylim(min(catal[:,1]),max(catal[:,1]))
+        c2 = SkyCoord(ra = RA[colores_index[i]],dec =DEC[colores_index[i]], unit ='degree',  equinox = 'J2000', obstime = 'J2015.4')
+        sep = [max(c2[c_mem].separation(c2)) for c_mem in range(len(c2))]
+        rad = max(sep)/2
+        # ax[0].scatter(pmra[colores_index[i]], pmdec[colores_index[i]],color=colors[i],zorder=3)
+        ax[0].scatter(pmra[colores_index[i]], pmdec[colores_index[i]],color = '#ff7f0e',zorder=3)
     
+        # ax[1].scatter(l[colores_index[i]], b[colores_index[i]],color=colors[i],zorder=3)
+        # ax[1].scatter(RA[colores_index[i]],DEC[colores_index[i]],color=colors[i],zorder=3,s=100,alpha =0.3)
+        ax[1].scatter(RA[colores_index[i]],DEC[colores_index[i]],color = '#ff7f0e',s=100,alpha =1,zorder =2)
+        
+        # ax[1].scatter(gns_match[colores_index[i]][:,0],gns_match[colores_index[i]][:,2],color=colors[i],zorder=3,s=100)
+        # ax[2].scatter(arches['F127M'][colores_index[i]]-arches['F153M'][colores_index[i]],arches['F153M'][colores_index[i]],color=colors[i],zorder=13)
+        # ax[2].scatter(catal_w[:,3][colores_index[i]]-catal_w[:,4][colores_index[i]],catal_w[:,4][colores_index[i]],color = '#ff7f0e',zorder=3)
+    
+        mura_mean, mudec_mean = np.mean(pmra[colores_index[i]]), np.mean(pmdec[colores_index[i]])
+        mura_sig,  mudec_sig = np.std(pmra[colores_index[i]]), np.std(pmdec[colores_index[i]])
+        if ref_frame =='ecuatorial':
+            vel_txt = '\n'.join(('$\mu_{ra}$ = %s,$\mu_{dec}$ = %s'%(round(mura_mean,3), round(mudec_mean,3)),
+                                 '$\sigma_{\mu ra}$ = %s, $\sigma_{\mu dec}$ = %s'%(round(mura_sig,3), round(mudec_sig,3))))   
+        if ref_frame =='galactic':
+            vel_txt = '\n'.join(('$\mu_{l}$ = %s,$\mu_{b}$ = %s'%(round(mura_mean,3), round(mudec_mean,3)),
+                                 '$\sigma_{mul}$ = %s, $\sigma_{mub}$ = %s'%(round(mura_sig,3), round(mudec_sig,3))))   
+        # propiedades = dict(boxstyle='round', facecolor=colors[i] , alpha=0.2)
+        propiedades = dict(boxstyle='round', facecolor= '#ff7f0e', alpha=0.2)
+    
+        ax[0].text(0.15, 0.95, vel_txt, transform=ax[0].transAxes, fontsize=30,
+            verticalalignment='top', bbox=propiedades)
+        # prop = dict(boxstyle='round', facecolor=colors[i] , alpha=0.2)
+        prop = dict(boxstyle='round', facecolor='#ff7f0e' , alpha=0.2)
+    
+        ax[1].text(0.15, 0.95, 'aprox cluster radio = %s"\n cluster stars = %s '%(round(rad.to(u.arcsec).value,2),len(colores_index[i][0])), transform=ax[1].transAxes, fontsize=30,
+                                verticalalignment='top', bbox=prop)
+        txt_color = '\n'.join(('H-Ks =%.3f'%(np.median(catal_w[:,3][colores_index[i]]-catal_w[:,4][colores_index[i]])),
+                                                '$\sigma_{H-Ks}$ = %.3f'%(np.std(catal_w[:,3][colores_index[i]]-catal_w[:,4][colores_index[i]]))))
+                                                # 'diff_color = %.3f'%(max(arches['F127M'][colores_index[i]]-arches['F153M'][colores_index[i]])-min(arches['F127M'][colores_index[i]]-arches['F153M'][colores_index[i]]))))
+        # props = dict(boxstyle='round', facecolor=colors[i], alpha=0.2)
+        props = dict(boxstyle='round', facecolor='#ff7f0e', alpha=0.2)
+    
+        # ax[2].text(0.50, 0.95, txt_color, transform=ax[2].transAxes, fontsize=30,
+                                # verticalalignment='top', bbox=props)
+        ax[0].scatter(pmra[colores_index[-1]], pmdec[colores_index[-1]],color=colors[-1],zorder=1, alpha=0.01)
+        
+        ax[0].set_xlabel(r'$\mathrm{\mu_{ra*} (mas\ yr^{-1})}$',fontsize =30) 
+        ax[0].set_ylabel(r'$\mathrm{\mu_{dec} (mas\ yr^{-1})}$',fontsize =30) 
+        # ax[1].scatter(l[colores_index[-1]], b[colores_index[-1]],color=colors[-1],zorder=1)
+        ax[1].scatter(RA[colores_index[-1]],DEC[colores_index[-1]],color=colors[-1],s=5,alpha = 0.01,zorder = 1)
+        # ax[1].scatter(RA,DEC,color=colors[-1],zorder=3,s=100,alpha = 0.01)
+        ax[1].yaxis.set_major_formatter(FormatStrFormatter('%.2f'))
+        ax[1].xaxis.set_major_formatter(FormatStrFormatter('%.2f'))
+        # ax[1].invert_xaxis()
+        ax[1].scatter(core_cluster[:,0], core_cluster[:,1], color = 'k', alpha = 0.5,zorder =3) 
+        ori_clus = np.where(catal_w[:,-1][colores_index[i]] == 1)
+        if len(ori_clus[0]) > 0:
+            ax[1].scatter(catal_w[:,0][colores_index[i]][ori_clus],catal_w[:,1][colores_index[i]][ori_clus],color = 'green',s=20,zorder =3, label = 'Original Recovered stars = %s (%.0f %%) \n out of %s'%(len(ori_clus[0]),len(ori_clus[0])/len(core_cluster)*100,len(core_cluster)))
+            ax[1].legend(loc = 4)
+            with open(pruebas + 'stad_arches_nn%s_clustby_(%s)_%.2fevol_times.txt'%(samples_dist,clustered_by,age_ff), 'a') as file:
+                file.write('%.4f %.4f %.4f %.4f %.2f %s %.0f\n'%(mura_mean,mudec_mean,mura_sig,mudec_sig,rad.to(u.arcsec).value,len(colores_index[i][0]),len(ori_clus[0])/len(core_cluster)*100))
+                
+        # ax[1].set_yticks([-29.025, -29.   , -28.975, -28.95, -28.9  , -28.875,
+        #         -28.85 , -28.825])
+        # nt = np.array([list(ax[1].get_yticks()).remove(-28.925)])
+        # ax[1].set_yticks(nt)
+        ax[1].invert_xaxis()
+        ax[1].set_xlabel('ra(deg)',fontsize =30) 
+        ax[1].set_ylabel('dec(deg)',fontsize =30)
+        # ax[1].yaxis.set_label_coords(-0.05, 0.5)
+        
+        ax[2].scatter(catal_w[:,3][colores_index[-1]]-catal_w[:,4][colores_index[-1]],catal_w[:,4][colores_index[-1]],color=colors[-1],zorder=1, s = 1, alpha = 0.1)
+        ax[2].scatter(catal_w[:,3][colores_index[i]]-catal_w[:,4][colores_index[i]],catal_w[:,4][colores_index[i]],color = '#ff7f0e',s= 50)
 
+        ax[2].invert_yaxis()
+        ax[2].set_xlabel('H-Ks',fontsize =30) 
+        ax[2].set_ylabel('Ks',fontsize =30) 
+    
+        # ax[0].scatter(pmra, pmdec,color = 'k')
+        ax[1].scatter(catal_w[:,0], catal_w[:,1])
+       
+        plt.show()
 
-
-
-
-
-
+        
+# %%
+# =============================================================================
+# # Analyzing the statistics
+# 
+# # pm_ra pm_dec sigma_{pmra} sigma_{pmdec} radio #stars 
+# data = np.loadtxt(pruebas + 'stad_arches_nn%s_clustby_(%s)_%.2fMyr.txt'%(samples_dist,clustered_by,age_ff))    
+# 
+# model = data[0]
+# sta = data[1:]
+# 
+# # %%
+# rows = [['Cluster','$\mu_{ra}$','$\mu_{dec}$','$\sigma_{\mu dec}$','$\sigma_{\mu dec}$', 'Radio','stars'],
+#         ['Model',str('%.2f'%(model[0])),'%.2f'%(model[1]),'%.2f'%(model[2]),'%.2f'%(model[3]),'%.2f'%(model[4]),'%.2f'%(model[5])],
+#         ['Recovered','%.2f$\pm$%.2f'%(np.mean(sta[:,0]),np.std(sta[:,0])),'%.2f$\pm$%.2f'%(np.mean(sta[:,1]),np.std(sta[:,1])),'%.2f$\pm$%.2f'%(np.mean(sta[:,2]),np.std(sta[:,2])),'%.2f$\pm$%.2f'%(np.mean(sta[:,3]),np.std(sta[:,3])),'%.2f$\pm$%.2f'%(np.mean(sta[:,4]),np.std(sta[:,4])),'%.2f$\pm$%.2f'%(np.mean(sta[:,5]),np.std(sta[:,5]))]]
+# table = Texttable()
+# table.set_cols_align(["c"] * len(rows[0]))
+# table.set_deco(Texttable.HEADER | Texttable.VLINES)
+# table.set_cols_dtype(["t", "t","t", "t","t", "t","t"])#This is becouse is was changig the format to 3 decimal palces for some reason
+# table.add_rows(rows)
+# 
+# print(latextable.draw_latex(table, caption="Recovering 0 Myr evolved Arches."
+#                             ,use_booktabs=True, caption_above=True,label ='Table_recovered'))
+# # print(tabulate(rows, headers='firstrow', tablefmt="latex_booktabs"))
+# 
+# # %%
+# 
+# rows = [['Cluster','$\mu_{ra}$','$\mu_{dec}$','$\sigma_{\mu dec}$','$\sigma_{\mu dec}$', 'Radio','stars'],
+#         ['Model',str('%.2f'%(model[0])),'%.2f'%(model[1]),'%.2f'%(model[2]),'%.2f'%(model[3]),'%.2f'%(model[4]),'%.2f'%(model[5])],
+#         ['Recovered','%.2f$\pm$%.2f'%(np.mean(sta[:,0]),np.std(sta[:,0])),'%.2f$\pm$%.2f'%(np.mean(sta[:,1]),np.std(sta[:,1])),'%.2f$\pm$%.2f'%(np.mean(sta[:,2]),np.std(sta[:,2])),'%.2f$\pm$%.2f'%(np.mean(sta[:,3]),np.std(sta[:,3])),'%.2f$\pm$%.2f'%(np.mean(sta[:,4]),np.std(sta[:,4])),'%.2f$\pm$%.2f'%(np.mean(sta[:,5]),np.std(sta[:,5]))]]
+# table = Texttable()
+# table.set_cols_align(["c"] * len(rows[0]))
+# table.set_deco(Texttable.HEADER | Texttable.VLINES)
+# table.set_cols_dtype(["t", "t","t", "t","t", "t","t"])#This is becouse is was changig the format to 3 decimal palces for some reason
+# table.add_rows(rows)
+# 
+# print(latextable.draw_latex(table, caption="\textcolor{red}{MAKE the fucking dissolve cluster simulation}"
+#                             ,use_booktabs=True, caption_above=True,label ='Table_disolved'))
+# # print(tabulate(rows, headers='firstrow', tablefmt="latex_booktabs"))
+# # %%
+# # Values of runnig dbscab on Hoseck Arches and Quintuplet (not thorwn in Lib data)
+# pruebas_hos = '/Users/amartinez/Desktop/PhD/Arches_and_Quintuplet_Hosek/pruebas/'
+# # pm_ra pm_dec sig_pmra sig_dec radio eff_radio #stars
+# Ar_dbs= np.loadtxt(pruebas_hos +  'Arches_dbs_statistic.txt',unpack = False)
+# Qu_dbs = np.loadtxt(pruebas_hos +  'Quintuplet_dbs_statistic.txt')
+# 
+# rows = [['Cluster','$\mu_{ra}$','$\mu_{dec}$','$\sigma_{\mu dec}$','$\sigma_{\mu dec}$', 'Radio','Radio$_{eff}$','stars'],
+#         ['Arches',
+#          '%.2f$\pm$%.2f'%(np.mean(Ar_dbs[:,0]),np.std(Ar_dbs[:,0])),
+#          '%.2f$\pm$%.2f'%(np.mean(Ar_dbs[:,1]),np.std(Ar_dbs[:,1])),
+#          '%.2f$\pm$%.2f'%(np.mean(Ar_dbs[:,2]),np.std(Ar_dbs[:,2])),
+#          '%.2f$\pm$%.2f'%(np.mean(Ar_dbs[:,3]),np.std(Ar_dbs[:,3])),
+#          '%.2f$\pm$%.2f'%(np.mean(Ar_dbs[:,4]),np.std(Ar_dbs[:,4])),
+#          '%.2f$\pm$%.2f'%(np.mean(Ar_dbs[:,5]),np.std(Ar_dbs[:,5])),
+#          '%.0f$\pm$%.0f'%(np.mean(Ar_dbs[:,6]),np.std(Ar_dbs[:,6]))],
+#         ['Quintuplet',
+#          '%.2f$\pm$%.2f'%(np.mean(Qu_dbs[:,0]),np.std(Qu_dbs[:,0])),
+#          '%.2f$\pm$%.2f'%(np.mean(Qu_dbs[:,1]),np.std(Qu_dbs[:,1])),
+#          '%.2f$\pm$%.2f'%(np.mean(Qu_dbs[:,2]),np.std(Qu_dbs[:,2])),
+#          '%.2f$\pm$%.2f'%(np.mean(Qu_dbs[:,3]),np.std(Qu_dbs[:,3])),
+#          '%.2f$\pm$%.2f'%(np.mean(Qu_dbs[:,4]),np.std(Qu_dbs[:,4])),
+#          '%.2f$\pm$%.2f'%(np.mean(Qu_dbs[:,5]),np.std(Qu_dbs[:,5])),
+#          '%.0f$\pm$%.0f'%(np.mean(Qu_dbs[:,6]),np.std(Qu_dbs[:,6]))]]
+# 
+# table = Texttable()
+# table.set_cols_align(["c"] * len(rows[0]))
+# table.set_deco(Texttable.HEADER | Texttable.VLINES)
+# # table.set_cols_dtype(["t", "t","t", "t","t", "t","t"])#This is becouse is was changig the format to 3 decimal palces for some reason
+# table.add_rows(rows)
+# 
+# print(latextable.draw_latex(table, caption="Dbscan on Hosek data"
+#                             ,use_booktabs=True, caption_above=True,label ='Table_no_disolved'))
+# 
+# 
+# =============================================================================
 
 
 
