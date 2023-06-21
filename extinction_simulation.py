@@ -100,8 +100,24 @@ def extinction_sim(clus_now, clus_future):
     
     return clus_future
 
+# This beat gives you the extinction of the area where the stars lies
+def extinction_now(clus_now, layer):
+    maps = '/Users/amartinez/Desktop/PhD/Libralato_data/extinction_maps/'
 
+    AKs = fits.open(maps + 'K%sHK_C.fit'%(layer),memmap=True)
+    AH = fits.open(maps + 'H%sHK_C.fit'%(layer),memmap=True)
 
+    H_map = WCS(maps +  'H%sHK_C.fit'%(layer))
+    Ks_map = WCS(maps + 'K%sHK_C.fit'%(layer))
+    ra_dec =[[clus_now[i][0],clus_now[i][1]] for i in range(len(clus_now))]
+    print(ra_dec)
+    pix_H =   H_map.wcs_world2pix(ra_dec,1)
+    pix_Ks =  Ks_map.wcs_world2pix(ra_dec,1)
+    
+    AH_clus =[AH[0].data[pix_H[i][1].astype(int)][pix_H[i][0].astype(int)] for i in range(len(pix_H))]
+    AKs_clus =[AKs[0].data[pix_Ks[i][1].astype(int)][pix_Ks[i][0].astype(int)] for i in range(len(pix_Ks))]
+    
+    return AH_clus, AKs_clus
 
 
 
