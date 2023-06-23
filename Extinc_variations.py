@@ -65,6 +65,7 @@ from astropy.wcs import WCS
 from extinction_simulation import extinction_now
 from scipy.spatial import distance
 import matplotlib.colors as colors
+from scipy.interpolate import griddata
 # %%
 cata='/Users/amartinez/Desktop/PhD/Libralato_data/CATALOGS/'
 pruebas='/Users/amartinez/Desktop/PhD/Libralato_data/pruebas/'
@@ -74,8 +75,8 @@ tipo=np.loadtxt(cata+'GALCEN_TABLE_D.cat',unpack=True, usecols=(3),dtype='str')
 
 # MS stars with cluster so far
 # 14996	154855	954199	9192 	18538
-# st_list = [14996	,154855,	954199,	9192,18538]
-st_list = [14996]
+st_list = [14996	,154855,	954199,	9192,18538]
+# st_list = [14996]
 maps = '/Users/amartinez/Desktop/PhD/Libralato_data/extinction_maps/'
 layer = 2
 AKs = fits.open(maps + 'K%sHK_C.fit'%(layer),memmap=True)        
@@ -83,7 +84,7 @@ Ks_map = WCS(maps + 'K%sHK_C.fit'%(layer))
 # pix_sc = AKs[0].header['CD2_2']
 # pix_sc = AKs[0].header['CD2_1']
 pix_sc = 20#pix/arcsec
-sep =  20*pix_sc# in arcsec. Search area for extinction variation to look around
+sep =  50*pix_sc# in arcsec. Search area for extinction variation to look around
 around = sep*2
 with open(pruebas + 'st_map.reg','w') as fil:
     fil.write('# Region file format: DS9 version 4.1\nglobal color=blue dashlist=8 3 width=1 font="helvetica 10 normal roman" select=1 highlite=1 dash=0 fixed=0 edit=1 move=1 delete=1 include=1 source=1\nphysical\n')
@@ -117,7 +118,7 @@ for st in st_list:
     # %
     AKs_clus = [AKs[0].data[pos[1][radio[1]][i]][pos[0][radio[1]][i]]
                 for i in range(len(radio[1]))]
-    
+   
     print('st = %s\nMax diff = %.2f, std = %.2f, radio = %s'%(st, np.nanmax(AKs_clus) - np.nanmin(AKs_clus),np.nanstd(AKs_clus),sep/pix_sc))
 
 # =============================================================================
@@ -130,89 +131,49 @@ for st in st_list:
 # =============================================================================
     # x_grid, y_grid = np.meshgrid(pos[0][radio[1]], pos[1][radio[1]])
     # z_grid = np.reshape(z, (len(y), len(x)))
-    fig, ax = plt.subplots(1,1)
+    fig, ax = plt.subplots(1,2, figsize=(20,10))
     # ax = fig.add_subplot(projection='3d')
-    ax.set_title('%s'%(st))
+    ax[0].set_title('%s'%(st))
     # ax.scatter(pos[0][radio[1]], pos[1][radio[1]],c = np.log(np.array(AKs_clus)))
     AKs_c = np.array(AKs_clus)
-    ax.scatter(pos[0][radio[1]], pos[1][radio[1]],c=AKs_clus,norm=colors.LogNorm(vmin=AKs_c.min(), vmax=AKs_c.max()))
-    ax.set_aspect('equal', 'box')
-    # ax.contour(pos[0][radio[1]], pos[1][radio[1]],np.array(AKs_clus))
-    # sys.exit('137')
+    ax[0].scatter(pos[0][radio[1]], pos[1][radio[1]],c=AKs_clus,norm=colors.LogNorm(vmin=np.nanmin(AKs_c), vmax=np.nanmax(AKs_c)))
+
+    ax[0].set_aspect('equal', 'box')
+    
     np_plot = np.array([pos[0][radio[1]], pos[1][radio[1]],AKs_clus]).T
     
     # %%
-    from scipy.interpolate import griddata
+    
     # Assuming your numpy array is called 'data' with shape (900, 3)
     x = np_plot[:, 0]  # X coordinates (first column)
     y = np_plot[:, 1]  # Y coordinates (second column)
     z = np_plot[:, 2]  # Z values (third column)
     
+    buenos = np.where(np.isnan(z) == False)
+    x = x[buenos]
+    y = y[buenos]
+    z = z[buenos]
+    
+    
+    
     # Create a grid for contour plotting
     x_grid, y_grid = np.meshgrid(np.linspace(min(x), max(x), 100), np.linspace(min(y), max(y), 100))
     
     # Perform interpolation to obtain Z values on the grid
-    z_grid = griddata((x, y), z, (x_grid, y_grid), method='linear')
+    z_grid = griddata((x, y), z, (x_grid, y_grid), method='nearest')
     
     # Create a contour plot
-    lev = 2
-    plt.tricontour(x, y, z, levels=lev, linewidths=1, colors='white')  # Contour lines
-    plt.tricontourf(x_grid.flatten(), y_grid.flatten(), z_grid.flatten(), levels=lev, cmap='viridis')  # Filled contours
-    plt.colorbar()  # Add a colorba
+    lev = 1
+    # fig, ax = plt.subplots(1,1)
+    ax[1].tricontour(x, y, z, levels=lev, linewidths=1, colors='black')  # Contour lines
+    axcb = ax[1].tricontourf(x_grid.flatten(), y_grid.flatten(), z_grid.flatten(), levels=lev, cmap='viridis')  # Filled contours
+    ax[1].set_aspect('equal', 'box')
+    fig.colorbar(axcb,shrink=0.7)
+    # plt.tricontour(x, y, z, levels=lev, linewidths=1, colors='white')  # Contour lines
+    # plt.tricontourf(x_grid.flatten(), y_grid.flatten(), z_grid.flatten(), levels=lev, cmap='viridis')  # Filled contours
+    # plt.colorbar()  # Add a colorba
     
-    plt.xlabel('X')
-    plt.ylabel('Y')
-    plt.title('Contour Plot')
-    plt.show()
-# %%
-
-# %%
-import numpy as np
-from scipy.interpolate import interp2d
-import matplotlib.pyplot as plt
-
-
-X_ar, Y_ar = np.meshgrid(x_ar, y_ar)
-Z_ar = AKs_clus
-
-x2_ar = np.linspace(min(x_ar), max(x_ar), 30)
-y2_ar = np.linspace(min(y_ar), max(y_ar), 30)
-f = interp2d(x_ar, y_ar, Z_ar, kind='linear')
-Z2_ar = f(x2_ar, y2_ar)
-
-fig, ax = plt.subplots(nrows=1, ncols=1)
-# ax[0].pcolormesh(X_ar, Y_ar, Z_ar)
-
-X2_ar, Y2_ar = np.meshgrid(x2_ar, y2_ar)
-ax.pcolormesh(X2_ar, Y2_ar, Z2_ar)
-# ax.contourf(X_ar, Y_ar, Z2_ar,colors='white')
-ax.contour(X_ar, Y_ar, Z2_ar,colors='white', alpha=1)
-
-ax.set_aspect('equal', 'box')
-# %%
-import numpy as np
-from scipy.interpolate import interp2d
-import matplotlib.pyplot as plt
-
-x = np.linspace(0, 4, 13)
-y = np.array([0, 2, 3, 3.5, 3.75, 3.875, 3.9375, 4])
-X, Y = np.meshgrid(x, y)
-Z = np.sin(np.pi*X/2) * np.exp(Y/2)
-
-x2 = np.linspace(0, 4, 65)
-y2 = np.linspace(0, 4, 65)
-f = interp2d(x, y, Z, kind='cubic')
-Z2 = f(x2, y2)
-
-fig, ax = plt.subplots(nrows=1, ncols=2)
-ax[0].pcolormesh(X, Y, Z)
-
-X2, Y2 = np.meshgrid(x2, y2)
-ax[1].pcolormesh(X2, Y2, Z2)
-ax[1].contourf(X2, Y2, Z2)
-plt.show()
-# %%
-x = np.arange(1, 10)
-y = x.reshape(-1, 1)
-h = x * y
-#
+    # plt.xlabel('X')
+    # plt.ylabel('Y')
+    # plt.title('Contour Plot')
+    # plt.show()
