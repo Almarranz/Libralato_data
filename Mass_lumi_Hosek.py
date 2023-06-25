@@ -120,7 +120,7 @@ porcentaje = 0
 while  max_stars > len(K)+0.3*len(K):
 
     # M_clus = 2*10**4*u.Msun
-    mass = M_clus.value -0.01*porcentaje*M_clus.value
+    mass = M_clus.value -0.001*porcentaje*M_clus.value
     dAks = np.std(AKs_clus_all)
     # dAks = 0.05
 
@@ -133,17 +133,56 @@ while  max_stars > len(K)+0.3*len(K):
     
     max_stars = len(clus_ndiff['m_hawki_Ks'][max_mass])
     porcentaje +=1
-
+# %%
 fig, ax = plt.subplots(1,1,figsize=(10,10))
 
-ax.scatter(clus['m_hawki_H']-clus['m_hawki_Ks'],clus['m_hawki_Ks'],color = 'slategray',alpha=0.7)
+
+
+# ax.scatter(clus['m_hawki_H']-clus['m_hawki_Ks'],clus['m_hawki_Ks'],color = 'slategray',alpha=0.7)
 ax.scatter(clus_ndiff['m_hawki_H']-clus_ndiff['m_hawki_Ks'],clus_ndiff['m_hawki_Ks'],color = 'k',alpha=0.6,s=50,zorder =3,linestyle="-")
 # ax.plot(iso.points['m_hawki_H'] - iso.points['m_hawki_Ks'], iso.points['m_hawki_Ks'], 'k-')
 # ax.scatter(clus['m_hawki_H']-clus['m_hawki_Ks'],clus['m_hawki_Ks'],color = 'lavender',alpha=0.5,zorder =3)
 
-
+all_color = clus['m_hawki_H']-clus['m_hawki_Ks']
+min_col = []
+max_col = []
 ax.invert_yaxis()
-ax.scatter(H-K,K,color ='lime',s=100)
+# Ks_sor = np.arange(min(clus['m_hawki_Ks']),max(clus['m_hawki_Ks']),0.5)
+Ks_sor = np.arange(min(np.round(np.round(clus['m_hawki_Ks'],0))),max(np.round(np.round(clus['m_hawki_Ks'],0))),0.5)
+# Ks_sor = np.arange(10,19,0.5)
+
+for j, inte in enumerate(Ks_sor):
+    if j == 0:
+        print('this is the lastone')
+        mm = np.where((clus['m_hawki_Ks']>Ks_sor[j]) & (clus['m_hawki_Ks']<Ks_sor[j+1]))
+        try:
+            left = min(all_color[mm])
+            right = max(all_color[mm])
+            print(left, right) 
+            print('whaaat')
+            min_col.append(left)
+            max_col.append(right)
+        except:
+            print('yomamam')
+           
+    if j >0 and j<len(Ks_sor)-1:
+        print(j)
+        mm = np.where((clus['m_hawki_Ks']>Ks_sor[j-1]) & (clus['m_hawki_Ks']<Ks_sor[j+1]))
+        left = min(all_color[mm])
+        right = max(all_color[mm])
+        min_col.append(left)
+        max_col.append(right)
+       
+    
+        
+# ax.plot(min_col,Ks_sor[0:-1])
+# ax.plot(max_col,Ks_sor[0:-1])
+for j in range(len(Ks_sor)-1):
+    # ax.axvspan(min_col[j], max_col[j],ymin=1-(1/(len(Ks_sor)-1))*(j+1), ymax = 1-(1/(len(Ks_sor)-1))*(j), 
+    #            alpha=0.1, color='red', ls ='')
+    ax.axvspan(min_col[j], max_col[j],ymin=1-0.05*(j+1), ymax = 1-0.05*(j), 
+               alpha=0.5, color='gray', ls ='')
+ax.scatter(H-K,K,color ='#ff7f0e',s=100)
 props = dict(boxstyle='round', facecolor='w', alpha=0.5)
 
 ax.text(0.55, 0.95, 'L mass = %.0f $M_{\odot}$ \n ini mass = %.0f $M_{\odot}$'%(mass, M_clus.value), transform=ax.transAxes, fontsize=25,
