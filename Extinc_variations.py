@@ -6,41 +6,7 @@ Created on Wed Jun 21 16:25:17 2023
 @author: amartinez
 """
 
-# The idea is to check the variations around the massive stars where we have
-# find a cluster to justify the search areas around the massive stars.
 
-# Si tienes un mapa de extinción del centro galáctico, puedes utilizarlo para estimar las variaciones locales en la extinción alrededor de una fuente específica. Aquí tienes un enfoque general para hacerlo:
-
-# 1. Obtén el valor de extinción del mapa en la ubicación de la fuente que te 
-# interesa. Esto te dará una estimación inicial de la extinción en ese punto.
-
-# 2. Examina la resolución espacial del mapa de extinción. Si el mapa tiene una 
-# resolución fina, es posible que no necesites hacer ajustes adicionales. 
-# Sin embargo, si la resolución es relativamente baja, es posible que desees 
-# considerar la interpolación o suavizado para obtener una estimación más
-#  precisa de la extinción en el entorno de la fuente.
-
-# 3. Identifica regiones cercanas a la fuente en las que la extinción sea más 
-# homogénea. Puedes hacer esto seleccionando un área alrededor de la fuente 
-# y examinando los valores de extinción en esa área. Busca regiones donde 
-# la extinción sea similar en un rango determinado.
-
-# 4. Calcula un promedio ponderado de los valores de extinción en las regiones 
-# seleccionadas. Puedes asignar pesos a cada valor de acuerdo con su proximidad 
-# a la fuente o basado en la confiabilidad de los datos en esas regiones. 
-# Esto te dará una estimación más precisa de la extinción local alrededor 
-# de la fuente.
-
-# 5. Si deseas una estimación aún más precisa, considera utilizar técnicas de 
-# modelado que tomen en cuenta la distribución de polvo y gas en la región del 
-# centro galáctico. Estos modelos pueden incorporar información adicional, como 
-# la estructura tridimensional de la región y las propiedades del medio 
-# interestelar, para calcular la extinción local con mayor precisión.
-
-# Recuerda que la estimación de las variaciones locales de la extinción puede 
-# estar sujeta a incertidumbres y limitaciones inherentes a los datos y a 
-# los modelos utilizados. Por lo tanto, es importante ser cauteloso y considerar 
-# todas las fuentes posibles de error en tu análisis.
 import numpy as np
 import matplotlib.pyplot as plt
 from astropy import units as u
@@ -76,8 +42,9 @@ tipo=np.loadtxt(cata+'GALCEN_TABLE_D.cat',unpack=True, usecols=(3),dtype='str')
 
 # MS stars with cluster so far
 # 14996	154855	954199	9192 	18538
-st_list = [14996	,154855,	954199,	9192,18538]
-# st_list = [954199]
+# st_list = [14996	,154855,	954199,	9192,18538]
+st_list = [14996,	154855,	954199,	9192,	18538,	1616,	14221,	14733,	17766,	18575,	18979,	611113,	612448,	16791,	538808,	987487,	1187124]
+# st_list = [14996]1
 maps = '/Users/amartinez/Desktop/PhD/Libralato_data/extinction_maps/'
 layer = 2
 AKs = fits.open(maps + 'K%sHK_C.fit'%(layer),memmap=True)        
@@ -85,7 +52,7 @@ Ks_map = WCS(maps + 'K%sHK_C.fit'%(layer))
 # pix_sc = AKs[0].header['CD2_2']
 # pix_sc = AKs[0].header['CD2_1']
 pix_sc = 20#pix/arcsec
-sep =  150*pix_sc# in arcsec. Search area for extinction variation to look around
+sep = 200*pix_sc# in arcsec. Search area for extinction variation to look around
 around = sep*2
 with open(pruebas + 'st_map.reg','w') as fil:
     fil.write('# Region file format: DS9 version 4.1\nglobal color=blue dashlist=8 3 width=1 font="helvetica 10 normal roman" select=1 highlite=1 dash=0 fixed=0 edit=1 move=1 delete=1 include=1 source=1\nphysical\n')
@@ -143,41 +110,37 @@ for st in st_list:
     
     np_plot = np.array([pos[0][radio[1]], pos[1][radio[1]],AKs_clus]).T
     
-    # %
-    
-    
-    # x = np_plot[:, 0]  # X coordinates (first column)
-    # y = np_plot[:, 1]  # Y coordinates (second column)
-    # z = np_plot[:, 2]  # Z values (third column)
-    
-    # buenos = np.where(np.isnan(z) == False)
-    # x = x[buenos]
-    # y = y[buenos]
-    # z = z[buenos]
     
     
     
-    # # Create a grid for contour plotting
-    # x_grid, y_grid = np.meshgrid(np.linspace(min(x), max(x), 100), np.linspace(min(y), max(y), 100))
+    x = np_plot[:, 0]  # X coordinates (first column)
+    y = np_plot[:, 1]  # Y coordinates (second column)
+    z = np_plot[:, 2]  # Z values (third column)
     
-    # # Perform interpolation to obtain Z values on the grid
-    # z_grid = griddata((x, y), z, (x_grid, y_grid), method='nearest')
+    buenos = np.where(np.isnan(z) == False)
+    x = x[buenos]
+    y = y[buenos]
+    z = z[buenos]
     
-    # # Create a contour plot
     
-    # v_min, v_max = 2,4
-    # lev =np.arange(v_min,v_max+1,1)
-    # ax[1].tricontour(x, y, z, levels=lev, linewidths=2,colors = 'white',linestyles='dashed',vmin=v_min, vmax=v_max)  # Contour lines
-    # axcb = ax[1].tricontourf(x_grid.flatten(), y_grid.flatten(), z_grid.flatten(), levels=lev,vmin=v_min, vmax=v_max, cmap='viridis')  # Filled contours
-    # ax[1].set_aspect('equal', 'box')
-    # fig.colorbar(axcb,ax =ax[1],shrink=0.7)
+    
+    # Create a grid for contour plotting
+    x_grid, y_grid = np.meshgrid(np.linspace(min(x), max(x), 100), np.linspace(min(y), max(y), 100))
+    
+    # Perform interpolation to obtain Z values on the grid
+    z_grid = griddata((x, y), z, (x_grid, y_grid), method='nearest')
+    
+    # Create a contour plot
+    
+    v_min, v_max = 2,4
+    lev =np.arange(v_min,v_max+1,1)
+    ax[1].tricontour(x, y, z, levels=lev, linewidths=2,colors = 'white',linestyles='dashed',vmin=v_min, vmax=v_max)  # Contour lines
+    axcb = ax[1].tricontourf(x_grid.flatten(), y_grid.flatten(), z_grid.flatten(), levels=lev,vmin=v_min, vmax=v_max, cmap='viridis')  # Filled contours
+    ax[1].set_aspect('equal', 'box')
+    fig.colorbar(axcb,ax =ax[1],shrink=0.7)
     
 # %%
 
-    # x_ = np_plot[:,0]
-    # y_ = np_plot[:,1]
-    # z_ = np_plot[:,2]
-    
     x_ = np_plot[:,0]
     y_ = np_plot[:,1]
     z_ = np_plot[:,2]
@@ -191,8 +154,26 @@ for st in st_list:
     center_y = pix_Ks[0][1]
     distances = np.sqrt((x_ - center_x) ** 2 + (y_ - center_y) ** 2)
     
+    perc = np.arange(0.1,1.2,0.2)
+    dist_lim = np.nanmax(distances)*perc
+    std_devs = [np.nanstd(z_[np.where(distances < dl)]) for dl in dist_lim]
     
+    std_levels =np.array([])
+    marked = np.zeros(len(distances))
     
+    std_levels = np.zeros(len(distances))
+    for i, dl in enumerate(dist_lim):
+        print(len(distances))
+        under = np.where((distances <=dl) & (std_levels ==0))
+        std_levels[under] = std_devs[i]
+       
+    
+    fig, ax = plt.subplots(1,2,figsize = (14,7))
+    ra_dec =   Ks_map.wcs_pix2world(np.array([x_,y_]).T,1)
+    # im = ax[1].scatter(x_,y_, c=std_levels,s=100, cmap = 'inferno', vmin = 0, vmax = 0.3)
+    im = ax[1].scatter(ra_dec[:,0],ra_dec[:,1], c=std_levels,s=100, cmap = 'viridis', vmin = 0, vmax = 0.3)
+    fig.colorbar(im)
+   
     std_devs = []
     
     unique_distances, ind_t = np.unique(np.round(distances,0),return_index=True)
@@ -206,83 +187,29 @@ for st in st_list:
     
     d_line  = np.where(std_devs>np.nanmean(std_devs))[0][0]
     unique_distances, ind_t = np.unique(np.round(distances,0),return_index=True)
-    fig, ax = plt.subplots(1,1)
-    ax.set_ylim(0,0.35)
-    ax.set_title(st)
-    ax.axhline(np.mean(std_devs),color = 'red')
-    ax.axvline(unique_distances[d_line],linestyle='dashed',color ='red')
-    ax.text(unique_distances[d_line], 0.10,'%s'%(unique_distances[d_line]) )
-    ax.scatter(unique_distances,std_devs)
     
-    # fig, ax = plt.subplots(1,1)
-    # # ax.set_ylim(0,0.35)
-    # ax.set_title(st)
+    ax[0].set_ylim(0,0.35)
+    ax[0].set_title(st)
+    ax[0].axhline(np.nanmean(std_devs),color = 'red')
+    ax[0].axvline(unique_distances[d_line],linestyle='dashed',color ='red')
+    ax[0].text(unique_distances[d_line], 0.10,'%s'%(unique_distances[d_line]) )
+    ax[0].scatter(unique_distances,std_devs)
     
-    # h =ax.hist2d(unique_distances,std_devs)
-    # fig.colorbar(h[3])
-    # unique_distances = np.linspace(distances.min(), distances.max(), 100)
-    # X, Y = np.meshgrid(unique_distances, unique_distances)
-    # Z = griddata((x_[ind_t], y_[ind_t]), std_devs, (X, Y), method='nearest')
-    # scaled_Z = Z * 1000
+   
+    # circle1 = plt.Circle((center_x, center_y),unique_distances[d_line] , facecolor ='none', edgecolor = 'k')
+    # ax[1].add_patch(circle1)
     
-    # # Z = np.array(std_devs).reshape(len(unique_distances), len(unique_distances))
+    rad_cir = (unique_distances[d_line]/20)*u.arcsec.to(u.degree)
+    ax[1].set_title('$\\sigma AKs < \\overline{\\sigma AKs}$ --> %.1f arcsec'%(rad_cir*3600))
+    ax[0].set_title('%.1f arcsec'%(sep/20))
+    circle1 = plt.Circle((cor[0], cor[1]),rad_cir , facecolor ='none', edgecolor = 'red')
     
-    
-    # # %
-    # fig, ax = plt.subplots(1,1)
-    # # ax.contour(X,Y,Z,levels=2)
-    # # ax.contourf(X, Y, scaled_Z, cmap=cm.jet)
-    # plt.figure()
-    # plt.contourf(X, Y, scaled_Z, cmap=cm.jet)
-    # plt.colorbar()
-
+    ax[1].add_patch(circle1)
 # %%
-
-# %%
-# import numpy as np
-# import matplotlib.pyplot as plt
-# from matplotlib import cm
-# from scipy.interpolate import griddata
-
-# # Create example data (replace with your actual numpy array)
-# np.random.seed(0)
-# # your_array = np.random.rand(900, 3)
-# your_array = np_plot
-# # Extract coordinates and Z values
-# x = your_array[:, 0]
-# y = your_array[:, 1]
-# z = your_array[:, 2]
-
-# buenos = np.where(np.isnan(z) == False)
-# x = x[buenos]
-# y = y[buenos]
-# z = z[buenos]
-
-# # Calculate distances from the center point
-# center_x = np.mean(x)
-# center_y = np.mean(y)
-# distances = np.sqrt((x - center_x) ** 2 + (y - center_y) ** 2)
-
-# # Create a grid for distances
-# unique_distances = np.linspace(distances.min(), distances.max(), 100)
-# X, Y = np.meshgrid(unique_distances, unique_distances)
-
-# # Interpolate Z values on the grid
-# Z = griddata((x, y), z, (X, Y), method='nearest')
-
-# # Scale the Z array for better visualization
-# # scaled_Z = Z * 1000
-
-# # Create contour plot with colormap
-# plt.figure()
-# plt.contourf(X, Y,Z,levels =3)
-# plt.xlabel('Distance from Center (X)')
-# plt.ylabel('Distance from Center (Y)')
-# plt.title('Contour Map of Standard Deviation Variance')
-# plt.colorbar()
-# plt.show()
-
-
+    
+    # ra_dec =   Ks_map.wcs_pix2world(np.array([x_,y_]).T,1)
+    
+   
 
 
 
