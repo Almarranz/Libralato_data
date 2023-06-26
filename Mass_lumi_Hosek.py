@@ -47,7 +47,9 @@ from matplotlib import rc
 rc('font',**{'family':'serif','serif':['Palatino']})
 plt.rcParams.update({'figure.max_open_warning': 0})# a warniing for matplot lib pop up because so many plots, this turining it of
 
+# choosen_cluster = 'Quituplet'
 choosen_cluster = 'Arches'
+
 if choosen_cluster == 'Arches':
     path_clus ='/Users/amartinez/Desktop/PhD/Libralato_data/cluster_to_throw/Arches_0.00evol_times_knn_30.txt'
     ra, dec, mura,mudec,f127, f153, H,K = np.loadtxt(path_clus,unpack=True)
@@ -62,6 +64,7 @@ AKs_list =  np.arange(1.6,2.63,0.01)
 sig_mura,sig_mudec = np.std(mura), np.std(mudec)
 # %%
 
+# Extinction with maps
 maps = '/Users/amartinez/Desktop/PhD/Libralato_data/extinction_maps/'
 layer =1
 cor = np.array([ra,dec]).T
@@ -69,7 +72,29 @@ cor = np.array([ra,dec]).T
 AH_clus_all, AKs_clus_all = extinction_now(cor,layer)
 
 AKs_clus, dAks = np.mean(AKs_clus_all), np.std(AKs_clus_all)
-
+# With coeficients
+# =============================================================================
+# gns_ext = '/Users/amartinez/Desktop/PhD/Libralato_data/extinction_maps/'
+# Aks_gns = pd.read_fwf(gns_ext + 'central.txt', sep =' ',header = None)
+# AKs_np = Aks_gns.to_numpy()#TODO
+# center = np.where(AKs_np[:,6]-AKs_np[:,8] > 1.3)#TODO
+# AKs_center =AKs_np[center]#TODO
+# # %
+# AKs_coord = SkyCoord(ra=AKs_center[:,0]*u.degree, dec=AKs_center[:,2]*u.degree,frame ='icrs', equinox = 'J2000', obstime = 'J2015.5')
+# 
+# clus_coord =  SkyCoord(ra=ra*u.degree, dec=dec*u.degree)
+# idx = clus_coord.match_to_catalog_sky(AKs_coord)
+# validas = np.where(idx[1]<0.5*u.arcsec)
+# gns_match = AKs_center[idx[0][validas]]
+# AKs_clus_all =[] 
+# for member in range(len(gns_match)):
+#     if gns_match[member,18] != '-':
+#         AKs_clus_all.append(float(gns_match[member,18]))
+#         
+# AKs = np.nanmean(AKs_clus_all)
+# print(AKs)
+# sys.exit('96')
+# =============================================================================
 
 iso_dir = '/Users/amartinez/Desktop/PhD/Libralato_data/nsd_isochrones/'
 
@@ -111,16 +136,19 @@ powers = np.array([-1.3, -2.3, -2.3]) # Power law slope associated with each mas
 my_imf = imf.IMF_broken_powerlaw(massLimits, powers, imf_multi)
 # my_imf = imf.IMF_broken_powerlaw(massLimits, powers,multiplicity = None)
 
-
+mag_test = np.where((K>10)&(K<18))
+print(max(K))
+K = K[mag_test]
+H = H[mag_test]
 # #%
 
-M_clus = 1.*1e4*u.Msun
+M_clus = 1*1e4*u.Msun
 max_stars = len(K)**2
 porcentaje = 0
-while  max_stars > len(K)+0.3*len(K):
+while  max_stars > len(K)+0.1*len(K):
 
     # M_clus = 2*10**4*u.Msun
-    mass = M_clus.value -0.001*porcentaje*M_clus.value
+    mass = M_clus.value -0.005*porcentaje*M_clus.value
     dAks = np.std(AKs_clus_all)
     # dAks = 0.05
 
@@ -130,16 +158,19 @@ while  max_stars > len(K)+0.3*len(K):
     clus_ndiff = cluster_ndiff.star_systems
     
     max_mass = np.where((clus_ndiff['m_hawki_Ks']>min(K))&(clus_ndiff['m_hawki_Ks']<max(K)))
+    # max_mass = np.where((clus['m_hawki_Ks']>min(K))&(clus['m_hawki_Ks']<max(K)))
     
     max_stars = len(clus_ndiff['m_hawki_Ks'][max_mass])
+    # max_stars = len(clus['m_hawki_Ks'][max_mass])
     porcentaje +=1
 # %%
 fig, ax = plt.subplots(1,1,figsize=(10,10))
 
-
+ax.scatter(H-K,K,color ='#ff7f0e',s=100, label = 'Arches',zorder =3)
 
 # ax.scatter(clus['m_hawki_H']-clus['m_hawki_Ks'],clus['m_hawki_Ks'],color = 'slategray',alpha=0.7)
-ax.scatter(clus_ndiff['m_hawki_H']-clus_ndiff['m_hawki_Ks'],clus_ndiff['m_hawki_Ks'],color = 'k',alpha=0.6,s=50,zorder =3,linestyle="-")
+ax.scatter(clus_ndiff['m_hawki_H']-clus_ndiff['m_hawki_Ks'],clus_ndiff['m_hawki_Ks'],
+           color = 'gray',alpha=1,s=50,zorder =3,linestyle="-", label = '$M_{model}$ = %.0f $M_{\odot}$'%(mass))
 # ax.plot(iso.points['m_hawki_H'] - iso.points['m_hawki_Ks'], iso.points['m_hawki_Ks'], 'k-')
 # ax.scatter(clus['m_hawki_H']-clus['m_hawki_Ks'],clus['m_hawki_Ks'],color = 'lavender',alpha=0.5,zorder =3)
 
@@ -155,16 +186,13 @@ for j, inte in enumerate(Ks_sor):
     if j == 0:
         print('this is the lastone')
         mm = np.where((clus['m_hawki_Ks']>Ks_sor[j]) & (clus['m_hawki_Ks']<Ks_sor[j+1]))
-        try:
-            left = min(all_color[mm])
-            right = max(all_color[mm])
-            print(left, right) 
-            print('whaaat')
-            min_col.append(left)
-            max_col.append(right)
-        except:
-            print('yomamam')
-           
+        left = min(all_color[mm])
+        right = max(all_color[mm])
+        print(left, right) 
+        print('whaaat')
+        min_col.append(left)
+        max_col.append(right)
+        
     if j >0 and j<len(Ks_sor)-1:
         print(j)
         mm = np.where((clus['m_hawki_Ks']>Ks_sor[j-1]) & (clus['m_hawki_Ks']<Ks_sor[j+1]))
@@ -181,15 +209,20 @@ for j in range(len(Ks_sor)-1):
     # ax.axvspan(min_col[j], max_col[j],ymin=1-(1/(len(Ks_sor)-1))*(j+1), ymax = 1-(1/(len(Ks_sor)-1))*(j), 
     #            alpha=0.1, color='red', ls ='')
     ax.axvspan(min_col[j], max_col[j],ymin=1-0.05*(j+1), ymax = 1-0.05*(j), 
-               alpha=0.5, color='gray', ls ='')
-ax.scatter(H-K,K,color ='#ff7f0e',s=100)
-props = dict(boxstyle='round', facecolor='w', alpha=0.5)
+               alpha=0.3, color='gray', ls ='')
+    if j == 0:
+        ax.axvspan(min_col[j], max_col[j],ymin=1-0.05*(j+1), ymax = 1-0.05*(j), 
+               alpha=0.3, color='gray', ls ='', label ='$\overline{AKs}$ = %.2f$\pm$%.2f'%(AKs,dAks))
 
-ax.text(0.55, 0.95, 'L mass = %.0f $M_{\odot}$ \n ini mass = %.0f $M_{\odot}$'%(mass, M_clus.value), transform=ax.transAxes, fontsize=25,
-    verticalalignment='top', bbox=props)
+
+props = dict(boxstyle='round', facecolor='w', alpha=0.5)
+ax.legend()
+# ax.text(0.55, 0.95, 'L mass = %.0f $M_{\odot}$ \n ini mass = %.0f $M_{\odot}$'%(mass, M_clus.value), transform=ax.transAxes, fontsize=25,
+#     verticalalignment='top', bbox=props)
 ax.set_xlabel('H-Ks')
 ax.set_ylabel('Ks')
 ax.set_title('[$\sigma_{mul}$= %.3f, $\sigma_{mub}$= %.3f]'%(sig_mura,sig_mudec))
+# ax.set_ylim(max(K),min(clus['m_hawki_Ks']))
 ax.set_ylim(max(K),min(K))
 # txt_srn = '\n'.join(('metallicity = %s'%(metallicity),'dist = %.1f Kpc'%(dist/1000),'mass =%.0fx$10^{3}$ $M_{\odot}$'%(mass/1000),
 #                      'age = %.0f Myr'%(10**logAge/10**6)))
