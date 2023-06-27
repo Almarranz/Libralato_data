@@ -33,7 +33,30 @@ from scipy.spatial import distance
 import matplotlib.colors as colors
 from scipy.interpolate import griddata
 from matplotlib import cm
-# %%
+# %%plotting pa    metres
+from matplotlib import rc
+from matplotlib import rcParams
+rcParams.update({'xtick.major.pad': '7.0'})
+rcParams.update({'xtick.major.size': '7.5'})
+rcParams.update({'xtick.major.width': '1.5'})
+rcParams.update({'xtick.minor.pad': '7.0'})
+rcParams.update({'xtick.minor.size': '3.5'})
+rcParams.update({'xtick.minor.width': '1.0'})
+rcParams.update({'ytick.major.pad': '7.0'})
+rcParams.update({'ytick.major.size': '7.5'})
+rcParams.update({'ytick.major.width': '1.5'})
+rcParams.update({'ytick.minor.pad': '7.0'})
+rcParams.update({'ytick.minor.size': '3.5'})
+rcParams.update({'ytick.minor.width': '1.0'})
+rcParams.update({'font.size': 20})
+rcParams.update({'figure.figsize':(10,5)})
+rcParams.update({
+    "text.usetex": False,
+    "font.family": "sans",
+    "font.sans-serif": ["Palatino"]})
+plt.rcParams["mathtext.fontset"] = 'dejavuserif'
+rc('font',**{'family':'serif','serif':['Palatino']})
+plt.rcParams.update({'figure.max_open_warning': 0})# 
 cata='/Users/amartinez/Desktop/PhD/Libralato_data/CATALOGS/'
 pruebas='/Users/amartinez/Desktop/PhD/Libralato_data/pruebas/'
 
@@ -43,8 +66,10 @@ tipo=np.loadtxt(cata+'GALCEN_TABLE_D.cat',unpack=True, usecols=(3),dtype='str')
 # MS stars with cluster so far
 # 14996	154855	954199	9192 	18538
 # st_list = [14996	,154855,	954199,	9192,18538]
-st_list = [14996,	154855,	954199,	9192,	18538,	1616,	14221,	14733,	17766,	18575,	18979,	611113,	612448,	16791,	538808,	987487,	1187124]
-# st_list = [14996]1
+# st_list = [14996,	154855,	954199,	9192,	18538,	1616,	14221,	14733,	17766,	18575,	18979,	611113,	612448,	16791,	538808,	987487,	1187124]
+# st_list = [954199,	14996,	154855,	1059723,	139573,	208940,	9192,	10039,	17766,	611113,]
+st_list = [954199]
+
 maps = '/Users/amartinez/Desktop/PhD/Libralato_data/extinction_maps/'
 layer = 2
 AKs = fits.open(maps + 'K%sHK_C.fit'%(layer),memmap=True)        
@@ -79,10 +104,11 @@ for st in st_list:
     pos = np.vstack([yv.ravel(), xv.ravel()])
     dist=distance.cdist(np.array(pix_Ks),pos.T, 'euclidean')
     radio = np.where(dist < sep)
-    # fig, ax = plt.subplots(1,1)
-    # ax.scatter(pos[0],pos[1], color = 'k',s =1)
-    # ax.scatter(pos[0][radio[1]], pos[1][radio[1]], color = 'r',s =5)
-    # ax.set_aspect('equal', 'box')
+    # radio = np.where(dist < 10000*sep)
+    fig, ax = plt.subplots(1,1)
+    ax.scatter(pos[0],pos[1], color = 'k',s =1)
+    ax.scatter(pos[0][radio[1]], pos[1][radio[1]], color = 'r',s =5)
+    ax.set_aspect('equal', 'box')
     # %
     AKs_clus = [AKs[0].data[pos[1][radio[1]][i]][pos[0][radio[1]][i]]
                 for i in range(len(radio[1]))]
@@ -133,7 +159,7 @@ for st in st_list:
     # Create a contour plot
     
     v_min, v_max = 2,4
-    lev =np.arange(v_min,v_max+1,1)
+    lev =np.arange(v_min,v_max+1,0.5)
     ax[1].tricontour(x, y, z, levels=lev, linewidths=2,colors = 'white',linestyles='dashed',vmin=v_min, vmax=v_max)  # Contour lines
     axcb = ax[1].tricontourf(x_grid.flatten(), y_grid.flatten(), z_grid.flatten(), levels=lev,vmin=v_min, vmax=v_max, cmap='viridis')  # Filled contours
     ax[1].set_aspect('equal', 'box')
@@ -168,12 +194,19 @@ for st in st_list:
         std_levels[under] = std_devs[i]
        
     
-    fig, ax = plt.subplots(1,2,figsize = (14,7))
+    fig, ax = plt.subplots(1,2,figsize = (20,10))
     ra_dec =   Ks_map.wcs_pix2world(np.array([x_,y_]).T,1)
     # im = ax[1].scatter(x_,y_, c=std_levels,s=100, cmap = 'inferno', vmin = 0, vmax = 0.3)
-    im = ax[1].scatter(ra_dec[:,0],ra_dec[:,1], c=std_levels,s=100, cmap = 'viridis', vmin = 0, vmax = 0.3)
-    fig.colorbar(im)
-   
+    im = ax[1].scatter(ra_dec[:,0],ra_dec[:,1], c=std_levels,s=100, cmap = 'viridis', vmin = 0, vmax = 0.35)
+    fig.colorbar(im, label = '$\sigma_{AKs}$')
+    y_ticks = np.delete(np.round(ax[1].get_yticks(),2),[0,-1])
+    ax[1].set_yticks(np.unique(y_ticks),rotation =30)
+    ax[1].set_yticklabels(np.unique(y_ticks), rotation=90, va = 'center')
+    
+    ax[1].yaxis.set_major_formatter(FormatStrFormatter('%.2f'))
+    ax[1].xaxis.set_major_formatter(FormatStrFormatter('%.2f'))
+    ax[1].set_xlabel('Ra (°)')
+    ax[1].set_ylabel('Dec (°)')
     std_devs = []
     
     unique_distances, ind_t = np.unique(np.round(distances,0),return_index=True)
@@ -191,25 +224,71 @@ for st in st_list:
     ax[0].set_ylim(0,0.35)
     ax[0].set_title(st)
     ax[0].axhline(np.nanmean(std_devs),color = 'red')
-    ax[0].axvline(unique_distances[d_line],linestyle='dashed',color ='red')
-    ax[0].text(unique_distances[d_line], 0.10,'%s'%(unique_distances[d_line]) )
-    ax[0].scatter(unique_distances,std_devs)
-    
+    ax[0].axvline(unique_distances[d_line]/20,linestyle='dashed',color ='red')
+    # ax[0].text(unique_distances[d_line]/20, 0.10,'%s'%(unique_distances[d_line]/20) )
+    # ax[0].plot(unique_distances/20,std_devs, linewidth = 5,zorder =1,color = 'k')
+    ax[0].scatter(unique_distances/20,std_devs, linewidth = 5,zorder =1,c = std_devs, cmap = 'viridis',vmin = 0, vmax = 0.35    )
+
+    ax[0].set_xlabel('Distance to the MS (arcsec)')
+    ax[0].set_ylabel('$\sigma_{AKs}$')
    
     # circle1 = plt.Circle((center_x, center_y),unique_distances[d_line] , facecolor ='none', edgecolor = 'k')
     # ax[1].add_patch(circle1)
     
     rad_cir = (unique_distances[d_line]/20)*u.arcsec.to(u.degree)
-    ax[1].set_title('$\\sigma AKs < \\overline{\\sigma AKs}$ --> %.1f arcsec'%(rad_cir*3600))
-    ax[0].set_title('%.1f arcsec'%(sep/20))
-    circle1 = plt.Circle((cor[0], cor[1]),rad_cir , facecolor ='none', edgecolor = 'red')
-    
+    # ax[1].set_title('$\\sigma AKs < \\overline{\\sigma AKs}$ --> %.1f arcsec'%(rad_cir*3600))
+    ax[1].set_title('%.1f arcsec'%(sep/20))
+    ax[0].set_title('ID %s'%(st))
+    circle1 = plt.Circle((cor[0], cor[1]),rad_cir , facecolor ='none', edgecolor = 'red'
+                         , label = 'Radius$\sim$%.0f"'%(rad_cir*3600))
     ax[1].add_patch(circle1)
+    ax[1].legend(loc=1)
+    # plt.savefig('/Users/amartinez/Desktop/PhD/My_papers/Libralato/%s_extinc_vari.png'%(st),dpi =300,bbox_inches = 'tight')
+
 # %%
-    
-    # ra_dec =   Ks_map.wcs_pix2world(np.array([x_,y_]).T,1)
-    
-   
+crush = 300
+x_ar = np.arange(crush, AKs[0].data.shape[0]+1-crush,50)
+y_ar = np.arange(crush, AKs[0].data.shape[1]+1-crush,50)
+xv, yv = np.meshgrid(x_ar,y_ar)
+pos = np.vstack([yv.ravel(), xv.ravel()])
+
+fig, ax = plt.subplots(1,1)
+# ax.scatter(pos[0],pos[1], color = 'k',s =1)
+AKs_clus = [AKs[0].data[pos[1][i]][pos[0][i]]for i in range(len(x_ar)*len(y_ar))]
+
+ax.set_title('%s'%(st))
+# ax.scatter(pos[0][radio[1]], pos[1][radio[1]],c = np.log(np.array(AKs_clus)))
+AKs_c = np.array(AKs_clus)
+im = ax.scatter(pos[0], pos[1],c=AKs_clus, cmap = 'inferno_r',s=0.2)
+plt.colorbar(im)
+# ax[0].set_aspect('equal', 'box')
+# %%
+ra_dec =   Ks_map.wcs_pix2world(np.array([pos[0],pos[1]]).T,1)
+ra_dec = SkyCoord(ra= ra_dec[:,0], dec = ra_dec[:,1], unit = 'degree').galactic
+l = ra_dec.l.wrap_at('180d')
+
+
+st_list = [954199,	14996,	154855,	1059723,	139573,	208940,	9192,	10039,	17766,	611113,]
+
+rcParams.update({'font.size': 15})
+fig, ax = plt.subplots(1,1)
+im = ax.scatter(l, ra_dec.b,c=AKs_clus, cmap = 'inferno_r',s=1)
+ax.invert_xaxis()
+plt.colorbar(im)
+ax.set_xlabel('l')
+ax.set_ylabel('b')
+ax.set_xlim(-0.3,-0.1)
+for st in st_list:
+    mas_ind = np.where(yso[:,2] == st)    
+    mas = yso[mas_ind]
+    gal_ms =  SkyCoord(ra = mas[0][0],dec = mas[0][1], unit = 'degree').galactic
+    ms_l = gal_ms.l.wrap_at('180d')
+    ax.scatter(ms_l, gal_ms.b, color = 'lime', s = 80,facecolors='none', edgecolors='g')
+
+
+
+
+
 
 
 
