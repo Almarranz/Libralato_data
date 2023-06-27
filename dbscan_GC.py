@@ -53,11 +53,12 @@ plt.rcParams.update({'figure.max_open_warning': 0})#
 # mua' 9	dmua' 10	mud' 11	dmud' 12	time' 13	n1' 14	n2' 15	ID' 16	mul' 17	mub' 18	
 # dmul' 19	dmub' 20	m139' 21	Separation'" 22		
 
-def dbscan_GC(pmra, pmdec, x, y,Ra,Dec, color_A, color_B, color_C, clustered_by, samples_dist,Ms_match,gen_sim, sim_lim, ref_f,isochrone):
+def dbscan_GC(pmra, pmdec, x, y,Ra,Dec, color_A, color_B, color_C, clustered_by, 
+              samples_dist,Ms_match,gen_sim, sim_lim, ref_f,isochrone,save_im):
     
         
         
-    mix_color = 'yes'
+    mix_color = 'no'
     inds = [17, 18] if ref_f == 'gal' else [9,11]
     
     coordenadas = SkyCoord(ra = Ra,dec=Dec, unit='degree')
@@ -94,7 +95,7 @@ def dbscan_GC(pmra, pmdec, x, y,Ra,Dec, color_A, color_B, color_C, clustered_by,
 
     lst_d_KNN_sim = []
     if gen_sim == 'kernnel':
-        for d in range(5):
+        for d in range(10):
             mudec_sim,  mura_sim = pmdec_kernel.resample(len(pmdec)), pmra_kernel.resample(len(pmra))
             x_sim, y_sim = x_kernel.resample(len(x)), y_kernel.resample(len(y))
             color_sim = color_kernel.resample(len(pmdec))
@@ -191,7 +192,7 @@ def dbscan_GC(pmra, pmdec, x, y,Ra,Dec, color_A, color_B, color_C, clustered_by,
         eps_av = round((min(d_KNN)+d_KNN_sim_av)/2,3)
         valor = d_KNN_sim_av
     elif sim_lim == 'minimun':
-        eps_av = round((min(d_KNN)+min(lst_d_KNN_sim))/2,3)
+        eps_av = round((min(d_KNN)+min(lst_d_KNN_sim))/2,6)
         valor = min(lst_d_KNN_sim)
     elif sim_lim == 'maximun':
         eps_av = round((min(d_KNN)+max(lst_d_KNN_sim))/2,3)
@@ -201,6 +202,7 @@ def dbscan_GC(pmra, pmdec, x, y,Ra,Dec, color_A, color_B, color_C, clustered_by,
     clus_method = 'dbs'
 
     clustering = DBSCAN(eps=eps_av, min_samples=samples_dist).fit(X_stad)
+    # clustering = DBSCAN(eps=0.727, min_samples=samples_dist).fit(X_stad)
     l=clustering.labels_
     
     n_clusters = len(set(l)) - (1 if -1 in l else 0)
@@ -222,7 +224,8 @@ def dbscan_GC(pmra, pmdec, x, y,Ra,Dec, color_A, color_B, color_C, clustered_by,
         cl_color=np.where(l==c)
         colores_index.append(cl_color)
         
-    gr_alpha, gr_color, gr_size = 0.8, 'r', 50#TODO
+    gr_alpha, gr_color, gr_size = 0.2, 'r', 50#TODO
+    bg_alpha = 0.05
     cl_size = 300
     ms_size, ms_color = 200, '#1f77b4'
     if   len(set(l)) >1:
@@ -251,9 +254,9 @@ def dbscan_GC(pmra, pmdec, x, y,Ra,Dec, color_A, color_B, color_C, clustered_by,
                 # fig, ax = plt.subplots(1,3,figsize=(30,10))
                 ax[1].invert_xaxis()
                
-                ax[0].set_title('Min %s-NN= %s. cluster by: %s '%(samples_dist,round(min(d_KNN),3),clustered_by))
+                # ax[0].set_title('Min %s-NN= %s. cluster by: %s '%(samples_dist,round(min(d_KNN),3),clustered_by))
                 # t_gal['l'] = t_gal['l'].wrap_at('180d')
-                ax[0].scatter(X[:,0][colores_index[-1]],X[:,1][colores_index[-1]], color=colors[-1],s=50,zorder=1,alpha =0.1)
+                ax[0].scatter(X[:,0][colores_index[-1]],X[:,1][colores_index[-1]], color=colors[-1],s=50,zorder=1,alpha =bg_alpha)
                 
                 ax[0].scatter(X[:,0],X[:,1], color=colors[-1],s=50,zorder=1)
                 # ax[1].quiver(t_gal['l'][colores_index[-1]].value,t_gal['b'][colores_index[-1]].value, X[:,0][colores_index[-1]]-pms[2], X[:,1][colores_index[-1]]-pms[3], alpha=0.5, color=colors[-1])
@@ -262,7 +265,7 @@ def dbscan_GC(pmra, pmdec, x, y,Ra,Dec, color_A, color_B, color_C, clustered_by,
                 ax[0].scatter(Ms_match[inds[0]], Ms_match[inds[1]], s=ms_size, c =ms_color, zorder = 3)
                 # ax[0].set_xlim(-10,10)
                 # ax[0].set_ylim(-10,10)
-                ax[0].set_xlabel(r'$\mathrm{\mu_{ra} (mas\ yr^{-1})}$',fontsize =30) 
+                ax[0].set_xlabel(r'$\mathrm{\mu_{ra*} (mas\ yr^{-1})}$',fontsize =30) 
                 ax[0].set_ylabel(r'$\mathrm{\mu_{dec} (mas\ yr^{-1})}$',fontsize =30) 
                 ax[0].invert_xaxis()
                 # ax[0].hlines(0,-10,10,linestyle = 'dashed', color ='red')
@@ -276,10 +279,10 @@ def dbscan_GC(pmra, pmdec, x, y,Ra,Dec, color_A, color_B, color_C, clustered_by,
                 
             
             
-                vel_txt = '\n'.join(('$\overline{\mu}_{ra}$ = %s, $\overline{\mu}_{dec}$  = %s'%(round(mul_mean,2), round(mub_mean,2)),
-                                      '$\sigma_{\mu ra}$ = %s, $\sigma_{\mu dec}$ = %s'%(round(mul_sig,2), round(mub_sig,2)))) 
+                vel_txt = '\n'.join(('$\overline{\mu}_{ra*}$ = %s, $\overline{\mu}_{dec}$  = %s'%(round(mul_mean,2), round(mub_mean,2)),
+                                      '$\sigma_{\mu ra*}$ = %s, $\sigma_{\mu dec}$ = %s'%(round(mul_sig,2), round(mub_sig,2)))) 
                 vel_txt_all = '\n'.join(('mura = %s, $\mu_{dec}$ = %s'%(round(mul_mean_all,2), round(mub_mean_all,2)),
-                                      '$\sigma_{\mu ra}$ = %s, $\sigma_{\mu dec}$ = %s'%(round(mul_sig_all,2), round(mub_sig_all,2))))
+                                      '$\sigma_{\mu ra*}$ = %s, $\sigma_{\mu dec}$ = %s'%(round(mul_sig_all,2), round(mub_sig_all,2))))
                 
                 propiedades = dict(boxstyle='round', facecolor=color_de_cluster , alpha=0.2)
                 propiedades_all = dict(boxstyle='round', facecolor=colors[-1], alpha=0.1)
@@ -312,31 +315,53 @@ def dbscan_GC(pmra, pmdec, x, y,Ra,Dec, color_A, color_B, color_C, clustered_by,
                 ax[0].text(0.05, 0.15, vel_txt_gr, transform=ax[0].transAxes, fontsize=20,
                     verticalalignment='top', bbox=propiedades_gr)
                 
+                # For plotting the whole catalog
+                # results='/Users/amartinez/Desktop/PhD/Libralato_data/results/'
+                # catal=np.loadtxt(results + 'sec_B_match_GNS_and_WFC3IR_refined_galactic.txt')
+                # ax[1].scatter(catal[:,0], catal[:,1], color = 'k', alpha = 0.01)
+                if Ms_match[16] == 14996:
+                    st_name = 'stA'
+                elif Ms_match[16] == 154855:
+                    st_name = 'stB'
+                elif Ms_match[16] == 954199:
+                    st_name = 'stC'
+                elif Ms_match[16] == 9192:
+                    st_name = 'stD'
+                elif Ms_match[16] == 18538:
+                    st_name = 'stE'
+                else:
+                    st_name = Ms_match[16]
+                ax[1].set_title('%s'%(st_name), fontsize = 30 )
                 ax[1].scatter(Ra[group_md],Dec[group_md], color=gr_color,s=gr_size,zorder=1,marker='x',alpha = gr_alpha)
                 ax[0].scatter(X[:,0][group_md],X[:,1][group_md], color=gr_color,s=gr_size,zorder=1,marker='x',alpha = gr_alpha)
                 prop = dict(boxstyle='round', facecolor=color_de_cluster , alpha=0.2)
-                ax[1].text(0.15, 0.95, 'aprox cluster radio = %s"\n cluster stars = %s '%(round(rad.to(u.arcsec).value,2),len(colores_index[i][0])), transform=ax[1].transAxes, fontsize=30,
+                # ax[1].text(0.05, 0.95, 'Radius $\sim$ %s"\n stars = %s '%(round(rad.to(u.arcsec).value,2),len(colores_index[i][0])), transform=ax[1].transAxes, fontsize=30,
+                #                         verticalalignment='top', bbox=prop)
+                # ax[1].text(0.50, 0.15, 'Radius $\sim$ %s"\n stars = %s '%(round(rad.to(u.arcsec).value,2),len(colores_index[i][0])), transform=ax[1].transAxes, fontsize=30,
+                #                         verticalalignment='top', bbox=prop)
+                ax[1].text(0.50, 0.95, 'Radius $\sim$ %.0f"\n stars = %s '%(round(rad.to(u.arcsec).value,2),len(colores_index[i][0])), transform=ax[1].transAxes, fontsize=30,
                                         verticalalignment='top', bbox=prop)
-                
-                
                 
                 ax[1].scatter(Ms_match[0], Ms_match[1], s=ms_size, c=ms_color,zorder = 3)
         
                 # ax[1].scatter(catal[:,7], catal[:,8], color='k',s=50,zorder=1,alpha=0.01)#plots in galactic
-                ax[1].scatter(Ra, Dec, color=colors[-1],s=50,zorder=1,alpha=0.2)#plots in galactic
+                ax[1].scatter(Ra, Dec, color=colors[-1],s=50,zorder=1,alpha=bg_alpha)#plots in galactic
                 
                 ax[1].scatter(Ra[colores_index[i]], Dec[colores_index[i]], color=color_de_cluster ,s=cl_size,zorder=2)#plots in galactic
-                ax[1].quiver(Ra[colores_index[i]], Dec[colores_index[i]], X[:,0][colores_index[i]], X[:,1][colores_index[i]], alpha=1, color='black',angles = 'uv',scale = 20 )#colors[i]
+                ax[1].quiver(Ra[colores_index[i]], Dec[colores_index[i]], X[:,0][colores_index[i]], X[:,1][colores_index[i]]*-1, alpha=1, color='black',angles = 'uv',scale = 20 )#colors[i]
                 # ax[1].scatter(datos[:,7][group_md],datos[:,8][group_md],s=50,color='r',alpha =0.1,marker ='x')
                 ax[1].set_xlabel('Ra',fontsize =30) 
                 ax[1].set_ylabel('Dec',fontsize =30)
-                ax[1].yaxis.set_label_coords(-.05, .58)
+                # ax[1].yaxis.set_label_coords(-.05, .58)
                 ax[1].yaxis.set_major_formatter(FormatStrFormatter('%.2f'))
                 ax[1].xaxis.set_major_formatter(FormatStrFormatter('%.2f'))
                 x_ticks = np.round(ax[1].get_xticks(),2)
                 ax[1].set_xticks(np.unique(x_ticks))
                 y_ticks = np.round(ax[1].get_yticks(),2)
-                ax[1].set_yticks(np.unique(y_ticks))
+                ax[1].set_yticks(np.unique(y_ticks),rotation =30)
+                ax[1].set_yticklabels(np.unique(y_ticks), rotation=90, va = 'center')
+                
+                
                 ax[1].set_xlim(min(Ra),max(Ra))
                 ax[1].set_ylim(min(Dec),max(Dec))
                 
@@ -475,7 +500,7 @@ def dbscan_GC(pmra, pmdec, x, y,Ra,Dec, color_A, color_B, color_C, clustered_by,
                                          '$\sigma_{(H-Ks)}$ = %.2f'%(np.std(color_A[group_md]-color_B[group_md])),
                                          '$\Delta$ (H-Ks) = %.2f'%(max(color_A[group_md]-color_B[group_md])-min(color_A[group_md]-color_B[group_md]))))
                     props_arou = dict(boxstyle='round', facecolor=gr_color, alpha=0.2)
-                    ax[2].text(0.65, 0.25,txt_around, transform=ax[2].transAxes, fontsize=20,
+                    ax[2].text(0.65, 0.19,txt_around, transform=ax[2].transAxes, fontsize=20,
                         verticalalignment='top', bbox=props_arou)
             
                     ax[2].scatter(color_A[colores_index[i]]-color_B[colores_index[i]], color_B[colores_index[i]],alpha=1,c=color_de_cluster, s = cl_size,zorder=2)
@@ -497,7 +522,10 @@ def dbscan_GC(pmra, pmdec, x, y,Ra,Dec, color_A, color_B, color_C, clustered_by,
                     # ax[2].set_xlim(1.1,4)
                     ax[2].set_ylim(min(color_B),max(color_B))
                     ax[2].invert_yaxis()   
-                return len(ms_in_clus[0]), Ra[colores_index[i]], Dec[colores_index[i]], X[:,0][colores_index[i]],X[:,1][colores_index[i]]
+                    if save_im == 'yes':
+                        for_saving = '/Users/amartinez/Desktop/PhD/My_papers/Libralato/'
+                        plt.savefig(for_saving + 'ms_id_%.0f'%(Ms_match[16]), dpi =300, bbox_inches = 'tight')
+                return len(ms_in_clus[0]), Ra[colores_index[i]], Dec[colores_index[i]], X[:,0][colores_index[i]],X[:,1][colores_index[i]],color_A[colores_index[i]], color_B[colores_index[i]], color_C[colores_index[i]]
             else:
                 return [0,0,0,0,0]
     else:
@@ -586,7 +614,7 @@ def dbscan_GC_all(pmra, pmdec, x, y,Ra,Dec, color_A, color_B, clustered_by, samp
                 
                 lst_d_KNN_sim.append(min(d_KNN_sim))
     if gen_sim == 'shuffle':
-        for d in range(20):
+        for d in range(10):
             randomize = np.arange(len(pmdec))
             np.random.shuffle(randomize)
             mudec_sim,  mura_sim= pmdec[randomize], pmra[randomize]
