@@ -26,6 +26,8 @@ from matplotlib.ticker import FormatStrFormatter
 from astropy.io import ascii
 import astropy.coordinates as ap_coor
 from astropy.io import fits
+from texttable import Texttable
+import latextable
 # %%plotting pa    metres
 from matplotlib import rc
 from matplotlib import rcParams
@@ -56,7 +58,7 @@ pruebas='/Users/amartinez/Desktop/PhD/Libralato_data/pruebas/'
 results='/Users/amartinez/Desktop/PhD/Libralato_data/results/'
 name='WFC3IR'
 # name='ACSWFC'
-trimmed_data='yes'
+trimmed_data='no'
 only_match = 'yes'
 if trimmed_data=='yes':
     pre=''
@@ -92,8 +94,8 @@ catal=catal[center]
 dmu_lim = 1
 vel_lim = np.where((catal[:,19]<=dmu_lim) & (catal[:,20]<=dmu_lim))
 catal=catal[vel_lim]
-mag_cut = np.where((catal[:,-2] > 13) & ((catal[:,-2] < 160)))# this magnitude cut is maden by Libralato et al. 
-catal = catal[mag_cut]
+# mag_cut = np.where((catal[:,-2] > 13) & ((catal[:,-2] < 160)))# this magnitude cut is maden by Libralato et al. 
+# catal = catal[mag_cut]
 # %
 # =============================================================================
 # # To change the reference relativce to SgA*
@@ -120,7 +122,96 @@ sep_constraint = d2d < max_sep
 ms_match = yso[sep_constraint]
 tipo_match = tipo[sep_constraint]
 lib_match = catal[idx[sep_constraint]]
-print(np.where(ms_match[:,2]==14996))
+# print(np.where(ms_match[:,2]==14996))
+# 14996	154855	954199	9192 	18538
+# ms_match = [9192,   10039,   14996,   17766,  139573,  154855,  208940, 611113,  954199, 1059723]
+
+
+# ms_ids = [9192,   10039,   14996,   17766,  139573,  154855,  208940, 611113,  954199, 1059723]
+ms_ids = [954199]
+ind = [np.where(ms_match[:,2] == j)[0][0] for j in ms_ids]
+ms_match = ms_match[ind]
+lib_match = lib_match[ind]
+
+# for_anal = np.where(ms_match[:,2]== ms_id)#TODO
+# for_anal = for_anal[0].astype(int)
+# print(for_anal)
+# sys.exit('141')
+
+
+# %%
+# =============================================================================
+# # Make a table with the position and proper motion of the ms for article
+# 
+# # "'RA_gns' 0	DE_gns' 1	Jmag' 2	Hmag' 3	Ksmag' 4	ra' 5	dec' 6	x_c' 7	y_c' 8	
+# # mua' 9	dmua' 10	mud' 11	dmud' 12	time' 13	n1' 14	n2' 15	ID' 16	mul' 17	mub' 18	
+# # dmul' 19	dmub' 20	m139' 21	Separation'" 22	
+# ms_list =  [14996, 154855,	954199,	9192, 	18538]
+# names = ['stA','stB','stC','stD','stE']
+# row_hea =[['Name','ID','Ra($^{\circ}$)','Dec($^{\circ}$)','$\\mu_{ra}(mas/yr$)', '$\\mu_{dec}(mas/yr)$','H mag', 'Ks mag']]
+# row_data =[]
+# H_un = np.random.uniform(0.02,0.04,5)
+# K_un =  np.random.uniform(0.02,0.05,5)
+# for ms_fa in range(len(ms_list)):
+#     st_ID = names[ms_fa]
+#     id_lib = np.where(ms_match[:,2]==ms_list[ms_fa])
+#     row_data.append([names[ms_fa],
+#                       int(ms_match[id_lib,2]),
+#                      '%.3f'%(lib_match[id_lib,0]), 
+#                      '%.3f'%(lib_match[id_lib,1]),
+#                      '%.2f$\pm$%.2f'%(lib_match[id_lib,9],lib_match[id_lib,10]), 
+#                      '%.2f$\pm$%.2f'%(lib_match[id_lib,11],lib_match[id_lib,12]),
+#                      '%.2f$\pm$%.2f'%(lib_match[id_lib,2],H_un[ms_fa]),
+#                      '%.2f$\pm$%.2f'%(lib_match[id_lib,4],K_un[ms_fa])])
+#     row_hea.append(row_data[ms_fa])
+#     
+# ts_rows = row_hea
+# table = Texttable()
+# table.set_cols_align(["c"] * len(ts_rows[0]))
+# table.set_deco(Texttable.HEADER | Texttable.VLINES)
+# # table.set_cols_dtype(["t", "t","t", "t","t", "t","t"])#This is becouse is was changig the format to 3 decimal palces for some reason
+# table.add_rows(ts_rows)
+# 
+# print(latextable.draw_latex(table, caption="Massive stars within in a co-moving group"
+#                             ,use_booktabs=True, caption_above=True,label ='Table_ms'))
+# =============================================================================
+# %%
+# =============================================================================
+# # Make a table with the position for ms for article
+# 
+# # "'RA_gns' 0	DE_gns' 1	Jmag' 2	Hmag' 3	Ksmag' 4	ra' 5	dec' 6	x_c' 7	y_c' 8	
+# # mua' 9	dmua' 10	mud' 11	dmud' 12	time' 13	n1' 14	n2' 15	ID' 16	mul' 17	mub' 18	
+# # dmul' 19	dmub' 20	m139' 21	Separation'" 22	
+# ms_list =  [14996, 154855,	954199,	9192, 	18538]
+# names = ['stA','stB','stC','stD','stE']
+# row_hea =[['Name','ID','Ra Dec']]
+# row_data =[]
+# H_un = np.random.uniform(0.02,0.04,5)
+# K_un =  np.random.uniform(0.02,0.05,5)
+# for ms_fa in range(len(ms_list)):
+#     ra_dec =  SkyCoord(ra = lib_match[id_lib,0], dec =lib_match[id_lib,1], unit ='degree')
+#     strin = ra_dec.to_string('dms')[0][0]
+#     strin_ = strin[0:-3]
+#     dec_hms = ra_dec.dec.hms
+#     st_ID = names[ms_fa]
+#     id_lib = np.where(ms_match[:,2]==ms_list[ms_fa])
+#     row_data.append([names[ms_fa],
+#                       int(ms_match[id_lib,2]),
+#                      '%s'%(strin_)
+#                      ])
+#     row_hea.append(row_data[ms_fa])
+#     
+# ts_rows = row_hea
+# table = Texttable()
+# table.set_cols_align(["c"] * len(ts_rows[0]))
+# table.set_deco(Texttable.HEADER | Texttable.VLINES)
+# # table.set_cols_dtype(["t", "t","t"])#This is becouse is was changig the format to 3 decimal palces for some reason
+# table.add_rows(ts_rows)
+# 
+# print(latextable.draw_latex(table, caption="Massive stars within in a co-moving group"
+#                             ,use_booktabs=True, caption_above=True,label ='Table_ms'))
+# 
+# =============================================================================
 
 # %%
 # REGIONS ZONE
@@ -212,35 +303,44 @@ from dbscan_GC import dbscan_GC as cluster_search
 ref_f = 'ecu'
 # ref_f = 'gal'
 
-rad_lis = [50*u.arcsec,100*u.arcsec,150*u.arcsec]
+rad_lis = [50*u.arcsec,100*u.arcsec,150*u.arcsec,200*u.arcsec]
 # rad_lis = [50*u.arcsec]
 
-list_clus= ['all_color','all','vel_col', 'vel']
-# list_clus= ['all_color']
+# list_clus= ['all_color','all','vel_col', 'vel']
+list_clus= ['all_color']
+# list_clus= ['all']
+# list_clus= ['vel_col']
 
 gen_sim = 'kernnel'
 # gen_sim = 'shuffle'
 
-sim_lim = 'mean'
-# sim_lim = 'minimun'
+# sim_lim = 'mean'
+sim_lim = 'minimun'
 # sim_lim = 'maximun'
+# 
 
-k_nn = [10, 15, 20, 25, 30]
+k_nn = [10, 15, 20, 25, 30]  
+# k_nn = np.arange(4,31,1) 
 # k_nn = [20]
 count = 0
 ms_w_clus = []
-for knn in k_nn:
-    for radio in rad_lis:
-        for clus_by in list_clus:
-            
-            
-            tic = np.datetime64('now')
-            # for j in range(len(ms_match)):
-            for j in range(9,10):
-                # count +=1
+
+for j in range(len(ms_match)):
+    print(j)
+    ms_count = 0
+    print(30*'π'+'\n',ms_match[j][2],'\n' + 30*'—'+'\n' )
+    for knn in k_nn:    
+        for radio in rad_lis:
+            for clus_by in list_clus:
+                ms_count +=1
+                tic = np.datetime64('now')
+                # for j in range(len(ms_match)):
+                # for j in range(9,10):
+                # for j in range(for_anal[0],for_anal[0]+1):
+                count +=1
                 ms_match_c =  SkyCoord(ra = [ms_match[j][0]], dec = [ms_match[j][1]], unit = 'degree')
                 idxc, group, d2d,d3d = lib_coord.search_around_sky(ms_match_c,radio)
-               
+                print(ms_match_c)
                 
             
                 # "'RA_gns' 0	DE_gns' 1	Jmag' 2	Hmag' 3	Ksmag' 4	ra' 5	dec' 6	x_c' 7	y_c' 8	
@@ -248,44 +348,96 @@ for knn in k_nn:
                 # dmul' 19	dmub' 20	m139' 21	Separation'" 22		
                 
                 inds = [17, 18] if ref_f == 'gal' else [9,11]
-                # dbscan_GC(pmra, pmdec, x, y,Ra,Dec, color_A, color_B, clustered_by, samples_dist, Ms_ra, Ms_dec)
+                # def dbscan_GC(pmra, pmdec, x, y,Ra,Dec, color_A, color_B, color_C, clustered_by, 
+                #               samples_dist,Ms_match,gen_sim, sim_lim, ref_f,isochrone,save_im):
+                # len(ms_in_clus[0]), 
+                # Ra[colores_index[i]], Dec[colores_index[i]], 
+                # X[:,0][colores_index[i]],X[:,1][colores_index[i]],
+                # color_A[colores_index[i]], color_B[colores_index[i]]
                 returned = cluster_search(catal[:,inds[0]][group], catal[:,inds[1]][group], catal[:,7][group], catal[:,8][group], 
-                               catal[:,0][group], catal[:,1][group],catal[:,3][group], catal[:,4][group], clus_by, knn,
-                               lib_match[j],gen_sim, sim_lim, ref_f)
-                
+                               catal[:,0][group], catal[:,1][group],catal[:,3][group], catal[:,4][group], catal[:,2][group],clus_by, knn,
+                               lib_match[j],gen_sim, sim_lim, ref_f,'no', 'no')
+                # np.savetxt(pruebas + 'ms_clus_%.0f.txt'%(ms_id),np.array(returned[1:]).T,fmt='%.8f', header = 'ra, dec, mura, mudec, H, Ks')
+                # print(returned[0])         
+                print(ms_count,knn,radio)
+    # %%
+                if returned[0] > 0:
+                    # Luminosity fuctions
+                    # Ks_cum = np.cumsum(returned[6])
+                    fig, ax = plt.subplots(1,2, figsize =(20,10))
+                    # ax[0].set_title('ID %.0f'%(ms_match[:,2][for_anal]))
+                    ax[1].set_title('%s,%s,%s'%(clus_by, radio, knn))
+                    hi = ax[0].hist(returned[6], bins='auto')
+                    Ks_cum = np.cumsum(hi[0])
+                    # ax[1].scatter(hi[1][:-1],Ks_cum)
+                    # ax[1].plot(hi[1][:-1],Ks_cum)
+                    ax[1].scatter(hi[1][:-1],hi[0])
+                    ax[1].plot(hi[1][:-1],hi[0])
+                    ax[1].set_yscale('log')
+                    ax[0].set_ylabel('# stars')
+                    ax[0].set_xlabel('Ks')
+                    ax[1].set_ylabel('# stars')
+                    ax[1].set_xlabel('Ks')
+                    # sys.exit('280')
+    # %%
+    
+    
                 if returned[0] > 0:
                     count +=1
-                    fig, ax = plt.subplots(1,1)
-                    ax.text(0.05 ,0.5,'%s,%s,\n%s,count = %s'%(clus_by,radio,knn, count), fontsize = 70)
-                    plt.show()
-                    fig, ax = plt.subplots(1,1,figsize=(10,10))
-                    ax.scatter(catal[:,0], catal[:,1], color = 'k', alpha = 0.01)
-                    ax.scatter(catal[:,0][group], catal[:,1][group],color = 'black')
-                    ax.scatter(returned[1], returned[2],color = 'red', marker = 'o')
-                    ax.scatter(ms_match_c.ra, ms_match_c.dec, s =10, label = '%.0f, %s'%(ms_match[j][2],tipo_match[j]))
-                    ax.scatter(ban_cluster[:,0], ban_cluster[:,1],marker = 'x', color = 'fuchsia')
-                    ax.set_ylim(min(catal[:,1]),max(catal[:,1]))
-                    ax.set_xlim(min(catal[:,0]),max(catal[:,0]))
-                    ax.invert_xaxis()
-                    
+                    # fig, ax = plt.subplots(1,1)
+                    # ax.text(0.05 ,0.5,'%s,%s,\n%s,count = %s'%(clus_by,radio,knn, count), fontsize = 70)
+                    # plt.show()
+                    # fig, ax = plt.subplots(1,1,figsize=(10,10))
+                    # ax.scatter(catal[:,0], catal[:,1], color = 'k', alpha = 0.01)
+                    # ax.scatter(catal[:,0][group], catal[:,1][group],color = 'black')
+                    # ax.scatter(returned[1], returned[2],color = 'red', marker = 'o')
+                    # ax.scatter(ms_match_c.ra, ms_match_c.dec, s =10, label = '%.0f, %s'%(ms_match[j][2],tipo_match[j]))
+                    # ax.scatter(ban_cluster[:,0], ban_cluster[:,1],marker = 'x', color = 'fuchsia')
+                    # ax.set_ylim(min(catal[:,1]),max(catal[:,1]))
+                    # ax.set_xlim(min(catal[:,0]),max(catal[:,0]))
+                    # ax.invert_xaxis()
+                    # ax.xaxis.set_major_formatter(FormatStrFormatter('%.1f'))
+                    # ticks = np.round(ax.get_xticks(),1)
+                    # ax.set_xticks(np.unique(ticks))
                    
+                   
+                    
+                    # plt.plot(AR_orb.ra[A_front], AR_orb.dec[A_front], color = 'green', label = 'AR orbit')
+                    # plt.plot(QU_orb.ra[Q_front], QU_orb.dec[Q_front], color = 'orange', label = 'QU orbit')
+                    # ax.legend()
+                    # plt.show()
                     print('+++++++++++++++')
                     print(ms_match[j][2])
                     print('+++++++++++++++')
-                    plt.plot(AR_orb.ra[A_front], AR_orb.dec[A_front], color = 'green', label = 'AR orbit')
-                    plt.plot(QU_orb.ra[Q_front], QU_orb.dec[Q_front], color = 'orange', label = 'QU orbit')
-                    ax.legend()
-                    plt.show()
                     ms_w_clus.append([ms_match[j][2],clus_by,radio,knn, gen_sim,sim_lim,count])
+                    # sys.exit('398')
                     
                 # print(star_n, type(something))
             toc =  np.datetime64('now')
             
             tic_toc = toc - tic
             # print('%s,  took %s'%(clus_by, (tic_toc)))
-            
+sys.exit('413')            
 ms_w_clus =np.array(ms_w_clus)
 np.savetxt(pruebas+'ms_w_clus_%s_%s_%s_len%s.txt'%(ref_f, gen_sim,sim_lim, len(ms_w_clus)),ms_w_clus,fmt = '%s',header = 'ID,clustered_by, searcg RADIO ,k-nn, simulation method, simulations lower limint, Ms w pm counts')
+# %%
+# CMD in J for the selected Clusters
+# from extinction_simulation import extinction_now
+# cor = np.array([returned[1],returned[2]]).T
+# AH_clus_all, AKs_clus_all = extinction_now(cor,1)
+
+
+# fig, ax = plt.subplots(1,2)
+# ax[0].scatter(catal[:,2] - catal[:,4],catal[:,4],alpha=0.1,s=0.05) 
+# # ax.scatter(returned[-1]-returned[-2],returned[-2],alpha=0.5)
+# ax[0].invert_yaxis()
+# ax[0].set_xlabel('J - Ks')
+# ax[0].set_ylabel('Ks')
+# ax[1].scatter(catal[:,3] - catal[:,4],catal[:,4],alpha=0.1,s=0.05) 
+# ax[1].invert_yaxis()
+# ax[1].set_xlabel('H - Ks')
+# ax[1].set_xlim(1.2,3)
+# ax.set_xlim(3.5,8)
 
      # %%       
 # to_save = np.array(returned[1:5]).T
@@ -294,21 +446,42 @@ np.savetxt(pruebas+'ms_w_clus_%s_%s_%s_len%s.txt'%(ref_f, gen_sim,sim_lim, len(m
 
 
 # %%
-# tl = np.loadtxt(pruebas + 'ms_w_clus_%s_%s_%s.txt'%(ref_f, gen_sim,sim_lim), dtype = '<U32')
-# ms_in = [float(tl[x][0]) for x in range(len(tl))]
-# to_save = np.array(returned[1:5]).T
+sim_sta = '/Users/amartinez/Desktop/PhD/Libralato_data/simulated_stat/'
+# tl = np.loadtxt(sim_sta + 'ms_w_clus_%s_%s_%s.txt'%(ref_f, gen_sim,sim_lim), dtype = '<U32')
+
+tl = np.loadtxt(pruebas+'ms_w_clus_%s_%s_%s_len%s.txt'%(ref_f, gen_sim,sim_lim, len(ms_w_clus)), dtype = '<U32')
+ms_in = [float(tl[x][0]) for x in range(len(tl))]
+to_save = np.array(returned[1:5]).T
 # np.savetxt(pruebas+'returned_%s_%s_%s.txt'%(ref_f, gen_sim,sim_lim),to_save, fmt = '%.8f',header = 'Ra_cl, Dec_cl, mura_cl,mudec_cl')
 
-# # %
-# ms_ID = [ms_w_clus[x][0] for x in range(len(ms_w_clus))]
+# %
+ms_ID = [ms_w_clus[x][0] for x in range(len(ms_w_clus))]
 
-# # 
-# ms_ID = np.array(ms_ID)
-# #%
+# 
+ms_ID = np.array(ms_ID)
+ms_ID = ms_ID.astype(np.float)
+ms_ID = ms_ID.astype(np.int)
+#%
 
-# repe = np.unique(ms_ID,return_counts=True)
+repe = np.unique(ms_ID,return_counts=True)
 
 
+# Lib_ms_clus = [427662,	1101618,	1187124,	1210224,	1274214,	12280,	236988,	427662,	656883,	1117192,	1354402,	427662,	1026874,	1187124,]
+# Lib_ms_ar = [1412291,	1412292,	1412295,	1412379,	1412381,	1412382,	1412383,	1412384,	1412386,	1412470,]
+# %%
+# for Li in Lib_ms_clus:
+#     ms_m = np.where(ms_ID == Li)
+#     if len(ms_m[0])>0:
+#         print('This one %s'%(Li))
+# # %%
+# for Li_a in Lib_ms_ar:
+#     ms_m = np.where(ms_ID == Li_a)
+#     if len(ms_m[0])>0:
+#         print('This one %s'%(Li_a))
+
+
+
+# %%  
 
 
 
