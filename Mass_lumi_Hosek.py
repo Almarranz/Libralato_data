@@ -167,16 +167,16 @@ powers = np.array([-1.3, -2.3, -2.3]) # Power law slope associated with each mas
 my_imf = imf.IMF_broken_powerlaw(massLimits, powers, imf_multi)
 # my_imf = imf.IMF_broken_powerlaw(massLimits, powers,multiplicity = None)
 
-mag_test = np.where((K>8)&(K<120))
+mag_test = np.where((K>8)&(K<18))
 # print(max(K))
 K = K[mag_test]
 H = H[mag_test]
 # #%
 
-M_clus = 1*1e4*u.Msun
+M_clus = 0.7*1e4*u.Msun
 max_stars = len(K)**2
 porcentaje = 0
-while  max_stars > len(K)+0.1*len(K):
+while  max_stars > len(K)-0.0*len(K):
 
     # M_clus = 2*10**4*u.Msun
     mass = M_clus.value -0.01*porcentaje*M_clus.value
@@ -188,11 +188,11 @@ while  max_stars > len(K)+0.1*len(K):
     clus = cluster.star_systems
     clus_ndiff = cluster_ndiff.star_systems
     
-    # max_mass = np.where((clus_ndiff['m_hawki_Ks']>min(K))&(clus_ndiff['m_hawki_Ks']<max(K)))
-    max_mass = np.where((clus['m_hawki_Ks']>min(K))&(clus['m_hawki_Ks']<max(K)))
+    max_mass = np.where((clus_ndiff['m_hawki_Ks']>min(K))&(clus_ndiff['m_hawki_Ks']<max(K)))
+    # max_mass = np.where((clus['m_hawki_Ks']>min(K))&(clus['m_hawki_Ks']<max(K)))
     
-    # max_stars = len(clus_ndiff['m_hawki_Ks'][max_mass])
-    max_stars = len(clus['m_hawki_Ks'][max_mass])
+    max_stars = len(clus_ndiff['m_hawki_Ks'][max_mass])
+    # max_stars = len(clus['m_hawki_Ks'][max_mass])
     porcentaje +=1
 # %%
 fig, ax = plt.subplots(1,1,figsize=(10,10))
@@ -201,7 +201,7 @@ ax.scatter(H-K,K,color ='#ff7f0e',s=100, label = '%s'%(choosen_cluster),zorder =
 
 # ax.scatter(clus['m_hawki_H']-clus['m_hawki_Ks'],clus['m_hawki_Ks'],color = 'slategray',alpha=0.7)
 ax.scatter(clus_ndiff['m_hawki_H']-clus_ndiff['m_hawki_Ks'],clus_ndiff['m_hawki_Ks'],
-           color = 'gray',alpha=1,s=50,zorder =3,linestyle="-", label = '$M_{model}$ = %.0f $M_{\odot}$'%(mass))
+           color = 'gray',alpha=1,s=50,zorder =3,linestyle="-", label = '$M_{model}$ = %.0f M$_{\odot}$\n $\overline{AKs} = %.2f$'%(mass,AKs))
 # ax.plot(iso.points['m_hawki_H'] - iso.points['m_hawki_Ks'], iso.points['m_hawki_Ks'], 'k-')
 # ax.scatter(clus['m_hawki_H']-clus['m_hawki_Ks'],clus['m_hawki_Ks'],color = 'lavender',alpha=0.5,zorder =3)
 
@@ -242,18 +242,22 @@ for j, inte in enumerate(Ks_sor):
 min_col = np.array(min_col)
 max_col = np.array(max_col)
 relleno = np.where(np.array(min_col) ==0)    
-min_col[relleno] = np.min(np.delete(min_col,relleno))
-max_col[relleno] = np.min(np.delete(max_col,relleno))
+# min_col[relleno] = np.min(np.delete(min_col,relleno))
+# max_col[relleno] = np.min(np.delete(max_col,relleno))
+min_col[relleno] = np.mean(np.delete(min_col,relleno))
+max_col[relleno] = np.mean(np.delete(max_col,relleno))
        
 
-for j in range(len(Ks_sor)-2):
-    if j == 0:
-        ax.add_patch(Rectangle((min_col[j],Ks_sor[j]), max_col[j+1]-min_col[j], Ks_sor[j+1]-Ks_sor[j],label ='$\overline{AKs}$ = %.2f$\pm$%.2f'%(AKs,dAks),alpha =0.3,edgecolor = None,facecolor = 'gray'))
-    else:
-        ax.add_patch(Rectangle((min_col[j],Ks_sor[j]), max_col[j+1]-min_col[j], Ks_sor[j+1]-Ks_sor[j],alpha =0.3,edgecolor = None,facecolor = 'gray'))
+# for j in range(len(Ks_sor)-2):
+#     if j == 0:
+#         ax.add_patch(Rectangle((min_col[j],Ks_sor[j]), max_col[j+1]-min_col[j], Ks_sor[j+1]-Ks_sor[j],label ='$\sigma_{AKs} = %.2f$'%(dAks),alpha =0.3,edgecolor = None,facecolor = 'gray'))
+#     else:
+#         ax.add_patch(Rectangle((min_col[j],Ks_sor[j]), max_col[j+1]-min_col[j], Ks_sor[j+1]-Ks_sor[j],alpha =0.3,edgecolor = None,facecolor = 'gray'))
         
-ax.plot(min_col,Ks_sor[0:-1])
-ax.plot(max_col,Ks_sor[0:-1])
+ax.plot(min_col,Ks_sor[0:-1], color = 'gray')
+ax.plot(max_col,Ks_sor[0:-1], color = 'gray')
+plt.fill(np.append(min_col, max_col[::-1]),np.append(Ks_sor[0:-1], Ks_sor[0:-1][::-1]), 'lightgrey')
+
 # for j in range(len(Ks_sor)-1):
 #     # ax.axvspan(min_col[j], max_col[j],ymin=1-(1/(len(Ks_sor)-1))*(j+1), ymax = 1-(1/(len(Ks_sor)-1))*(j), 
 #     #            alpha=0.1, color='red', ls ='')
@@ -273,6 +277,20 @@ ax.set_ylabel('Ks')
 # ax.set_title('[$\sigma_{mul}$= %.3f, $\sigma_{mub}$= %.3f]'%(sig_mura,sig_mudec))
 # ax.set_ylim(max(K),min(clus['m_hawki_Ks']))
 ax.set_ylim(max(K),min(K))
+for_saving = '/Users/amartinez/Desktop/PhD/My_papers/Libralato/'
+# plt.savefig(for_saving + 'Arches_mass.png', dpi =300, bbox_inches = 'tight')
+# %%
 
+fig, ax = plt.subplots(1,1,figsize=(10,10))
+ax.plot(min_col,Ks_sor[0:-1])
+ax.plot(max_col,Ks_sor[0:-1])
+# plt.scatter(x1, y1, s = 0.5, color = 'blue')
+# plt.scatter(x2, y2, s = 0.5, color = 'orange')
 
-                            
+# plt.fill(np.append(min_col, max_col[::-1]),np.append(Ks_sor[0:-1], Ks_sor[0:-1][::-1]), 'lightgrey')
+
+ax.plot(np.append(min_col, max_col),np.append(Ks_sor[0:-1], Ks_sor[0:-1]))
+
+                
+
+            
