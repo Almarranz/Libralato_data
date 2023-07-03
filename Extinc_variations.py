@@ -68,7 +68,7 @@ tipo=np.loadtxt(cata+'GALCEN_TABLE_D.cat',unpack=True, usecols=(3),dtype='str')
 # st_list = [14996	,154855,	954199,	9192,18538]
 # st_list = [14996,	154855,	954199,	9192,	18538,	1616,	14221,	14733,	17766,	18575,	18979,	611113,	612448,	16791,	538808,	987487,	1187124]
 # st_list = [954199,	14996,	154855,	1059723,	139573,	208940,	9192,	10039,	17766,	611113,]
-st_list = [954199]
+st_list = [14996]
 
 maps = '/Users/amartinez/Desktop/PhD/Libralato_data/extinction_maps/'
 layer = 2
@@ -105,10 +105,10 @@ for st in st_list:
     dist=distance.cdist(np.array(pix_Ks),pos.T, 'euclidean')
     radio = np.where(dist < sep)
     # radio = np.where(dist < 10000*sep)
-    fig, ax = plt.subplots(1,1)
-    ax.scatter(pos[0],pos[1], color = 'k',s =1)
-    ax.scatter(pos[0][radio[1]], pos[1][radio[1]], color = 'r',s =5)
-    ax.set_aspect('equal', 'box')
+    # fig, ax = plt.subplots(1,1)
+    # ax.scatter(pos[0],pos[1], color = 'k',s =1)
+    # ax.scatter(pos[0][radio[1]], pos[1][radio[1]], color = 'r',s =5)
+    # ax.set_aspect('equal', 'box')
     # %
     AKs_clus = [AKs[0].data[pos[1][radio[1]][i]][pos[0][radio[1]][i]]
                 for i in range(len(radio[1]))]
@@ -182,7 +182,9 @@ for st in st_list:
     
     perc = np.arange(0.1,1.2,0.2)
     dist_lim = np.nanmax(distances)*perc
-    std_devs = [np.nanstd(z_[np.where(distances < dl)]) for dl in dist_lim]
+    # std_devs = [np.nanstd(z_[np.where(distances < dl)]) for dl in dist_lim]
+    std_devs = [np.nanmean(z_[np.where(distances < dl)]) for dl in dist_lim]
+    
     
     std_levels =np.array([])
     marked = np.zeros(len(distances))
@@ -192,13 +194,13 @@ for st in st_list:
         print(len(distances))
         under = np.where((distances <=dl) & (std_levels ==0))
         std_levels[under] = std_devs[i]
-       
-    
+    ex_l, ex_u = 2.3, 3.3#TODO
+    map_color = 'inferno_r'#TODO
     fig, ax = plt.subplots(1,2,figsize = (20,10))
     ra_dec =   Ks_map.wcs_pix2world(np.array([x_,y_]).T,1)
     # im = ax[1].scatter(x_,y_, c=std_levels,s=100, cmap = 'inferno', vmin = 0, vmax = 0.3)
-    im = ax[1].scatter(ra_dec[:,0],ra_dec[:,1], c=std_levels,s=100, cmap = 'viridis', vmin = 0, vmax = 0.35)
-    fig.colorbar(im, label = '$\sigma_{AKs}$')
+    im = ax[1].scatter(ra_dec[:,0],ra_dec[:,1], c=std_levels,s=100, cmap = map_color, vmin = ex_l, vmax = ex_u)
+    fig.colorbar(im, label = '$\overline{AKs}$')
     y_ticks = np.delete(np.round(ax[1].get_yticks(),2),[0,-1])
     ax[1].set_yticks(np.unique(y_ticks),rotation =30)
     ax[1].set_yticklabels(np.unique(y_ticks), rotation=90, va = 'center')
@@ -207,84 +209,100 @@ for st in st_list:
     ax[1].xaxis.set_major_formatter(FormatStrFormatter('%.2f'))
     ax[1].set_xlabel('Ra (°)')
     ax[1].set_ylabel('Dec (°)')
-    std_devs = []
+    ax[1].set_aspect('equal', 'box')
+    mean_devs = []
     
     unique_distances, ind_t = np.unique(np.round(distances,0),return_index=True)
     # unique_distances = distances
     for dist in unique_distances:
         indices = np.where(distances < dist)
-        std_dev = np.nanstd(z_[indices])
-        std_devs.append(std_dev)
-    std_devs =np.array(std_devs)
+        mean_dev = np.nanmean(z_[indices])
+        mean_devs.append(mean_dev)
+    mean_devs =np.array(mean_devs)
     # good_xy = np.where(np.round()) 
     
-    d_line  = np.where(std_devs>np.nanmean(std_devs))[0][0]
+    d_line  = np.where(mean_devs>np.nanmean(mean_devs))[0][0]
     unique_distances, ind_t = np.unique(np.round(distances,0),return_index=True)
-    
-    ax[0].set_ylim(0,0.35)
+    line_color = 'red'#TODO
+    ax[0].set_ylim(ex_l,ex_u)
     ax[0].set_title(st)
-    ax[0].axhline(np.nanmean(std_devs),color = 'red')
-    ax[0].axvline(unique_distances[d_line]/20,linestyle='dashed',color ='red')
-    # ax[0].text(unique_distances[d_line]/20, 0.10,'%s'%(unique_distances[d_line]/20) )
-    # ax[0].plot(unique_distances/20,std_devs, linewidth = 5,zorder =1,color = 'k')
-    ax[0].scatter(unique_distances/20,std_devs, linewidth = 5,zorder =1,c = std_devs, cmap = 'viridis',vmin = 0, vmax = 0.35    )
+    ax[0].axhline(np.nanmean(mean_devs),color = line_color,linewidth = 3)
+    ax[0].axhline(np.nanmean(mean_devs) + 1*np.nanstd(mean_devs),color = line_color,linestyle='dashed',linewidth = 3)
+    ax[0].axhline(np.nanmean(mean_devs) - 1*np.nanstd(mean_devs),color = line_color,linestyle='dashed',linewidth = 3)
 
-    ax[0].set_xlabel('Distance to the MS (arcsec)')
-    ax[0].set_ylabel('$\sigma_{AKs}$')
+    ax[0].scatter(unique_distances/20,mean_devs, linewidth = 5,zorder =1,c = mean_devs, cmap = map_color,vmin = ex_l, vmax = ex_u)
+
+    ax[0].set_xlabel('Distance from the massive star (arcsec)')
+    ax[0].set_ylabel('$\overline{AKs}$')
    
     # circle1 = plt.Circle((center_x, center_y),unique_distances[d_line] , facecolor ='none', edgecolor = 'k')
     # ax[1].add_patch(circle1)
     
     rad_cir = (unique_distances[d_line]/20)*u.arcsec.to(u.degree)
     # ax[1].set_title('$\\sigma AKs < \\overline{\\sigma AKs}$ --> %.1f arcsec'%(rad_cir*3600))
-    ax[1].set_title('%.1f arcsec'%(sep/20))
+    # ax[1].set_title('%.1f arcsec'%(sep/20))
     ax[0].set_title('ID %s'%(st))
-    circle1 = plt.Circle((cor[0], cor[1]),rad_cir , facecolor ='none', edgecolor = 'red'
-                         , label = 'Radius$\sim$%.0f"'%(rad_cir*3600))
-    ax[1].add_patch(circle1)
-    ax[1].legend(loc=1)
+    # circle1 = plt.Circle((cor[0], cor[1]),rad_cir , facecolor ='none', edgecolor = line_color, linewidth = 3,linestyle ='dashed'
+    #                      , label = 'Radius$\sim$%.0f"'%(rad_cir*3600))
+    # ax[1].add_patch(circle1)
+    # ax[1].legend(loc=1)
     # plt.savefig('/Users/amartinez/Desktop/PhD/My_papers/Libralato/%s_extinc_vari.png'%(st),dpi =300,bbox_inches = 'tight')
 
 # %%
+layer = 2
+AKs = fits.open(maps + 'K%sHK_C.fit'%(layer),memmap=True)        
+Ks_map = WCS(maps + 'K%sHK_C.fit'%(layer))
 crush = 300
-x_ar = np.arange(crush, AKs[0].data.shape[0]+1-crush,50)
-y_ar = np.arange(crush, AKs[0].data.shape[1]+1-crush,50)
+x_ar = np.arange(crush, AKs[0].data.shape[0]+1-crush,100)
+y_ar = np.arange(crush, AKs[0].data.shape[1]+1-crush,100)
 xv, yv = np.meshgrid(x_ar,y_ar)
 pos = np.vstack([yv.ravel(), xv.ravel()])
-
-fig, ax = plt.subplots(1,1)
-# ax.scatter(pos[0],pos[1], color = 'k',s =1)
 AKs_clus = [AKs[0].data[pos[1][i]][pos[0][i]]for i in range(len(x_ar)*len(y_ar))]
 
-ax.set_title('%s'%(st))
-# ax.scatter(pos[0][radio[1]], pos[1][radio[1]],c = np.log(np.array(AKs_clus)))
-AKs_c = np.array(AKs_clus)
-im = ax.scatter(pos[0], pos[1],c=AKs_clus, cmap = 'inferno_r',s=0.2)
-plt.colorbar(im)
+# fig, ax = plt.subplots(1,1)
+# # ax.scatter(pos[0],pos[1], color = 'k',s =1)
+# ax.set_title('%s'%(st))
+# # ax.scatter(pos[0][radio[1]], pos[1][radio[1]],c = np.log(np.array(AKs_clus)))
+# AKs_c = np.array(AKs_clus)
+# im = ax.scatter(pos[0], pos[1],c=AKs_clus, cmap = map_color,s=0.2)
+# plt.colorbar(im)
 # ax[0].set_aspect('equal', 'box')
-# %%
+
 ra_dec =   Ks_map.wcs_pix2world(np.array([pos[0],pos[1]]).T,1)
 ra_dec = SkyCoord(ra= ra_dec[:,0], dec = ra_dec[:,1], unit = 'degree').galactic
 l = ra_dec.l.wrap_at('180d')
 
 
-st_list = [954199,	14996,	154855,	1059723,	139573,	208940,	9192,	10039,	17766,	611113,]
+st_list = [954199,	14996,	154855,139573, 1059723,	208940,	9192,	10039,	17766,	611113,]
 
 rcParams.update({'font.size': 15})
 fig, ax = plt.subplots(1,1)
-im = ax.scatter(l, ra_dec.b,c=AKs_clus, cmap = 'inferno_r',s=1)
+im = ax.scatter(l, ra_dec.b,c=AKs_clus, cmap = map_color,s=0.2)
 ax.invert_xaxis()
-plt.colorbar(im)
+plt.colorbar(im, label = 'AKs' )
 ax.set_xlabel('l')
 ax.set_ylabel('b')
-ax.set_xlim(-0.3,-0.1)
-for st in st_list:
+# ax.set_xlim(-0.3,-0.1)
+a = -1
+simb = ['v','<','>','^','s','<','>','^','o','v']
+for i, st in enumerate(st_list):
+    print(i)
+    a = a*-1
     mas_ind = np.where(yso[:,2] == st)    
     mas = yso[mas_ind]
     gal_ms =  SkyCoord(ra = mas[0][0],dec = mas[0][1], unit = 'degree').galactic
     ms_l = gal_ms.l.wrap_at('180d')
-    ax.scatter(ms_l, gal_ms.b, color = 'lime', s = 80,facecolors='none', edgecolors='g')
-
+    if st == 611113 or st == 9192 or st == 17766 or st == 1059723 or st == 10039 or st == 208940:
+        ax.scatter(ms_l.value, gal_ms.b, s = 80, marker = simb[i] ,
+                   facecolors='none', edgecolors='black',linewidth=2, label = 'ID %.0f'%(st))
+        # ax.text(ms_l.value-0.01, gal_ms.b.value-0.01*a,'%.0f'%(st), color = 'k')
+    else:
+        ax.scatter(ms_l.value, gal_ms.b,s = 80,marker = simb[i],
+                   facecolors='none', edgecolors='lime',linewidth=2,label = 'ID %.0f'%(st))
+        # ax.text(ms_l.value-0.01, gal_ms.b.value-0.01,'%.0f'%(st), color = 'lime',horizontalalignment ='left')
+    ax.legend(fontsize = 8)    
+for_saving = '/Users/amartinez/Desktop/PhD/My_papers/Libralato/'
+plt.savefig(for_saving + 'ms_on_extinction.png', dpi =300, bbox_inches = 'tight')
 
 
 
