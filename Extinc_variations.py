@@ -33,6 +33,10 @@ from scipy.spatial import distance
 import matplotlib.colors as colors
 from scipy.interpolate import griddata
 from matplotlib import cm
+from scipy.stats import chisquare
+from scipy import stats
+import scipy
+from sklearn.linear_model import LinearRegression
 # %%plotting pa    metres
 from matplotlib import rc
 from matplotlib import rcParams
@@ -67,8 +71,8 @@ tipo=np.loadtxt(cata+'GALCEN_TABLE_D.cat',unpack=True, usecols=(3),dtype='str')
 # 14996	154855	954199	9192 	18538
 # st_list = [14996	,154855,	954199,	9192,18538]
 # st_list = [14996,	154855,	954199,	9192,	18538,	1616,	14221,	14733,	17766,	18575,	18979,	611113,	612448,	16791,	538808,	987487,	1187124]
-# st_list = [954199,	14996,	154855,	1059723,	139573,	208940,	9192,	10039,	17766,	611113,]
-st_list = [14996]
+st_list = [954199,	14996,	154855,	1059723,	139573,	208940,	9192,	10039,	17766,	611113,]
+# st_list = [14996]
 
 maps = '/Users/amartinez/Desktop/PhD/Libralato_data/extinction_maps/'
 layer = 2
@@ -113,7 +117,7 @@ for st in st_list:
     AKs_clus = [AKs[0].data[pos[1][radio[1]][i]][pos[0][radio[1]][i]]
                 for i in range(len(radio[1]))]
    
-    print('st = %s\nMax diff = %.2f, std = %.2f, radio = %s'%(st, np.nanmax(AKs_clus) - np.nanmin(AKs_clus),np.nanstd(AKs_clus),sep/pix_sc))
+    # print('st = %s\nMax diff = %.2f, std = %.2f, radio = %s'%(st, np.nanmax(AKs_clus) - np.nanmin(AKs_clus),np.nanstd(AKs_clus),sep/pix_sc))
     np_plot = np.array([pos[0][radio[1]], pos[1][radio[1]],AKs_clus]).T
 # =============================================================================
 #     with open(pruebas + 'st_map.reg','a') as fil:
@@ -180,7 +184,8 @@ for st in st_list:
     center_y = pix_Ks[0][1]
     distances = np.sqrt((x_ - center_x) ** 2 + (y_ - center_y) ** 2)
     
-    perc = np.arange(0.1,1.2,0.2)
+    step = 0.01
+    perc = np.arange(0.1,1+step,step)
     dist_lim = np.nanmax(distances)*perc
     # std_devs = [np.nanstd(z_[np.where(distances < dl)]) for dl in dist_lim]
     std_devs = [np.nanmean(z_[np.where(distances < dl)]) for dl in dist_lim]
@@ -191,7 +196,7 @@ for st in st_list:
     
     std_levels = np.zeros(len(distances))
     for i, dl in enumerate(dist_lim):
-        print(len(distances))
+        # print(len(distances))
         under = np.where((distances <=dl) & (std_levels ==0))
         std_levels[under] = std_devs[i]
     ex_l, ex_u = 2.3, 3.3#TODO
@@ -200,10 +205,12 @@ for st in st_list:
     ra_dec =   Ks_map.wcs_pix2world(np.array([x_,y_]).T,1)
     # im = ax[1].scatter(x_,y_, c=std_levels,s=100, cmap = 'inferno', vmin = 0, vmax = 0.3)
     im = ax[1].scatter(ra_dec[:,0],ra_dec[:,1], c=std_levels,s=100, cmap = map_color, vmin = ex_l, vmax = ex_u)
-    fig.colorbar(im, label = '$\overline{AKs}$')
+    # cbar = fig.colorbar(im, ax=ax.ravel().tolist(), shrink=0.4,orientation="horizontal",location ='top',label = '$\overline{AKs}$')
+    fig.colorbar(im,label = '$\overline{AKs}$',orientation="horizontal",location ='top')
     y_ticks = np.delete(np.round(ax[1].get_yticks(),2),[0,-1])
     ax[1].set_yticks(np.unique(y_ticks),rotation =30)
     ax[1].set_yticklabels(np.unique(y_ticks), rotation=90, va = 'center')
+    # plt.subplots_adjust()
     
     ax[1].yaxis.set_major_formatter(FormatStrFormatter('%.2f'))
     ax[1].xaxis.set_major_formatter(FormatStrFormatter('%.2f'))
@@ -223,15 +230,32 @@ for st in st_list:
     
     d_line  = np.where(mean_devs>np.nanmean(mean_devs))[0][0]
     unique_distances, ind_t = np.unique(np.round(distances,0),return_index=True)
-    line_color = 'red'#TODO
+    line_color = '#1f77b4'#TODO
     ax[0].set_ylim(ex_l,ex_u)
     ax[0].set_title(st)
     ax[0].axhline(np.nanmean(mean_devs),color = line_color,linewidth = 3)
     ax[0].axhline(np.nanmean(mean_devs) + 1*np.nanstd(mean_devs),color = line_color,linestyle='dashed',linewidth = 3)
     ax[0].axhline(np.nanmean(mean_devs) - 1*np.nanstd(mean_devs),color = line_color,linestyle='dashed',linewidth = 3)
-
-    ax[0].scatter(unique_distances/20,mean_devs, linewidth = 5,zorder =1,c = mean_devs, cmap = map_color,vmin = ex_l, vmax = ex_u)
-
+    print('%.0f,%.3f,%.3f'%(st,np.nanmean(mean_devs)*0.1, np.nanstd(mean_devs)))
+    # chi_squared = np.sum((std_levels[ind_t] - np.nanmean(mean_devs))**2/(np.nanmean(mean_devs)))
+    # print(chi_squared)
+    coef_variat = (np.nanstd(mean_devs)/np.nanmean(mean_devs))*100
+    xf = (unique_distances/20).reshape((-1, 1))
+    yf = std_levels[ind_t]
+    model = LinearRegression()
+    model.fit(xf, yf)
+    model = LinearRegression().fit(xf, yf)
+    ax[0].scatter(unique_distances/20,std_levels[ind_t], linewidth = 5,zorder =1,c = mean_devs, cmap = map_color,vmin = ex_l, vmax = ex_u)
+    
+    l_fit = np.polyfit(unique_distances/20,std_levels[ind_t],1)
+    ax[0].plot(unique_distances/20, unique_distances/20*l_fit[0] + l_fit[1], color = 'fuchsia', linewidth = 10)
+    
+    chi_squared = np.sum((std_levels[ind_t] - (unique_distances/20*l_fit[0] + l_fit[1]))**2/((unique_distances/20*l_fit[0] + l_fit[1])))
+    
+    r_2 = np.corrcoef(unique_distances/20,std_levels[ind_t])
+    slope, intercept, r_2, p_2, std_err = scipy.stats.linregress(unique_distances/20,std_levels[ind_t])
+    # print(l_fit,r_2,model.score(xf, yf), chi_squared)
+    print(coef_variat)
     ax[0].set_xlabel('Distance from the massive star (arcsec)')
     ax[0].set_ylabel('$\overline{AKs}$')
    
@@ -247,7 +271,7 @@ for st in st_list:
     # ax[1].add_patch(circle1)
     # ax[1].legend(loc=1)
     # plt.savefig('/Users/amartinez/Desktop/PhD/My_papers/Libralato/%s_extinc_vari.png'%(st),dpi =300,bbox_inches = 'tight')
-
+sys.exit(250)
 # %%
 layer = 2
 AKs = fits.open(maps + 'K%sHK_C.fit'%(layer),memmap=True)        
