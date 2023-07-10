@@ -61,10 +61,9 @@ catal='/Users/amartinez/Desktop/PhD/Arches_and_Quintuplet_Hosek/'
 morralla ='/Users/amartinez/Desktop/morralla/'
 cls_to_throw = '/Users/amartinez/Desktop/PhD/Libralato_data/cluster_to_throw/'
 pruebas = '/Users/amartinez/Desktop/PhD/Arches_and_Quintuplet_Hosek/pruebas/'
-
-choosen_cluster = 'Arches'#TODO
-# choosen_cluster = 'Quintuplet'#TODO
-
+# 
+# choosen_cluster = 'Arches'#TODO
+choosen_cluster = 'Quintuplet'#TODO 
 ref_frame = 'ecuatorial'#TODO
 # ref_frame = 'galactic'#TODO
 
@@ -76,9 +75,12 @@ if choosen_cluster == 'Arches':
     arches = ascii.read(catal + 'Arches_from_Article.txt') 
 if choosen_cluster == 'Quintuplet':
     arches = ascii.read(catal + 'Quintuplet_from_Article.txt') 
-    
-    
+# %%
+RA_DEC = center_arc.spherical_offsets_by(arches['dRA'], arches['dDE'])
+RA = RA_DEC.ra
+DEC = RA_DEC.dec
 
+# %
 m127_all, m153_all = arches['F127M']*u.mag,arches['F153M']*u.mag
 valid_colors=np.where((np.isnan(m127_all)==False)&(np.isnan(m153_all)==False))
 m127,m153=m127_all[valid_colors],m153_all[valid_colors]
@@ -125,7 +127,9 @@ if ref_frame == 'galactic':
     pmra, pmdec = arches['pml'], arches['pmb']
 
 raoff, decoff = arches['dRA'], arches['dDE']
+
 colorines = arches['F127M']-arches['F153M']
+    
 pmra_kernel, pmdec_kernel = gaussian_kde(arches['pmRA']), gaussian_kde(arches['pmDE'])
 raoff_kernel, decoff_kernel = gaussian_kde(raoff), gaussian_kde(decoff)
 color_kernel = gaussian_kde(colorines)
@@ -136,7 +140,7 @@ clustered_by = 'all_color'#TODO
 # clustered_by = 'vel_col'#TODO
 
 
-samples_dist = 35
+samples_dist = 25
 RA_ = np.array(RA.value)
 DEC_ = np.array(DEC.value)
 # for i_sim in range(20): Actiavte the for loop to make the statistic for the Arches/Quintuplet
@@ -262,8 +266,9 @@ for c in u_labels:
 elements_in_cluster=[]
 # for i in range(len(set(l_c))-1):
 for i in range(1):
+    alpha_bg = 0.01
     fig, ax = plt.subplots(1,3,figsize=(30,10))
-    ax[1].set_title('%s-NN'%(samples_dist))
+    ax[1].set_title('%s'%(choosen_cluster),fontsize = 30)
     # ax[0].set_xticks(np.arange(-12,11))
     # ax[0].grid()
     ax[0].invert_xaxis()
@@ -271,26 +276,25 @@ for i in range(1):
     c2 = SkyCoord(ra = RA[colores_index[i]],dec =DEC[colores_index[i]], unit ='degree',  equinox = 'J2000', obstime = 'J2015.4')
     sep = [max(c2[c_mem].separation(c2)) for c_mem in range(len(c2))]
     rad = max(sep)/2
-    ax[0].set_title('%s'%(choosen_cluster))
     # ax[0].scatter(pmra[colores_index[i]], pmdec[colores_index[i]],color=colors[i],zorder=3)
-    ax[0].scatter(pmra[colores_index[i]], pmdec[colores_index[i]],color = '#ff7f0e',zorder=3)
+    ax[0].scatter(pmra[colores_index[i]], pmdec[colores_index[i]],color = '#ff7f0e',zorder=3,edgecolor = 'k')
 
     # ax[1].scatter(l[colores_index[i]], b[colores_index[i]],color=colors[i],zorder=3)
     # ax[1].scatter(RA[colores_index[i]],DEC[colores_index[i]],color=colors[i],zorder=3,s=100,alpha =0.3)
-    ax[1].scatter(RA[colores_index[i]],DEC[colores_index[i]],color = '#ff7f0e',zorder=3,s=100,alpha =0.3)
+    ax[1].scatter(RA[colores_index[i]],DEC[colores_index[i]],color = '#ff7f0e',zorder=3,s=100,alpha = 1,edgecolor = 'k')
 
     # ax[1].scatter(gns_match[colores_index[i]][:,0],gns_match[colores_index[i]][:,2],color=colors[i],zorder=3,s=100)
     # ax[2].scatter(arches['F127M'][colores_index[i]]-arches['F153M'][colores_index[i]],arches['F153M'][colores_index[i]],color=colors[i],zorder=13)
-    ax[2].scatter(arches['F127M'][colores_index[i]]-arches['F153M'][colores_index[i]],arches['F153M'][colores_index[i]],color = '#ff7f0e',zorder=13)
+    ax[2].scatter(arches['F127M'][colores_index[i]]-arches['F153M'][colores_index[i]],arches['F153M'][colores_index[i]],color = '#ff7f0e',zorder=3,edgecolor = 'k')
 
     mura_mean, mudec_mean = np.mean(pmra[colores_index[i]]), np.mean(pmdec[colores_index[i]])
     mura_sig,  mudec_sig = np.std(pmra[colores_index[i]]), np.std(pmdec[colores_index[i]])
     if ref_frame =='ecuatorial':
-        vel_txt = '\n'.join(('$\\mu_{ra}$ = %s,$\\mu_{dec}$ = %s'%(round(mura_mean,3), round(mudec_mean,3)),
-                             '$\\sigma_{\\mu ra}$ = %s, $\\sigma_{\\mu dec}$ = %s'%(round(mura_sig,3), round(mudec_sig,3))))   
+        vel_txt = '\n'.join(('$\\overline{\\mu}_{ra}$ = %s, $\\overline{\\mu}_{dec}$ = %s'%(round(mura_mean,2), round(mudec_mean,2)),
+                             '$\\sigma_{\\mu ra}$ = %s, $\\sigma_{\\mu dec}$ = %s'%(round(mura_sig,2), round(mudec_sig,2))))   
     if ref_frame =='galactic':
-        vel_txt = '\n'.join(('$\\mu_{l}$ = %s,$\\mu_{b}$ = %s'%(round(mura_mean,3), round(mudec_mean,3)),
-                             '$\\sigma_{mul}$ = %s, $\\sigma_{mub}$ = %s'%(round(mura_sig,3), round(mudec_sig,3))))   
+        vel_txt = '\n'.join(('$\\mu_{l}$ = %s,$\\mu_{b}$ = %s'%(round(mura_mean,2), round(mudec_mean,2)),
+                             '$\\sigma_{mul}$ = %s, $\\sigma_{mub}$ = %s'%(round(mura_sig,2), round(mudec_sig,2))))   
     # propiedades = dict(boxstyle='round', facecolor=colors[i] , alpha=0.2)
     propiedades = dict(boxstyle='round', facecolor= '#ff7f0e', alpha=0.2)
 
@@ -299,37 +303,40 @@ for i in range(1):
     # prop = dict(boxstyle='round', facecolor=colors[i] , alpha=0.2)
     prop = dict(boxstyle='round', facecolor='#ff7f0e' , alpha=0.2)
 
-    ax[1].text(0.15, 0.95, 'aprox cluster radio = %s"\n cluster stars = %s '%(round(rad.to(u.arcsec).value,2),len(colores_index[i][0])), transform=ax[1].transAxes, fontsize=30,
+    ax[1].text(0.05, 0.95, 'Radius $\\sim$ %.0f"\n # stars = %s '%(round(rad.to(u.arcsec).value,0),len(colores_index[i][0])), transform=ax[1].transAxes, fontsize=30,
                             verticalalignment='top', bbox=prop)
-    txt_color = '\n'.join(('H-Ks =%.3f'%(np.median(arches['F127M'][colores_index[i]]-arches['F153M'][colores_index[i]])),
-                                            '$\\sigma_{H-Ks}$ = %.3f'%(np.std(arches['F127M'][colores_index[i]]-arches['F153M'][colores_index[i]]))))
-                                            # 'diff_color = %.3f'%(max(arches['F127M'][colores_index[i]]-arches['F153M'][colores_index[i]])-min(arches['F127M'][colores_index[i]]-arches['F153M'][colores_index[i]]))))
+    txt_color = '\n'.join(('$\\overline{f127m-f153m}$ = %.2f'%(np.median(arches['F127M'][colores_index[i]]-arches['F153M'][colores_index[i]])),
+                                            '$\\sigma_{(f127m-f153m)}$ = %.2f'%(np.std(arches['F127M'][colores_index[i]]-arches['F153M'][colores_index[i]])),
+                                            '$\\Delta (f127m-f153m)$ = %.2f'%(max(arches['F127M'][colores_index[i]]-arches['F153M'][colores_index[i]])-min(arches['F127M'][colores_index[i]]-arches['F153M'][colores_index[i]]))))
     # props = dict(boxstyle='round', facecolor=colors[i], alpha=0.2)
     props = dict(boxstyle='round', facecolor='#ff7f0e', alpha=0.2)
 
-    ax[2].text(0.50, 0.95, txt_color, transform=ax[2].transAxes, fontsize=30,
+    ax[2].text(0.35, 0.95, txt_color, transform=ax[2].transAxes, fontsize=25,
                             verticalalignment='top', bbox=props)
-    ax[0].scatter(pmra[colores_index[-1]], pmdec[colores_index[-1]],color=colors[-1],zorder=1)
+    ax[0].scatter(pmra[colores_index[-1]], pmdec[colores_index[-1]],color=colors[-1],zorder=1, alpha = alpha_bg)
     
     ax[0].set_xlabel('$\\mu_{ra*} (mas\\,yr^{-1})$',fontsize =30) 
     ax[0].set_ylabel('$\\mu_{dec} (mas\\,yr^{-1})$',fontsize =30) 
     # ax[1].scatter(l[colores_index[-1]], b[colores_index[-1]],color=colors[-1],zorder=1)
-    ax[1].scatter(RA[colores_index[-1]],DEC[colores_index[-1]],color=colors[-1],zorder=3,s=100,alpha = 0.01)
+    ax[1].scatter(RA[colores_index[-1]],DEC[colores_index[-1]],color=colors[-1],zorder=1,s=100,alpha = alpha_bg)
     # ax[1].scatter(RA,DEC,color=colors[-1],zorder=3,s=100,alpha = 0.01)
     ax[1].yaxis.set_major_formatter(FormatStrFormatter('%.2f'))
     ax[1].xaxis.set_major_formatter(FormatStrFormatter('%.2f'))
     
    
     ax[1].set_yticks([-28.85, -28.84, -28.83, -28.81, -28.8 , -28.79])
-    ax[1].set_xlabel('ra(deg)',fontsize =30) 
-    ax[1].set_ylabel('dec(deg)',fontsize =30)
+    ax[1].set_xlabel('Ra (°)',fontsize =30) 
+    ax[1].set_ylabel('Dec (°)',fontsize =30)
     ax[1].yaxis.set_label_coords(-0.05, 0.5)
     
-    ax[2].scatter(arches['F127M'][colores_index[-1]]-arches['F153M'][colores_index[-1]],arches['F153M'][colores_index[-1]],color=colors[-1],zorder=1)
+    
+    ax[2].scatter(arches['F127M'][colores_index[-1]]-arches['F153M'][colores_index[-1]],arches['F153M'][colores_index[-1]],color=colors[-1],zorder=1, alpha = alpha_bg)
     ax[2].set_xlabel('f127m-f153m',fontsize =30) 
     ax[2].set_ylabel('f153m',fontsize =30) 
-
-    # plt.savefig('/Users/amartinez/Desktop/PhD/My_papers/Libralato/%s_hos.png'%(choosen_cluster),dpi =300)
+    ax[2].set_xlim(1.5, 5)
+    
+    plt.savefig('/Users/amartinez/Desktop/PhD/My_papers/Libralato/%s_hos.png'%(choosen_cluster),dpi =500,bbox_inches = 'tight')
+    sys.exit('332')
     # %%  
     # names=('Name','F127M','e_F127M','F139M','e_F139M','F153M','e_F153M','dRA',
     # 'e_dRA','dDE','e_dDE','pmRA','e_pmRA','pmDE','e_pmDE','t0','Nobs','chi2RA',
@@ -377,6 +384,7 @@ for i in range(1):
     ax.scatter(clus_sep[:,-1],cum)
     ax.axhline(light/2)
     hl_ind = np.where(cum < light/2)
+    # hl_ind = np.where(cum < light)
     fig, ax = plt.subplots(1,1)
     ax.set_title('%s'%(choosen_cluster))
     ax.scatter(RA, DEC, color = 'k', alpha = 0.05)
@@ -388,6 +396,31 @@ for i in range(1):
     # half_clus =
     
     if choosen_cluster == 'Quintuplet':
+        cata='/Users/amartinez/Desktop/PhD/Libralato_data/CATALOGS/'
+        
+        clus_quin = np.c_[RA[colores_index[i]].value,DEC[colores_index[i]].value,
+                         pmra[colores_index[i]].value, pmdec[colores_index[i]].value,
+                         np.array(arches['F127M'][colores_index[i]]),
+                         np.array(arches['F153M'][colores_index[i]])]
+        # _RAJ2000 0	_DEJ2000 1	RAJ2000 2	e_RAJ2000 3	DEJ2000 4	e_DEJ2000 5	
+        # RAJdeg 6	e_RAJdeg 7	DEJdeg 8	e_DEJdeg 9	RAHdeg 10	e_RAHdeg 11	
+        # DEHdeg 12	e_DEHdeg 13	RAKsdeg 14	e_RAKsdeg 15	DEKsdeg 16	e_DEKsdeg 17	
+        # mag 18	e_Jmag 19	Hmag 20	e_Hmag 21	Ksmag 22	e_Ksmag 23	iJ 24	iH 25	
+        # iKs 26
+        gns = np.loadtxt(cata + 'GNS_quintuplet.txt')# tCentral region of GNS
+        clus_radec = SkyCoord(ra = RA[colores_index[i]], dec = DEC[colores_index[i]])
+        gns_coord = SkyCoord(ra = gns[:,2], dec = gns[:,4],
+                             unit = 'degree') 
+        idx = clus_radec.match_to_catalog_sky(gns_coord)
+        valid = np.where(idx[1]<0.5*u.arcsec)
+        clus_quin=clus_quin[valid]
+        gns_qui=gns[idx[0][valid]]
+
+        clus_quin = np.c_[clus_quin, gns_qui[:,20], gns_qui[:,22]]
+        
+        
+        np.savetxt(pruebas + 'Quintuplet_0evoltime.txt',clus_quin,fmt ='%.8f',
+                   header = 'ra, dec, pmra, pmdec, f127, f153, H, Ks')                 
         sys.exit('Out becouse Quintuplet')
 
     #TODO
@@ -458,7 +491,7 @@ clus_dbs = np.c_[clus_dbs, gns_ar[:,20], gns_ar[:,22]]
 
 # %%
 cen_RA, cen_DEC = np.median(clus_dbs[:,0])*u.deg, np.median(clus_dbs[:,1])*u.deg
-for time in range(20):
+for time in range(0):
     fig, ax = plt.subplots(1,2, figsize = (20,10))
     ax[1].scatter(RA, DEC)
     ax[1].scatter(RA[colores_index[i]].value,DEC[colores_index[i]])
@@ -472,17 +505,17 @@ for time in range(20):
     RA_cl, DEC_cl = clus_dbs[:,0]*u.deg, clus_dbs[:,1]*u.deg
 
 
-
+    time_step = .25e4
     # ff = 2e5*u.yr  + time*5e5*u.yr
-    ff = 0*u.yr  + time*.5e4*u.yr
+    ff = 0*u.yr  + time*time_step*u.yr
     
     # Balistic dipesion (move each star in a straight line)
     # RA_cl = RA_cl.to(u.mas) - (clus_dbs[:,2]*u.mas/u.yr)*ff
     # DEC_cl = DEC_cl.to(u.mas) + (clus_dbs[:,3]*u.mas/u.yr)*ff
     
     # Balistic dipesion with uncertainty (move each star in a straight line)
-    pmx_delta = random.uniform(-clus_dbs[:,-5],clus_dbs[:,-5])
-    pmy_delta = random.uniform(-clus_dbs[:,-4],clus_dbs[:,-4])
+    pmx_delta = random.uniform(-clus_dbs[:,6],clus_dbs[:,6])
+    pmy_delta = random.uniform(-clus_dbs[:,7],clus_dbs[:,7])
     
     RA_cl =  RA_cl.to(u.mas) -  ((clus_dbs[:,2] + pmx_delta)*u.mas/u.yr)*ff
     DEC_cl = DEC_cl.to(u.mas) + ((clus_dbs[:,3] + pmy_delta)*u.mas/u.yr)*ff
@@ -492,6 +525,7 @@ for time in range(20):
     # DEC_cl = DEC_cl.to(u.mas) + (y*u.mas/u.yr)*ff
     
     # Dispersion of the pm by randomly changing the value with the value of the uncertainty
+    
     clus_dbs[:,2] = clus_dbs[:,2] + pmx_delta
     clus_dbs[:,3] = clus_dbs[:,3] + pmy_delta
     
@@ -515,6 +549,7 @@ for time in range(20):
     clus_sep_f = clus_sep_f[clus_sep_f[:,-1].argsort()]
     cum_f = np.cumsum(clus_sep_f[:,3])
     hl_f = np.where(cum_f < light/2)
+    # hl_f = np.where(cum_f < light)
     r_i = clus_sep_f[hl_f[0][-1]][-1]*3600
     
 # =============================================================================
@@ -532,70 +567,72 @@ for time in range(20):
 # =============================================================================
     
     ax[1].scatter(clus_dbs[:,0], clus_dbs[:,1])    
-    ax[1].scatter(clus_sep_f[:,0][hl_f], clus_sep_f[:,1][hl_f], color = 'fuchsia', label = 'hl_rad =%.2f, Time = %.3fMyr\n evol_times =%.1f'%(r_i,ff.value/1e6,ff.value/2e4))    
+    ax[1].scatter(clus_sep_f[:,0][hl_f], clus_sep_f[:,1][hl_f], color = 'fuchsia', label = 'hl_rad =%.2f, Time = %.3fMyr\n evol_times =%.1f'%(r_i,ff.value/1e6,ff.value/(5*time_step)))    
     ax[1].scatter(cen_RA,cen_DEC, s = 200, color ='r')
     ax[1].invert_xaxis()
     ax[1].legend()
     plt.show()
     # clus_dbs[:,0], clus_dbs[:,1]= RA_fut + res_RA, DEC_fut + res_DEC
-    np.savetxt(cls_to_throw + '%s_%.2fevol_times.txt'%(choosen_cluster,ff.value/2e4), 
-                np.c_[(RA_fut + res_RA).value,(DEC_fut + res_DEC).value,clus_dbs[:,2:6],clus_dbs[:,-2],clus_dbs[:,-1]], fmt = (2*'%.8f ' + 6*' %.4f'), header = 'RA, DEC, pmra, pmdec, f127, f153, H, Ks')
+    # np.savetxt(cls_to_throw + '%s_%.2fevol_times_knn_%s.txt'%(choosen_cluster,ff.value/(5*time_step), samples_dist), 
+    #             np.c_[(RA_fut + res_RA).value,(DEC_fut + res_DEC).value,clus_dbs[:,2:6],clus_dbs[:,-2],clus_dbs[:,-1]], fmt = (2*'%.8f ' + 6*' %.4f'), header = 'RA, DEC, pmra, pmdec, f127, f153, H, Ks')
     
     
 
 
 # %%
-# Values of runnig dbscab on Hoseck Arches and Quintuplet (not thorwn in Lib data)
-pruebas_hos = '/Users/amartinez/Desktop/PhD/Arches_and_Quintuplet_Hosek/pruebas/'
-# pm_ra pm_dec sig_pmra sig_dec radio eff_radio #stars
-Ar_dbs= np.loadtxt(pruebas_hos +  'Arches_dbs_statistic.txt',unpack = False)
-Qu_dbs = np.loadtxt(pruebas_hos +  'Quintuplet_dbs_statistic.txt')
-
-rows = [['Cluster','$\mu_{ra}$','$\mu_{dec}$','$\sigma_{\mu dec}$','$\sigma_{\mu dec}$', 'Radio','Radio$_{eff}$','stars'],
-        ['Arches H22',
-         '-0.80',
-         '-1.89',
-         '0.032 ($\sigma$/$\sqrt{N}$)',
-         '0.021($\sigma$/$\sqrt{N}$)',
-         '-',
-         '-',
-         '-'],
-        ['Arches recovered',
-         '%.2f$\pm$%.2f'%(np.mean(Ar_dbs[:,0]),np.std(Ar_dbs[:,0])),
-         '%.2f$\pm$%.2f'%(np.mean(Ar_dbs[:,1]),np.std(Ar_dbs[:,1])),
-         '%.2f$\pm$%.2f'%(np.mean(Ar_dbs[:,2]),np.std(Ar_dbs[:,2])),
-         '%.2f$\pm$%.2f'%(np.mean(Ar_dbs[:,3]),np.std(Ar_dbs[:,3])),
-         '%.2f$\pm$%.2f'%(np.mean(Ar_dbs[:,4]),np.std(Ar_dbs[:,4])),
-         '%.2f$\pm$%.2f'%(np.mean(Ar_dbs[:,5]),np.std(Ar_dbs[:,5])),
-         '%.0f$\pm$%.0f'%(np.mean(Ar_dbs[:,6]),np.std(Ar_dbs[:,6]))],
-        ['Quintuplet H22',
-         '-0.96',
-         '-2.29',
-         '0.032 ($\sigma$/$\sqrt{N}$)',
-         '0.023($\sigma$/$\sqrt{N}$)',
-         '-',
-         '-',
-         '-'],
-        ['Quintuplet recovered',
-         '%.2f$\pm$%.2f'%(np.mean(Qu_dbs[:,0]),np.std(Qu_dbs[:,0])),
-         '%.2f$\pm$%.2f'%(np.mean(Qu_dbs[:,1]),np.std(Qu_dbs[:,1])),
-         '%.2f$\pm$%.2f'%(np.mean(Qu_dbs[:,2]),np.std(Qu_dbs[:,2])),
-         '%.2f$\pm$%.2f'%(np.mean(Qu_dbs[:,3]),np.std(Qu_dbs[:,3])),
-         '%.2f$\pm$%.2f'%(np.mean(Qu_dbs[:,4]),np.std(Qu_dbs[:,4])),
-         '%.2f$\pm$%.2f'%(np.mean(Qu_dbs[:,5]),np.std(Qu_dbs[:,5])),
-         '%.0f$\pm$%.0f'%(np.mean(Qu_dbs[:,6]),np.std(Qu_dbs[:,6]))]]
-
-table = Texttable()
-table.set_cols_align(["c"] * len(rows[0]))
-table.set_deco(Texttable.HEADER | Texttable.VLINES)
-# table.set_cols_dtype(["t", "t","t", "t","t", "t","t"])#This is becouse is was changig the format to 3 decimal palces for some reason
-table.add_rows(rows)
-
-print(latextable.draw_latex(table, caption="Dbscan on Hosek data"
-                            ,use_booktabs=True, caption_above=True,label ='Table_no_disolved'))
-
-
-
+# =============================================================================
+# # Values of runnig dbscab on Hoseck Arches and Quintuplet (not thorwn in Lib data)
+# pruebas_hos = '/Users/amartinez/Desktop/PhD/Arches_and_Quintuplet_Hosek/pruebas/'
+# # pm_ra pm_dec sig_pmra sig_dec radio eff_radio #stars
+# Ar_dbs= np.loadtxt(pruebas_hos +  'Arches_dbs_statistic.txt',unpack = False)
+# Qu_dbs = np.loadtxt(pruebas_hos +  'Quintuplet_dbs_statistic.txt')
+# 
+# rows = [['Cluster','$\mu_{ra}$','$\mu_{dec}$','$\sigma_{\mu dec}$','$\sigma_{\mu dec}$', 'Radio','Radio$_{eff}$','stars'],
+#         ['Arches H22',
+#          '-0.80',
+#          '-1.89',
+#          '0.032 ($\sigma$/$\sqrt{N}$)',
+#          '0.021($\sigma$/$\sqrt{N}$)',
+#          '-',
+#          '-',
+#          '-'],
+#         ['Arches recovered',
+#          '%.2f$\pm$%.2f'%(np.mean(Ar_dbs[:,0]),np.std(Ar_dbs[:,0])),
+#          '%.2f$\pm$%.2f'%(np.mean(Ar_dbs[:,1]),np.std(Ar_dbs[:,1])),
+#          '%.2f$\pm$%.2f'%(np.mean(Ar_dbs[:,2]),np.std(Ar_dbs[:,2])),
+#          '%.2f$\pm$%.2f'%(np.mean(Ar_dbs[:,3]),np.std(Ar_dbs[:,3])),
+#          '%.2f$\pm$%.2f'%(np.mean(Ar_dbs[:,4]),np.std(Ar_dbs[:,4])),
+#          '%.2f$\pm$%.2f'%(np.mean(Ar_dbs[:,5]),np.std(Ar_dbs[:,5])),
+#          '%.0f$\pm$%.0f'%(np.mean(Ar_dbs[:,6]),np.std(Ar_dbs[:,6]))],
+#         ['Quintuplet H22',
+#          '-0.96',
+#          '-2.29',
+#          '0.032 ($\sigma$/$\sqrt{N}$)',
+#          '0.023($\sigma$/$\sqrt{N}$)',
+#          '-',
+#          '-',
+#          '-'],
+#         ['Quintuplet recovered',
+#          '%.2f$\pm$%.2f'%(np.mean(Qu_dbs[:,0]),np.std(Qu_dbs[:,0])),
+#          '%.2f$\pm$%.2f'%(np.mean(Qu_dbs[:,1]),np.std(Qu_dbs[:,1])),
+#          '%.2f$\pm$%.2f'%(np.mean(Qu_dbs[:,2]),np.std(Qu_dbs[:,2])),
+#          '%.2f$\pm$%.2f'%(np.mean(Qu_dbs[:,3]),np.std(Qu_dbs[:,3])),
+#          '%.2f$\pm$%.2f'%(np.mean(Qu_dbs[:,4]),np.std(Qu_dbs[:,4])),
+#          '%.2f$\pm$%.2f'%(np.mean(Qu_dbs[:,5]),np.std(Qu_dbs[:,5])),
+#          '%.0f$\pm$%.0f'%(np.mean(Qu_dbs[:,6]),np.std(Qu_dbs[:,6]))]]
+# 
+# table = Texttable()
+# table.set_cols_align(["c"] * len(rows[0]))
+# table.set_deco(Texttable.HEADER | Texttable.VLINES)
+# # table.set_cols_dtype(["t", "t","t", "t","t", "t","t"])#This is becouse is was changig the format to 3 decimal palces for some reason
+# table.add_rows(rows)
+# 
+# print(latextable.draw_latex(table, caption="Dbscan on Hosek data"
+#                             ,use_booktabs=True, caption_above=True,label ='Table_no_disolved'))
+# 
+# 
+# 
+# =============================================================================
 
 
 
