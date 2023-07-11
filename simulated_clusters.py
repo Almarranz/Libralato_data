@@ -29,7 +29,7 @@ from scipy.stats import gaussian_kde
 
 import astropy.coordinates as ap_coor
 import time
-
+import random
 # %%plotting parametres
 rcParams.update({'xtick.major.pad': '7.0'})
 rcParams.update({'xtick.major.size': '7.5'})
@@ -55,7 +55,7 @@ rc('font',**{'family':'serif','serif':['Palatino']})
 plt.rcParams.update({'figure.max_open_warning': 0})# a warniing for matplot lib pop up because so many plots, this turining it of
 # %%
 pruebas ='/Users/amartinez/Desktop/PhD/Libralato_data/pruebas/'
-sim_dir ='/Users/amartinez/Desktop/PhD/Libralato_data/simulated_stat/'
+sim_dir ='/Users/amartinez/Desktop/PhD/Libralato_data/simulated_no_cluster/'
 cata='/Users/amartinez/Desktop/PhD/Libralato_data/CATALOGS/'
 results='/Users/amartinez/Desktop/PhD/Libralato_data/results/'
 gns_ext = '/Users/amartinez/Desktop/PhD/Libralato_data/extinction_maps/'
@@ -63,23 +63,32 @@ carpeta = '/Users/amartinez/Desktop/PhD/Libralato_data/regions_for_simulations/'
 #Load a region generated in dbs_kernel_subsecA.py
 # This is a chunck of real Libralato data
 
-# dmu_lim = 2
-# area = 2.1
-# section ='A'
-# sub_sec = '3_3' 
-section = input('section =')
-area = input('area =')
-sub_sec = input('subsection =') 
-dmu_lim = input('dmu_lim =')
-simulated_by = input('Simulated by (kern or shuff):')
-samples_dist = input('Samples_dist(dbscan parameter =')
-samples_dist =int(samples_dist)
+section ='B'
+area = 20.0
+sub_sec = '1_0' 
+dmu_lim = 1
+simulated_by = 'kern'
+samples_dist = 25
+# clustered_by = 'all_color'#TODO we can choose look for clustes in 5D(all_color -> pm, position and color) or in 4D(all -> pm and position)
+clustered_by = 'all'#TODO
+# =============================================================================
+# section = input('section =')
+# area = input('area =')
+# sub_sec = input('subsection =') 
+# dmu_lim = input('dmu_lim =')
+# simulated_by = input('Simulated by (kern or shuff):')
+# samples_dist = input('Samples_dist(dbscan parameter =')
+# samples_dist =int(samples_dist)
+# =============================================================================
 #    0         1      2        3       4    5    6      7    8     9      10    11   12      13    14   15   16    17    18    19     20     22      23        
 #"'RA_gns','DE_gns','Jmag','Hmag','Ksmag','ra','dec','x_c','y_c','mua','dmua','mud','dmud','time','n1','n2','ID','mul','mub','dmul','dmub','m139','Separation'")
 data = np.loadtxt(carpeta + 'sec%s_area%s_%s_dmu%s.txt'%(section,area,sub_sec,dmu_lim))
 
-mul = data[:,17]
-mub = data[:,18]
+# mul = data[:,17]
+# mub = data[:,18]
+
+mul = data[:,9]
+mub = data[:,11]
 
 ra = data[:,0]
 dec = data[:,1]
@@ -114,14 +123,13 @@ ax[2].invert_yaxis()
 
 # I going to make a loop a save the statistisc of the simuated clusters, and see
 sim_clusted_stat =[]
-long_bucle = 10000
+long_bucle = 1
 tic = time.perf_counter()
 for bucle in range(long_bucle):
     dic_Xsim = {} 
     dic_Knn = {}
     # samples_dist = 9
-    clustered_by = 'all_color'#TODO we can choose look for clustes in 5D(all_color -> pm, position and color) or in 4D(all -> pm and position)
-    # clustered_by = 'all'#TODO
+    
     
     # simulated_by = 'kern'#TODO
     # simulated_by = 'shuff'#TODO
@@ -132,7 +140,7 @@ for bucle in range(long_bucle):
         x_kernel, y_kernel = gaussian_kde(x), gaussian_kde(y)
         ra_kernel, dec_kernel = gaussian_kde(ra), gaussian_kde(dec)
         color_kernel = gaussian_kde(colorines)
-        for d in range(20):
+        for d in range(10):
             mub_sim,  mul_sim = mub_kernel.resample(len(data)), mul_kernel.resample(len(data))
             x_sim, y_sim = x_kernel.resample(len(data)), y_kernel.resample(len(data))
             ra_sim, dec_sim = ra_kernel.resample(len(data)), dec_kernel.resample(len(data))
@@ -162,7 +170,7 @@ for bucle in range(long_bucle):
                 dic_Xsim['Xsim_%s'%(d)] = X_sim
                 dic_Knn['Knn_%s'%(d)] = d_KNN_sim
     if simulated_by == 'shuff':
-        for d in range(20):
+        for d in range(10):
             randomize = np.arange(len(data))
             np.random.shuffle(randomize)
             mul_sim,  mub_sim = mul[randomize], mub[randomize]
@@ -200,42 +208,46 @@ for bucle in range(long_bucle):
     d_KNN_min = min(lst_d_KNN_sim)
     d_KNN_max = max(lst_d_KNN_sim)
     # Retrieves the data set with the minumun K_NN that we will play the roll of real data
-    real = np.argmin(lst_d_KNN_sim)
+    # real = np.argmin(lst_d_KNN_sim)
+    # simu = np.argmax(lst_d_KNN_sim)
+    # Selects a random value as the real data and the mean as the simulated data.
+    real = random.choice(np.arange(len(lst_d_KNN_sim)))
     simu = np.argmax(lst_d_KNN_sim)
+    
+    # sys.exit('214')
     X = dic_Xsim['Xsim_%s'%(real)]
     d_KNN = dic_Knn['Knn_%s'%(real)]
     d_KNN_sim = dic_Knn['Knn_%s'%(simu)]
     eps_av = np.average([d_KNN_max,d_KNN_min])
     # Plotting the histogram for K-NN
-# =============================================================================
-#     fig, ax = plt.subplots(1,1,figsize=(10,10))
-#     # ax[0].set_title('Sub_sec_%s_%s'%(col[colum],row[ro]))
-#     # ax[0].plot(np.arange(0,len(datos),1),d_KNN,linewidth=1,color ='k')
-#     # ax[0].plot(np.arange(0,len(datos),1),d_KNN_sim, color = 'r')
-#     
-#     # # ax.legend(['knee=%s, min=%s, eps=%s, Dim.=%s'%(round(kneedle.elbow_y, 3),round(min(d_KNN),2),round(epsilon,2),len(X[0]))])
-#     # ax[0].set_xlabel('Point') 
-#     # ax[0].set_ylabel('%s-NN distance'%(samples)) 
-#     
-#     ax.hist(d_KNN,bins ='auto',histtype ='step',color = 'k')
-#     ax.hist(d_KNN_sim,bins ='auto',histtype ='step',color = 'r')
-#     ax.set_xlabel('%s-NN distance'%(samples_dist)) 
-#     
-#     
-#     texto = '\n'.join(('min d_KNN = %s'%(round(d_KNN_min,3)),
-#                         'max d_KNN =%s'%(round(d_KNN_max,3)),'average = %.3f'%(eps_av)))
-#     
-#     
-#     props = dict(boxstyle='round', facecolor='w', alpha=0.5)
-#     # place a text box in upper left in axes coords
-#     ax.text(0.65, 0.25, texto, transform=ax.transAxes, fontsize=20,
-#         verticalalignment='top', bbox=props)
-#     
-#     ax.set_ylabel('N') 
-#     ax.set_xlim(0,2)
-#     
-#     plt.show()
-# =============================================================================
+    fig, ax = plt.subplots(1,1,figsize=(10,10))
+    # ax[0].set_title('Sub_sec_%s_%s'%(col[colum],row[ro]))
+    # ax[0].plot(np.arange(0,len(datos),1),d_KNN,linewidth=1,color ='k')
+    # ax[0].plot(np.arange(0,len(datos),1),d_KNN_sim, color = 'r')
+    
+    # # ax.legend(['knee=%s, min=%s, eps=%s, Dim.=%s'%(round(kneedle.elbow_y, 3),round(min(d_KNN),2),round(epsilon,2),len(X[0]))])
+    # ax[0].set_xlabel('Point') 
+    # ax[0].set_ylabel('%s-NN distance'%(samples)) 
+    
+    ax.hist(d_KNN,bins ='auto',histtype ='step',color = 'k')
+    ax.hist(d_KNN_sim,bins ='auto',histtype ='step',color = 'r')
+    ax.set_xlabel('%s-NN distance'%(samples_dist)) 
+    
+    
+    texto = '\n'.join(('min d_KNN = %s'%(round(d_KNN_min,3)),
+                        'max d_KNN =%s'%(round(d_KNN_max,3)),'average = %.3f'%(eps_av)))
+    
+    
+    props = dict(boxstyle='round', facecolor='w', alpha=0.5)
+    # place a text box in upper left in axes coords
+    ax.text(0.65, 0.25, texto, transform=ax.transAxes, fontsize=20,
+        verticalalignment='top', bbox=props)
+    
+    ax.set_ylabel('N') 
+    ax.set_xlim(0,2)
+    
+    plt.show()
+   
     #Generates simulated coordinates for looking around later on
     coor_sim = SkyCoord(ra=X[:,2]*u.degree, dec=X[:,3]*u.degree, frame ='icrs', equinox = 'J2000', obstime = 'J2014.2')
     # =============================================================================
@@ -267,107 +279,107 @@ for bucle in range(long_bucle):
     for i in range(len(set(l))-1):
         sim_clusted_stat.append(X[colores_index[i]])
         
-# =============================================================================
-#         fig, ax = plt.subplots(1,3,figsize=(30,10))
-#         color_de_cluster = 'lime'
-#         # fig, ax = plt.subplots(1,3,figsize=(30,10))
-#         # ax[2].invert_yaxis()
-#         
-#         ax[0].set_title('Min %s-NN= %s. cluster by: %s '%(samples_dist,round(min(d_KNN_sim),3),clustered_by))
-#         # t_gal['l'] = t_gal['l'].wrap_at('180d')
-#         ax[0].scatter(X[:,0][colores_index[-1]],X[:,1][colores_index[-1]], color=colors[-1],s=50,zorder=1)
-#         ax[0].scatter(X[:,0],X[:,1], color=colors[-1],s=50,zorder=1)
-#         # ax[1].quiver(t_gal['l'][colores_index[-1]].value,t_gal['b'][colores_index[-1]].value, X[:,0][colores_index[-1]]-pms[2], X[:,1][colores_index[-1]]-pms[3], alpha=0.5, color=colors[-1])
-#     
-#         ax[0].scatter(X[:,0][colores_index[i]],X[:,1][colores_index[i]], color=color_de_cluster ,s=50,zorder=3)
-#         ax[0].set_xlim(-10,10)
-#         ax[0].set_ylim(-10,10)
-#         ax[0].set_xlabel(r'$\mathrm{\mu_{l} (mas\ yr^{-1})}$',fontsize =30) 
-#         ax[0].set_ylabel(r'$\mathrm{\mu_{b} (mas\ yr^{-1})}$',fontsize =30) 
-#         ax[0].invert_xaxis()
-#         ax[0].hlines(0,-10,10,linestyle = 'dashed', color ='red')
-#         
-#         mul_sig, mub_sig = np.std(X[:,0][colores_index[i]]), np.std(X[:,1][colores_index[i]])
-#         mul_mean, mub_mean = np.mean(X[:,0][colores_index[i]]), np.mean(X[:,1][colores_index[i]])
-#         
-#         mul_sig_all, mub_sig_all = np.std(X[:,0]), np.std(X[:,1])
-#         mul_mean_all, mub_mean_all = np.mean(X[:,0]), np.mean(X[:,1])
-#     
-#     
-#         vel_txt = '\n'.join(('mul = %s, mub = %s'%(round(mul_mean,3), round(mub_mean,3)),
-#                              '$\sigma_{mul}$ = %s, $\sigma_{mub}$ = %s'%(round(mul_sig,3), round(mub_sig,3)))) 
-#         vel_txt_all = '\n'.join(('mul = %s, mub = %s'%(round(mul_mean_all,3), round(mub_mean_all,3)),
-#                              '$\sigma_{mul}$ = %s, $\sigma_{mub}$ = %s'%(round(mul_sig_all,3), round(mub_sig_all,3))))
-#         
-#         propiedades = dict(boxstyle='round', facecolor=color_de_cluster , alpha=0.2)
-#         propiedades_all = dict(boxstyle='round', facecolor=colors[-1], alpha=0.1)
-#         ax[0].text(0.05, 0.95, vel_txt, transform=ax[0].transAxes, fontsize=30,
-#             verticalalignment='top', bbox=propiedades)
-#         ax[0].text(0.05, 0.15, vel_txt_all, transform=ax[0].transAxes, fontsize=20,
-#             verticalalignment='top', bbox=propiedades_all)
-#         
-#        
-#         
-#         
-#         #This calcualte the maximun distance between cluster members to have a stimation of the cluster radio
-#         c2 = SkyCoord(ra = X[:,2][colores_index[i]]*u.deg,dec = X[:,3][colores_index[i]]*u.deg,frame ='icrs', equinox = 'J2000', obstime = 'J2014.2')
-#         sep = [max(c2[c_mem].separation(c2)) for c_mem in range(len(c2))]
-#         rad = max(sep)/2
-#         
-#         radio_MS = max(sep)
-#         
-#         # This search for all the points around the cluster that are no cluster
-#         lista = []
-#         lista =np.zeros([len(c2),3])
-#         # for c_memb in range(len(c2)):
-#         #     distancia = list(c2[c_memb].separation(c2))
-#         #     # print(int(c_memb),int(distancia.index(max(distancia))),max(distancia).value)
-#         #     # a =int(c_memb)
-#         #     # b = int(distancia.index(max(distancia)))
-#         #     lista[c_memb][0:3]= int(c_memb),int(distancia.index(max(distancia))),max(distancia).value
-#         
-#         # coord_max_dist = list(lista[:,2]).index(max(lista[:,2]))
-#     
-#         # p1 = c2[int(lista[coord_max_dist][0])]
-#         # p2 = c2[int(lista[coord_max_dist][1])]
-#     
-#         # m_point = SkyCoord(ra = [(p2.ra+p1.ra)/2], dec = [(p2.dec +p1.dec)/2])
-#         
-#         m_point = SkyCoord(ra =[np.mean(c2.ra)], dec = [np.mean(c2.dec)],frame ='icrs', equinox = 'J2000', obstime = 'J2014.2')
-#         
-#         idxc, group_md, d2d,d3d =  ap_coor.search_around_sky(m_point,coor_sim, rad*2)
-#         
-#         ax[0].scatter(X[:,0][group_md],X[:,1][group_md], color='red',s=50,zorder=1,marker='x',alpha = 0.7)
-#     
-#         prop = dict(boxstyle='round', facecolor=color_de_cluster , alpha=0.2)
-#         ax[1].text(0.15, 0.95, 'aprox cluster radio = %s"\n cluster stars = %s '%(round(rad.to(u.arcsec).value,2),len(colores_index[i][0])), transform=ax[1].transAxes, fontsize=30,
-#                                 verticalalignment='top', bbox=prop)
-#         
-#         ax[1].scatter(X[:,2], X[:,3], color='k',s=50,zorder=1,alpha=0.01)#
-#         ax[1].scatter(X[:,2][colores_index[i]],X[:,3][colores_index[i]],color=color_de_cluster ,s=50,zorder=3)
-#         
-#         
-#         ax[1].scatter(X[:,2][group_md],X[:,3][group_md],s=50,color='r',alpha =0.1,marker ='x')
-#         ax[1].set_xlabel('Ra(deg)',fontsize =30) 
-#         ax[1].set_ylabel('Dec(deg)',fontsize =30) 
-#         ax[1].yaxis.set_major_formatter(FormatStrFormatter('%.2f'))
-#         ax[1].xaxis.set_major_formatter(FormatStrFormatter('%.2f'))
-#         # ax[1].set_title('col_row %.0f, %.0f.(%.2farcmin$^{2}$),Clus = %s'%(ic/0.5,jr/0.5,area,clus_num))
-#        
-#             
-#         if simulated_by == 'shuff':
-#             ax[2].scatter(H_sim - K_sim, K_sim, color = 'k', alpha = 0.05)
-#             # ax[2].scatter(H - K, K, color = 'k', alpha = 0.05)
-#             ax[2].invert_yaxis()
-#             ax[2].set_xlim(1.2,2.5)
-#         plt.show()
-# =============================================================================
+        fig, ax = plt.subplots(1,3,figsize=(30,10))
+        color_de_cluster = 'lime'
+        # fig, ax = plt.subplots(1,3,figsize=(30,10))
+        # ax[2].invert_yaxis()
+        
+        ax[0].set_title('Min %s-NN= %s. cluster by: %s '%(samples_dist,round(min(d_KNN_sim),3),clustered_by))
+        # t_gal['l'] = t_gal['l'].wrap_at('180d')
+        ax[0].scatter(X[:,0][colores_index[-1]],X[:,1][colores_index[-1]], color=colors[-1],s=50,zorder=1)
+        ax[0].scatter(X[:,0],X[:,1], color=colors[-1],s=50,zorder=1)
+        # ax[1].quiver(t_gal['l'][colores_index[-1]].value,t_gal['b'][colores_index[-1]].value, X[:,0][colores_index[-1]]-pms[2], X[:,1][colores_index[-1]]-pms[3], alpha=0.5, color=colors[-1])
+    
+        ax[0].scatter(X[:,0][colores_index[i]],X[:,1][colores_index[i]], color=color_de_cluster ,s=50,zorder=3)
+        # ax[0].set_xlim(-10,10)
+        # ax[0].set_ylim(-10,10)
+        ax[0].set_xlabel(r'$\mathrm{\mu_{l} (mas\ yr^{-1})}$',fontsize =30) 
+        ax[0].set_ylabel(r'$\mathrm{\mu_{b} (mas\ yr^{-1})}$',fontsize =30) 
+        ax[0].invert_xaxis()
+        # ax[0].hlines(0,-10,10,linestyle = 'dashed', color ='red')
+        
+        mul_sig, mub_sig = np.std(X[:,0][colores_index[i]]), np.std(X[:,1][colores_index[i]])
+        mul_mean, mub_mean = np.mean(X[:,0][colores_index[i]]), np.mean(X[:,1][colores_index[i]])
+        
+        mul_sig_all, mub_sig_all = np.std(X[:,0]), np.std(X[:,1])
+        mul_mean_all, mub_mean_all = np.mean(X[:,0]), np.mean(X[:,1])
+    
+    
+        vel_txt = '\n'.join(('mul = %s, mub = %s'%(round(mul_mean,3), round(mub_mean,3)),
+                             '$\sigma_{mul}$ = %s, $\sigma_{mub}$ = %s'%(round(mul_sig,3), round(mub_sig,3)))) 
+        vel_txt_all = '\n'.join(('mul = %s, mub = %s'%(round(mul_mean_all,3), round(mub_mean_all,3)),
+                             '$\sigma_{mul}$ = %s, $\sigma_{mub}$ = %s'%(round(mul_sig_all,3), round(mub_sig_all,3))))
+        
+        propiedades = dict(boxstyle='round', facecolor=color_de_cluster , alpha=0.2)
+        propiedades_all = dict(boxstyle='round', facecolor=colors[-1], alpha=0.1)
+        ax[0].text(0.05, 0.95, vel_txt, transform=ax[0].transAxes, fontsize=30,
+            verticalalignment='top', bbox=propiedades)
+        ax[0].text(0.05, 0.15, vel_txt_all, transform=ax[0].transAxes, fontsize=20,
+            verticalalignment='top', bbox=propiedades_all)
+        
+       
+        
+        
+        #This calcualte the maximun distance between cluster members to have a stimation of the cluster radio
+        c2 = SkyCoord(ra = X[:,2][colores_index[i]]*u.deg,dec = X[:,3][colores_index[i]]*u.deg,frame ='icrs', equinox = 'J2000', obstime = 'J2014.2')
+        sep = [max(c2[c_mem].separation(c2)) for c_mem in range(len(c2))]
+        rad = max(sep)/2
+        
+        radio_MS = max(sep)
+        
+        # This search for all the points around the cluster that are no cluster
+        lista = []
+        lista =np.zeros([len(c2),3])
+        # for c_memb in range(len(c2)):
+        #     distancia = list(c2[c_memb].separation(c2))
+        #     # print(int(c_memb),int(distancia.index(max(distancia))),max(distancia).value)
+        #     # a =int(c_memb)
+        #     # b = int(distancia.index(max(distancia)))
+        #     lista[c_memb][0:3]= int(c_memb),int(distancia.index(max(distancia))),max(distancia).value
+        
+        # coord_max_dist = list(lista[:,2]).index(max(lista[:,2]))
+    
+        # p1 = c2[int(lista[coord_max_dist][0])]
+        # p2 = c2[int(lista[coord_max_dist][1])]
+    
+        # m_point = SkyCoord(ra = [(p2.ra+p1.ra)/2], dec = [(p2.dec +p1.dec)/2])
+        
+        m_point = SkyCoord(ra =[np.mean(c2.ra)], dec = [np.mean(c2.dec)],frame ='icrs', equinox = 'J2000', obstime = 'J2014.2')
+        
+        idxc, group_md, d2d,d3d =  ap_coor.search_around_sky(m_point,coor_sim, rad*2)
+        
+        ax[0].scatter(X[:,0][group_md],X[:,1][group_md], color='red',s=50,zorder=1,marker='x',alpha = 0.7)
+    
+        prop = dict(boxstyle='round', facecolor=color_de_cluster , alpha=0.2)
+        ax[1].text(0.15, 0.95, 'aprox cluster radio = %s"\n cluster stars = %s '%(round(rad.to(u.arcsec).value,2),len(colores_index[i][0])), transform=ax[1].transAxes, fontsize=30,
+                                verticalalignment='top', bbox=prop)
+        
+        ax[1].scatter(X[:,2], X[:,3], color='k',s=50,zorder=1,alpha=0.01)#
+        ax[1].scatter(X[:,2][colores_index[i]],X[:,3][colores_index[i]],color=color_de_cluster ,s=50,zorder=3)
+        
+        
+        ax[1].scatter(X[:,2][group_md],X[:,3][group_md],s=50,color='r',alpha =0.1,marker ='x')
+        ax[1].set_xlabel('Ra(deg)',fontsize =30) 
+        ax[1].set_ylabel('Dec(deg)',fontsize =30) 
+        ax[1].yaxis.set_major_formatter(FormatStrFormatter('%.2f'))
+        ax[1].xaxis.set_major_formatter(FormatStrFormatter('%.2f'))
+        # ax[1].set_title('col_row %.0f, %.0f.(%.2farcmin$^{2}$),Clus = %s'%(ic/0.5,jr/0.5,area,clus_num))
+       
+            
+        if simulated_by == 'shuff':
+            ax[2].scatter(H_sim - K_sim, K_sim, color = 'k', alpha = 0.05)
+            ax[2].scatter(H_sim[colores_index[i]] - K_sim[colores_index[i]], K_sim[colores_index[i]], color = color_de_cluster,s=50,zorder=3)
+            # ax[2].scatter(H - K, K, color = 'k', alpha = 0.05)
+            ax[2].invert_yaxis()
+            ax[2].set_xlim(1.2,2.5)
+        plt.show()
     if bucle%500 == 0:
         print(30*'+')
         print('Bucle #%s'%(bucle))
         print(30*'+')
 toc = time.perf_counter()
 print('Performing %s loops took %.0f seconds'%(long_bucle,toc-tic))
+sys.exit('378')
 # %%
 sigm_values, mean_values = np.zeros((len(sim_clusted_stat),5)), np.zeros((len(sim_clusted_stat),5))
 for i in range(len(sim_clusted_stat)):
