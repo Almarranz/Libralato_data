@@ -63,14 +63,7 @@ carpeta = '/Users/amartinez/Desktop/PhD/Libralato_data/regions_for_simulations/'
 #Load a region generated in dbs_kernel_subsecA.py
 # This is a chunck of real Libralato data
 
-section ='B'
-area = 20.0
-sub_sec = '1_0' 
-dmu_lim = 1
-simulated_by = 'kern'
-samples_dist = 25
-# clustered_by = 'all_color'#TODO we can choose look for clustes in 5D(all_color -> pm, position and color) or in 4D(all -> pm and position)
-clustered_by = 'all'#TODO
+
 # =============================================================================
 # section = input('section =')
 # area = input('area =')
@@ -80,16 +73,75 @@ clustered_by = 'all'#TODO
 # samples_dist = input('Samples_dist(dbscan parameter =')
 # samples_dist =int(samples_dist)
 # =============================================================================
+
+simulated_by = 'kern'
+samples_dist = 15
+clustered_by = 'all_color'#TODO we can choose look for clustes in 5D(all_color -> pm, position and color) or in 4D(all -> pm and position)
+# clustered_by = 'all'#TODO
+radio = 50*u.arcsec
+
 #    0         1      2        3       4    5    6      7    8     9      10    11   12      13    14   15   16    17    18    19     20     22      23        
 #"'RA_gns','DE_gns','Jmag','Hmag','Ksmag','ra','dec','x_c','y_c','mua','dmua','mud','dmud','time','n1','n2','ID','mul','mub','dmul','dmub','m139','Separation'")
-data = np.loadtxt(carpeta + 'sec%s_area%s_%s_dmu%s.txt'%(section,area,sub_sec,dmu_lim))
+# data = np.loadtxt(carpeta + 'sec%s_area%s_%s_dmu%s.txt'%(section,area,sub_sec,dmu_lim))
+name='WFC3IR'
+trimmed_data='no'
+only_match = 'yes'
+trimmed_data = 'yes'
+if trimmed_data=='yes':
+    pre=''
+elif trimmed_data=='no':
+    pre='relaxed_'
+    
+else:
+    sys.exit("Have to set trimmed_data to either 'yes' or 'no'")
+data_all=np.loadtxt(results + '%smatch_GNS_and_%s_refined_galactic.txt'%(pre,name))
+# data_all=np.loadtxt(results + 'sec_B_relaxed_match_GNS_and_WFC3IR_refined_galactic.txt')
 
+# 'ra dec x_c  y_c mua dmua mud dmud time n1 n2 ID mul mub dmul dmub '
+
+# Definition of center can: m139 - Ks(libralato and GNS) or H - Ks(GNS and GNS)
+center_definition='G_G'#this variable can be L_G or G_G
+if center_definition =='L_G':
+    valid=np.where(np.isnan(data_all[:,4])==False)# This is for the valus than make Ks magnitude valid, but shouldn´t we do the same with the H magnitudes?
+    data_all=data_all[valid]
+    center=np.where(data_all[:,-2]-data_all[:,4]>3) # you can choose the way to make the color cut, as they did in libralato or as it is done in GNS
+elif center_definition =='G_G':
+    valid=np.where((np.isnan(data_all[:,3])==False) & (np.isnan(data_all[:,4])==False ))
+    data_all=data_all[valid]
+    center=np.where(data_all[:,3]-data_all[:,4]>1.3)
+data_all=data_all[center]
+dmu_lim = 1
+vel_lim = np.where((data_all[:,19]<=dmu_lim) & (data_all[:,20]<=dmu_lim))
+data_all=data_all[vel_lim]
+
+
+# This choose a random point in the catalog and select stars around it
+# =============================================================================
+# rand_point = random.choice(np.arange(len(data_all)))
+# coordenadas = SkyCoord(ra=data_all[:,0]*u.degree, dec=data_all[:,1]*u.degree, frame ='icrs', equinox = 'J2000', obstime = 'J2014.2')#
+# rand_coord = SkyCoord(ra = [coordenadas[rand_point].ra], dec = [coordenadas[rand_point].dec])
+# idxc, group, d2d,d3d = coordenadas.search_around_sky(rand_coord,radio)
+# =============================================================================
+
+# This will select stars aroun a choosen massive stars
+yso=np.loadtxt(cata+'GALCEN_TABLE_D.cat',usecols=(0,1,2))
+m_star = [14996]
+ind = np.where(yso[:,2] == m_star[0])[0][0]
+print(yso[ind])
+coordenadas = SkyCoord(ra=data_all[:,0]*u.degree, dec=data_all[:,1]*u.degree, frame ='icrs', equinox = 'J2000', obstime = 'J2014.2')#
+rand_coord = SkyCoord(ra = [yso[ind][0]], dec = [yso[ind][1]], unit = 'degree')
+idxc, group, d2d,d3d = coordenadas.search_around_sky(rand_coord,radio)
+
+
+
+data = data_all[group]
+# sys.exit('121')
 # mul = data[:,17]
 # mub = data[:,18]
 
-mul = data[:,9]
-mub = data[:,11]
-
+mul_or = data[:,9]
+mub_or = data[:,11]
+# 
 ra = data[:,0]
 dec = data[:,1]
 x,y = data[:,7], data[:,8]
@@ -97,37 +149,67 @@ x,y = data[:,7], data[:,8]
 H = data[:,3]
 K = data[:,4]
 
-
-#Coordinates in galactic
-coordenadas = SkyCoord(ra=ra*u.degree, dec=dec*u.degree, frame ='icrs', equinox = 'J2000', obstime = 'J2014.2')#
-gal_c=coordenadas.galactic
-t_gal= QTable([gal_c.l,gal_c.b], names=('l','b'))
-
-fig, ax = plt.subplots(1,3, figsize =(30,10))
-ax[0].scatter(mul,mub,alpha =0.05)
-ax[0].set_xlim(-15,10)
-ax[0].invert_xaxis()
-# ax[1].scatter(t_gal['l'],t_gal['b'])
-ax[1].scatter(x,y)
-ax[2].scatter(H-K,K,alpha =0.1)
-ax[2].set_xlim(1.2,3)
-ax[2].invert_yaxis()
-
-# %%
-# Now we generate the simulated data. Of all the simulations we will select as
-# the real data those with the minimun value of K-NN
-# =============================================================================
-# Note to myself: tried generated the simulated data with the kernel
-# and with the suffle. Is something weird about the kernnel for the color...
-# =============================================================================
-
+with open(pruebas + 'clus_from_simul_knn%s_rad%s.txt'%(samples_dist,radio.value),'w') as file:
+    file.write('# mu_ra 0, mu_dec 1, sig(mu_Ra) 2, sig(mu_Dec) 3, radio 4, #stars 5, H-Ks 6, sigma (H-Ks) 7,delta(H-Ks) 8, densidad 9, loop 10, bucle 11 \n')
 # I going to make a loop a save the statistisc of the simuated clusters, and see
 sim_clusted_stat =[]
-long_bucle = 1
+long_bucle = 5
 tic = time.perf_counter()
 for bucle in range(long_bucle):
-    dic_Xsim = {} 
-    dic_Knn = {}
+
+    # We are going to use the shuffle to generate the rela population.
+    # This will destroy any real cluster in the data.
+    randomize = np.arange(len(data))
+    np.random.shuffle(randomize)
+    mul, mub = mul_or[randomize], mub_or[randomize]
+    # mul, mub = mul_or, mub_or
+    color_real = H-K
+    
+    
+    if clustered_by == 'all_color':
+        # X=np.array([mul,mub,x,y,color_real]).T
+        X=np.array([mul,mub,ra,dec,color_real]).T
+        # X_stad = RobustScaler(quantile_range=(25, 75)).fit_transform(X)#TODO
+        X_stad = StandardScaler().fit_transform(X)
+        tree = KDTree(X_stad, leaf_size=2) 
+        dist, ind = tree.query(X_stad, k=samples_dist) #DistNnce to the 1,2,3...k neighbour
+        d_KNN=sorted(dist[:,-1])#distance to the Kth neighbour
+    elif clustered_by == 'all':
+        # X=np.array([mul,mub,x,y]).T
+        X=np.array([mul,mub,ra,dec]).T
+        
+        X_stad = StandardScaler().fit_transform(X)
+        tree = KDTree(X_stad, leaf_size=2) 
+        dist, ind = tree.query(X_stad, k=samples_dist) #DistNnce to the 1,2,3...k neighbour
+        d_KNN=sorted(dist[:,-1])#distance to the Kth neighbour
+    
+    # sys.exit(126)
+    #Coordinates in galactic
+    coordenadas = SkyCoord(ra=ra*u.degree, dec=dec*u.degree, frame ='icrs', equinox = 'J2000', obstime = 'J2014.2')#
+    gal_c=coordenadas.galactic
+    t_gal= QTable([gal_c.l,gal_c.b], names=('l','b'))
+# %%
+    fig, ax = plt.subplots(1,3, figsize =(30,10))
+    ax[0].scatter(mul,mub,alpha =0.05)
+    ax[0].set_xlim(-15,10)
+    ax[0].invert_xaxis()
+    ax[1].scatter(data_all[:,0],data_all[:,1],color = 'k')
+    ax[1].scatter(ra,dec)
+    ax[2].scatter(H-K,K,alpha =0.1)
+    ax[2].set_xlim(1.2,3)
+    ax[2].invert_yaxis()
+    # sys.exit(141)
+    # %%
+    # Now we generate the simulated data. Of all the simulations we will select as
+    # the real data those with the minimun value of K-NN
+    # =============================================================================
+    # Note to myself: tried generated the simulated data with the kernel
+    # and with the suffle. Is something weird about the kernnel for the color...
+    # =============================================================================
+
+
+    # dic_Xsim = {} 
+    # dic_Knn = {}
     # samples_dist = 9
     
     
@@ -155,8 +237,8 @@ for bucle in range(long_bucle):
                 dist_sim, ind_sim = tree_sim.query(X_stad_sim, k=samples_dist) #DistNnce to the 1,2,3...k neighbour
                 d_KNN_sim=sorted(dist_sim[:,-1])#distance to the Kth neighbour
                 lst_d_KNN_sim.append(min(d_KNN_sim))
-                dic_Xsim['Xsim_%s'%(d)] = X_sim
-                dic_Knn['Knn_%s'%(d)] = d_KNN_sim
+                # dic_Xsim['Xsim_%s'%(d)] = X_sim
+                # dic_Knn['Knn_%s'%(d)] = d_KNN_sim
             if clustered_by == 'all':
                 # X_sim=np.array([mul_sim[0],mub_sim[0],x_sim[0],y_sim[0],color_sim[0]]).T
                 X_sim=np.array([mul_sim[0],mub_sim[0],ra_sim[0],dec_sim[0]]).T
@@ -167,8 +249,9 @@ for bucle in range(long_bucle):
                 dist_sim, ind_sim = tree_sim.query(X_stad_sim, k=samples_dist) #DistNnce to the 1,2,3...k neighbour
                 d_KNN_sim=sorted(dist_sim[:,-1])#distance to the Kth neighbour
                 lst_d_KNN_sim.append(min(d_KNN_sim))
-                dic_Xsim['Xsim_%s'%(d)] = X_sim
-                dic_Knn['Knn_%s'%(d)] = d_KNN_sim
+                # dic_Xsim['Xsim_%s'%(d)] = X_sim
+                # dic_Knn['Knn_%s'%(d)] = d_KNN_sim
+    
     if simulated_by == 'shuff':
         for d in range(10):
             randomize = np.arange(len(data))
@@ -190,8 +273,8 @@ for bucle in range(long_bucle):
                 dist_sim, ind_sim = tree_sim.query(X_stad_sim, k=samples_dist) #DistNnce to the 1,2,3...k neighbour
                 d_KNN_sim=sorted(dist_sim[:,-1])#distance to the Kth neighbour
                 lst_d_KNN_sim.append(min(d_KNN_sim))
-                dic_Xsim['Xsim_%s'%(d)] = X_sim
-                dic_Knn['Knn_%s'%(d)] = d_KNN_sim
+                # dic_Xsim['Xsim_%s'%(d)] = X_sim
+                # dic_Knn['Knn_%s'%(d)] = d_KNN_sim
             if clustered_by == 'all':
                 # X_sim=np.array([mul_sim[0],mub_sim[0],x_sim[0],y_sim[0],color_sim[0]]).T
                 X_sim=np.array([mul_sim,mub_sim,ra_sim,dec_sim]).T
@@ -202,8 +285,8 @@ for bucle in range(long_bucle):
                 dist_sim, ind_sim = tree_sim.query(X_stad_sim, k=samples_dist) #DistNnce to the 1,2,3...k neighbour
                 d_KNN_sim=sorted(dist_sim[:,-1])#distance to the Kth neighbour
                 lst_d_KNN_sim.append(min(d_KNN_sim))
-                dic_Xsim['Xsim_%s'%(d)] = X_sim
-                dic_Knn['Knn_%s'%(d)] = d_KNN_sim
+                # dic_Xsim['Xsim_%s'%(d)] = X_sim
+                # dic_Knn['Knn_%s'%(d)] = d_KNN_sim
     
     d_KNN_min = min(lst_d_KNN_sim)
     d_KNN_max = max(lst_d_KNN_sim)
@@ -211,30 +294,24 @@ for bucle in range(long_bucle):
     # real = np.argmin(lst_d_KNN_sim)
     # simu = np.argmax(lst_d_KNN_sim)
     # Selects a random value as the real data and the mean as the simulated data.
-    real = random.choice(np.arange(len(lst_d_KNN_sim)))
-    simu = np.argmax(lst_d_KNN_sim)
+    real = np.argmin(d_KNN)
+    # simu = random.choice(np.arange(len(lst_d_KNN_sim)))
     
-    # sys.exit('214')
-    X = dic_Xsim['Xsim_%s'%(real)]
-    d_KNN = dic_Knn['Knn_%s'%(real)]
-    d_KNN_sim = dic_Knn['Knn_%s'%(simu)]
-    eps_av = np.average([d_KNN_max,d_KNN_min])
+    # sys.exit('244')
+    # X = dic_Xsim['Xsim_%s'%(real)]
+    # d_KNN = dic_Knn['Knn_%s'%(real)]
+    # d_KNN_sim = dic_Knn['Knn_%s'%(simu)]
+    eps_av_sim = np.mean([d_KNN_max,d_KNN_min])
+    eps_av = np.mean([d_KNN[real],eps_av_sim])
     # Plotting the histogram for K-NN
     fig, ax = plt.subplots(1,1,figsize=(10,10))
-    # ax[0].set_title('Sub_sec_%s_%s'%(col[colum],row[ro]))
-    # ax[0].plot(np.arange(0,len(datos),1),d_KNN,linewidth=1,color ='k')
-    # ax[0].plot(np.arange(0,len(datos),1),d_KNN_sim, color = 'r')
-    
-    # # ax.legend(['knee=%s, min=%s, eps=%s, Dim.=%s'%(round(kneedle.elbow_y, 3),round(min(d_KNN),2),round(epsilon,2),len(X[0]))])
-    # ax[0].set_xlabel('Point') 
-    # ax[0].set_ylabel('%s-NN distance'%(samples)) 
     
     ax.hist(d_KNN,bins ='auto',histtype ='step',color = 'k')
     ax.hist(d_KNN_sim,bins ='auto',histtype ='step',color = 'r')
     ax.set_xlabel('%s-NN distance'%(samples_dist)) 
     
     
-    texto = '\n'.join(('min d_KNN = %s'%(round(d_KNN_min,3)),
+    texto = '\n'.join(('Real d_KNN = %.3f'%(d_KNN[real]),'min d_KNN = %s'%(round(d_KNN_min,3)),
                         'max d_KNN =%s'%(round(d_KNN_max,3)),'average = %.3f'%(eps_av)))
     
     
@@ -247,7 +324,7 @@ for bucle in range(long_bucle):
     ax.set_xlim(0,2)
     
     plt.show()
-   
+    # sys.exit('277')
     #Generates simulated coordinates for looking around later on
     coor_sim = SkyCoord(ra=X[:,2]*u.degree, dec=X[:,3]*u.degree, frame ='icrs', equinox = 'J2000', obstime = 'J2014.2')
     # =============================================================================
@@ -364,16 +441,35 @@ for bucle in range(long_bucle):
         ax[1].yaxis.set_major_formatter(FormatStrFormatter('%.2f'))
         ax[1].xaxis.set_major_formatter(FormatStrFormatter('%.2f'))
         # ax[1].set_title('col_row %.0f, %.0f.(%.2farcmin$^{2}$),Clus = %s'%(ic/0.5,jr/0.5,area,clus_num))
-       
+        txt_around = '\n'.join(('$\overline{H-Ks}$ =%.2f'%(np.median(H[group_md]-K[group_md])),
+                             '$\sigma_{(H-Ks)}$ = %.2f'%(np.std(H[group_md]-K[group_md])),
+                             '$\Delta$ (H-Ks) = %.2f'%(max(H[group_md]-K[group_md])-min(H[group_md]-K[group_md]))))
+        props_arou = dict(boxstyle='round', facecolor='red', alpha=0.2)
+        ax[2].text(0.65, 0.19,txt_around, transform=ax[2].transAxes, fontsize=20,
+            verticalalignment='top', bbox=props_arou)
             
-        if simulated_by == 'shuff':
-            ax[2].scatter(H_sim - K_sim, K_sim, color = 'k', alpha = 0.05)
-            ax[2].scatter(H_sim[colores_index[i]] - K_sim[colores_index[i]], K_sim[colores_index[i]], color = color_de_cluster,s=50,zorder=3)
-            # ax[2].scatter(H - K, K, color = 'k', alpha = 0.05)
-            ax[2].invert_yaxis()
-            ax[2].set_xlim(1.2,2.5)
+        txt_color = '\n'.join(('$\overline{H-Ks}$ =%.2f'%(np.median(H[colores_index[i]]-K[colores_index[i]])),
+                             '$\sigma_{(H-Ks)}$ = %.2f'%(np.std(H[colores_index[i]]-K[colores_index[i]])),
+                             '$\Delta(H-Ks)$ = %.2f'%(max(H[colores_index[i]]-K[colores_index[i]])-min(H[colores_index[i]]-K[colores_index[i]]))))
+        
+        props = dict(boxstyle='round', facecolor=color_de_cluster, alpha=0.2)
+        # # place a text box in upper left in axes coords
+        ax[2].text(0.50, 0.95, txt_color, transform=ax[2].transAxes, fontsize=30,
+            verticalalignment='top', bbox=props)
+        ax[2].scatter(H - K, K, color = 'k', alpha = 0.05)
+        ax[2].scatter(H[colores_index[i]] - K[colores_index[i]], K[colores_index[i]], color = color_de_cluster,s=50,zorder=3)
+        ax[2].scatter(H[group_md] - K[group_md], K[group_md], color = 'red', alpha = 0.05)
+        ax[2].invert_yaxis()
+        ax[2].set_xlim(1.5,3.5)
         plt.show()
-    if bucle%500 == 0:
+        densidad = len(colores_index[i][0])/rad.to(u.arcsec).value
+        with open(pruebas + 'clus_from_simul_knn%s_rad%s.txt'%(samples_dist,radio.value),'a') as file:
+            file.write('%.4f %.4f %.4f %.4f %.1f %.0f %.4f %.4f %.4f %.1f %.0f %.0f\n'%( mul_mean, mub_mean,mul_sig, mub_sig,
+                                                                                      rad.to(u.arcsec).value,len(colores_index[i][0]),
+                                                                                        np.median(H[colores_index[i]]-K[colores_index[i]]),np.std(H[colores_index[i]]-K[colores_index[i]]),max(H[colores_index[i]]-K[colores_index[i]])-min(H[colores_index[i]]-K[colores_index[i]]),
+                                                                                        densidad,i, bucle))
+
+    if bucle%5   == 0:
         print(30*'+')
         print('Bucle #%s'%(bucle))
         print(30*'+')
