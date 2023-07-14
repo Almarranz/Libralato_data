@@ -30,6 +30,7 @@ from scipy.stats import gaussian_kde
 import astropy.coordinates as ap_coor
 import time
 import random
+import alphashape
 # %%plotting parametres
 rcParams.update({'xtick.major.pad': '7.0'})
 rcParams.update({'xtick.major.size': '7.5'})
@@ -148,12 +149,20 @@ x,y = data[:,7], data[:,8]
 
 H = data[:,3]
 K = data[:,4]
+saving_esta = 'no'
+if saving_esta == 'no':
+    answer = input(' You are not saving youir data\n Continue?')
+elif saving_esta == 'yes':
+    answer =  input(' You are about to save\n Continue?')
 
-with open(pruebas + 'clus_from_simul_knn%s_rad%s.txt'%(samples_dist,radio.value),'w') as file:
-    file.write('# mu_ra 0, mu_dec 1, sig(mu_Ra) 2, sig(mu_Dec) 3, radio 4, #stars 5, H-Ks 6, sigma (H-Ks) 7,delta(H-Ks) 8, densidad 9, loop 10, bucle 11 \n')
+if answer == 'no':
+    sys.exit('You stoped the thing')
+if saving_esta == 'yes':
+    with open(pruebas + 'clus_from_simul_ID%sknn%s_rad%s.txt'%(m_star[0],samples_dist,radio.value),'w') as file:
+        file.write('# mu_ra 0, mu_dec 1, sig(mu_Ra) 2, sig(mu_Dec) 3, area 4, #stars 5, H-Ks 6, sigma (H-Ks) 7,delta(H-Ks) 8, densidad 9, loop 10, bucle 11 \n')
 # I going to make a loop a save the statistisc of the simuated clusters, and see
 sim_clusted_stat =[]
-long_bucle = 5
+long_bucle = 50
 tic = time.perf_counter()
 for bucle in range(long_bucle):
 
@@ -189,15 +198,17 @@ for bucle in range(long_bucle):
     gal_c=coordenadas.galactic
     t_gal= QTable([gal_c.l,gal_c.b], names=('l','b'))
 # %%
-    fig, ax = plt.subplots(1,3, figsize =(30,10))
-    ax[0].scatter(mul,mub,alpha =0.05)
-    ax[0].set_xlim(-15,10)
-    ax[0].invert_xaxis()
-    ax[1].scatter(data_all[:,0],data_all[:,1],color = 'k')
-    ax[1].scatter(ra,dec)
-    ax[2].scatter(H-K,K,alpha =0.1)
-    ax[2].set_xlim(1.2,3)
-    ax[2].invert_yaxis()
+# =============================================================================
+#     fig, ax = plt.subplots(1,3, figsize =(30,10))
+#     ax[0].scatter(mul,mub,alpha =0.05)
+#     ax[0].set_xlim(-15,10)
+#     ax[0].invert_xaxis()
+#     ax[1].scatter(data_all[:,0],data_all[:,1],color = 'k')
+#     ax[1].scatter(ra,dec)
+#     ax[2].scatter(H-K,K,alpha =0.1)
+#     ax[2].set_xlim(1.2,3)
+#     ax[2].invert_yaxis()
+# =============================================================================
     # sys.exit(141)
     # %%
     # Now we generate the simulated data. Of all the simulations we will select as
@@ -371,7 +382,7 @@ for bucle in range(long_bucle):
         # ax[0].set_xlim(-10,10)
         # ax[0].set_ylim(-10,10)
         ax[0].set_xlabel(r'$\mathrm{\mu_{l} (mas\ yr^{-1})}$',fontsize =30) 
-        ax[0].set_ylabel(r'$\mathrm{\mu_{b} (mas\ yr^{-1})}$',fontsize =30) 
+        # ax[0].set_ylabel(r'$\mathrm{\mu_{b} (mas\ yr^{-1})}$',fontsize =30) 
         ax[0].invert_xaxis()
         # ax[0].hlines(0,-10,10,linestyle = 'dashed', color ='red')
         
@@ -405,8 +416,8 @@ for bucle in range(long_bucle):
         radio_MS = max(sep)
         
         # This search for all the points around the cluster that are no cluster
-        lista = []
-        lista =np.zeros([len(c2),3])
+        # lista = []
+        # lista =np.zeros([len(c2),3])
         # for c_memb in range(len(c2)):
         #     distancia = list(c2[c_memb].separation(c2))
         #     # print(int(c_memb),int(distancia.index(max(distancia))),max(distancia).value)
@@ -433,6 +444,19 @@ for bucle in range(long_bucle):
         
         ax[1].scatter(X[:,2], X[:,3], color='k',s=50,zorder=1,alpha=0.01)#
         ax[1].scatter(X[:,2][colores_index[i]],X[:,3][colores_index[i]],color=color_de_cluster ,s=50,zorder=3)
+        
+        p2d = np.array([X[:,2][colores_index[i]],X[:,3][colores_index[i]]]).T
+        
+        al_sh = alphashape.alphashape(p2d,400)
+        
+        tipo = al_sh.type
+        if tipo == 'MultiPolygon':
+            contorno = {}
+            for ci,cont in enumerate(al_sh.geoms):
+                contorno['cont%s'%(ci)] = al_sh.geoms[ci].exterior.coords[:]
+        elif tipo != 'MultiPolygon':
+            contorno = np.array(al_sh.exterior.coords[:])
+        supf = al_sh.area*3600
         
         
         ax[1].scatter(X[:,2][group_md],X[:,3][group_md],s=50,color='r',alpha =0.1,marker ='x')
@@ -461,130 +485,52 @@ for bucle in range(long_bucle):
         ax[2].scatter(H[group_md] - K[group_md], K[group_md], color = 'red', alpha = 0.05)
         ax[2].invert_yaxis()
         ax[2].set_xlim(1.5,3.5)
+        densidad = len(colores_index[i][0])/supf
+        if tipo == 'MultiPolygon':
+            for cd in range(len(contorno)):
+                ax[1].plot(np.array(contorno['cont%s'%(cd)])[:,0],np.array(contorno['cont%s'%(cd)])[:,1], label = 'Dens = %.0f stars/min2'%(densidad))
+            print()
+        elif tipo != 'MultiPolygon':
+            ax[1].plot(contorno[:,0],contorno[:,1], label = 'Dens = %.0f stars/min2'%(densidad))
+        ax[1].legend(loc = 3)
         plt.show()
-        densidad = len(colores_index[i][0])/rad.to(u.arcsec).value
-        with open(pruebas + 'clus_from_simul_knn%s_rad%s.txt'%(samples_dist,radio.value),'a') as file:
-            file.write('%.4f %.4f %.4f %.4f %.1f %.0f %.4f %.4f %.4f %.1f %.0f %.0f\n'%( mul_mean, mub_mean,mul_sig, mub_sig,
-                                                                                      rad.to(u.arcsec).value,len(colores_index[i][0]),
-                                                                                        np.median(H[colores_index[i]]-K[colores_index[i]]),np.std(H[colores_index[i]]-K[colores_index[i]]),max(H[colores_index[i]]-K[colores_index[i]])-min(H[colores_index[i]]-K[colores_index[i]]),
-                                                                                        densidad,i, bucle))
+        if saving_esta == 'yes':
+            with open(pruebas + 'clus_from_simul_ID%sknn%s_rad%s.txt'%(m_star[0],samples_dist,radio.value),'a') as file:
+                file.write('%.4f %.4f %.4f %.4f %.1f %.0f %.4f %.4f %.4f %.1f %.0f %.0f\n'%( mul_mean, mub_mean,mul_sig, mub_sig,
+                                                                                          supf,len(colores_index[i][0]),
+                                                                                            np.median(H[colores_index[i]]-K[colores_index[i]]),np.std(H[colores_index[i]]-K[colores_index[i]]),max(H[colores_index[i]]-K[colores_index[i]])-min(H[colores_index[i]]-K[colores_index[i]]),
+                                                                                            densidad,i, bucle))
 
-    if bucle%5   == 0:
+    if bucle%500 == 0:
         print(30*'+')
         print('Bucle #%s'%(bucle))
         print(30*'+')
 toc = time.perf_counter()
 print('Performing %s loops took %.0f seconds'%(long_bucle,toc-tic))
-sys.exit('378')
+sys.exit('512')
 # %%
-sigm_values, mean_values = np.zeros((len(sim_clusted_stat),5)), np.zeros((len(sim_clusted_stat),5))
-for i in range(len(sim_clusted_stat)):
-    clus_sta = np.vstack(sim_clusted_stat[i])
-    sigm_values[i] = np.std(clus_sta[:,0]),np.std(clus_sta[:,1]),np.std(clus_sta[:,2]),np.std(clus_sta[:,3]),np.std(clus_sta[:,4])
-    mean_values[i] = np.mean(clus_sta[:,0]),np.mean(clus_sta[:,1]),np.mean(clus_sta[:,2]),np.mean(clus_sta[:,3]),np.mean(clus_sta[:,4])
-np.savetxt(sim_dir + 'sec%s_%s_std_area%s_dmul%s_%sims_%s.txt'%(section,sub_sec,
-                                                             area,dmu_lim,long_bucle,simulated_by), np.array(mean_values),fmt = '%.5f', header ='mul, mub, ra, dec, color')  
-np.savetxt(sim_dir + 'sig_sec%s_%s_std_area%s_dmul%s_%sims_%s.txt'%(section,sub_sec,
-                                                             area,dmu_lim,long_bucle,simulated_by), np.array(sigm_values),fmt = '%.5f', header ='sig_mul, sig_mub, sig_ra, sig_dec, sig_color')
+# mu_ra 0, mu_dec 1, sig(mu_Ra) 2, sig(mu_Dec) 3, area 4, #stars 5, H-Ks 6, sigma (H-Ks) 7,delta(H-Ks) 8, densidad 9, loop 10, bucle 11
+sim_data = np.loadtxt(pruebas  + 'clus_from_simul_ID%sknn%s_rad%s.txt'%(m_star[0],samples_dist,radio.value))
+
+fig, ax = plt.subplots(1,1, figsize=(10,10))
+im = ax.hist2d(sim_data[:,5],sim_data[:,9], cmap = 'Greys_r')
+# im = ax.hist2d(sim_data[:,5],sim_data[:,9], cmap ='inferno')
+ax.scatter(89, 317, marker = 'x', color = 'red')
+ax.set_xlabel('# stars')
+ax.set_ylabel('Density (# stars/min$^{2}$)')
+fig.colorbar(im[3], ax=ax)
+ax.set_ylim(80,400)
+ax.axvline(samples_dist, color = 'r')
+# ax.set_aspect('equal',adjustable ='box')
+# plt.colorbar(im, ax =ax)
+
 # %%
-# 1
-fig, ax = plt.subplots(1,2, figsize=(20,10))
-gra = 0
-eje = 0
-ax[gra].set_title('Sec%s_%s, area%s, dmul: %s, method: %s '%(section, sub_sec, area, dmu_lim,simulated_by))
-ax[gra].hist(mean_values[:,eje], bins ='auto')
-ax[gra].axvline(np.mean(mean_values[:,eje]), color ='k', linewidth =3, 
-              label = 'mean %.2f'%(np.mean(mean_values[:,eje])))
-ax[gra].axvline(np.mean(mean_values[:,eje]-np.std(mean_values[:,eje])),ls = '--', color ='k', linewidth =3,
-              label = '$\sigma \pm$ %.2f'%(np.std(mean_values[:,eje])))
-ax[gra].axvline(np.mean(mean_values[:,eje]+np.std(mean_values[:,eje])),ls = '--', color ='k', linewidth =3)
-ax[gra].legend()
-ax[gra].set_xlabel('$\overline{\mu}_{l}$',fontsize = 30)
+fig, ax = plt.subplots(1,1, figsize=(10,10))
+ax.scatter(sim_data[:,5],sim_data[:,9], cmap = 'Greys')
+ax.scatter(89, 317, marker = 'x', color = 'red')
+ax.set_xlabel('# stars')
+ax.set_ylabel('Density (# stars/min$^{2}$)')
+ax.axvline(samples_dist, color = 'r')
+# fig.colorbar(im[3], ax=ax)
+# ax.set_ylim(0,400)
 
-gra = 1
-eje = 1
-ax[gra].hist(mean_values[:,eje], bins ='auto')
-ax[gra].axvline(np.mean(mean_values[:,eje]), color ='k', linewidth =3, 
-              label = 'mean %.2f'%(np.mean(mean_values[:,eje])))
-ax[gra].axvline(np.mean(mean_values[:,eje]-np.std(mean_values[:,eje])),ls = '--', color ='k', linewidth =3,
-              label = '$\sigma \pm$ %.2f'%(np.std(mean_values[:,eje])))
-ax[gra].axvline(np.mean(mean_values[:,eje]+np.std(mean_values[:,eje])),ls = '--', color ='k', linewidth =3)
-ax[gra].legend()
-ax[gra].set_xlabel('$\overline{\mu}_{b}$',fontsize = 30)
-# %
-# 2
-fig, ax = plt.subplots(1,2, figsize=(20,10))
-gra = 0
-eje = 2
-ax[gra].set_title('Sec%s_%s, area%s, dmul: %s, method: %s '%(section, sub_sec, area, dmu_lim,simulated_by))
-
-ax[gra].hist(mean_values[:,eje], bins ='auto')
-ax[gra].axvline(np.mean(mean_values[:,eje]), color ='k', linewidth =3, 
-              label = 'mean %.2f'%(np.mean(mean_values[:,eje])))
-ax[gra].axvline(np.mean(mean_values[:,eje]-np.std(mean_values[:,eje])),ls = '--', color ='k', linewidth =3,
-              label = '$\sigma \pm$ %.2f'%(np.std(mean_values[:,eje])))
-ax[gra].axvline(np.mean(mean_values[:,eje]+np.std(mean_values[:,eje])),ls = '--', color ='k', linewidth =3)
-ax[gra].legend()
-ax[gra].set_xlabel('Ra',fontsize = 30)
-
-gra = 1
-eje = 3
-ax[gra].hist(mean_values[:,eje], bins ='auto')
-ax[gra].axvline(np.mean(mean_values[:,eje]), color ='k', linewidth =3, 
-              label = 'mean %.2f'%(np.mean(mean_values[:,eje])))
-ax[gra].axvline(np.mean(mean_values[:,eje]-np.std(mean_values[:,eje])),ls = '--', color ='k', linewidth =3,
-              label = '$\sigma \pm$ %.2f'%(np.std(mean_values[:,eje])))
-ax[gra].axvline(np.mean(mean_values[:,eje]+np.std(mean_values[:,eje])),ls = '--', color ='k', linewidth =3)
-ax[gra].legend()
-ax[gra].set_xlabel('Dec',fontsize = 30)
-# %
-# 3
-fig, ax = plt.subplots(1,2, figsize=(20,10))
-
-gra = 0
-eje = 4
-ax[gra].set_title('Sec%s_%s, area%s, dmul: %s, method: %s '%(section, sub_sec, area, dmu_lim,simulated_by))
-
-ax[gra].hist(mean_values[:,eje], bins ='auto')
-ax[gra].axvline(np.mean(mean_values[:,eje]), color ='k', linewidth =3, 
-              label = 'mean %.2f'%(np.mean(mean_values[:,eje])))
-ax[gra].axvline(np.mean(mean_values[:,eje]-np.std(mean_values[:,eje])),ls = '--', color ='k', linewidth =3,
-              label = '$\sigma \pm$ %.2f'%(np.std(mean_values[:,eje])))
-ax[gra].axvline(np.mean(mean_values[:,eje]+np.std(mean_values[:,eje])),ls = '--', color ='k', linewidth =3)
-ax[gra].legend()
-ax[gra].set_xlabel('Color (H - Ks)',fontsize = 30)
-
-# %
-# 4
-fig, ax = plt.subplots(1,2, figsize=(20,10))
-
-
-gra = 0
-eje = 0
-ax[gra].set_title('Sec%s_%s, area%s, dmul: %s, method: %s '%(section, sub_sec, area, dmu_lim,simulated_by))
-
-ax[gra].hist(sigm_values[:,eje], bins ='auto')
-ax[gra].axvline(np.mean(sigm_values[:,eje]), color ='k', linewidth =3, 
-              label = 'mean %.2f'%(np.mean(sigm_values[:,eje])))
-ax[gra].axvline(np.mean(sigm_values[:,eje]-np.std(sigm_values[:,eje])),ls = '--', color ='k', linewidth =3,
-              label = '$\sigma \pm$ %.2f'%(np.std(sigm_values[:,eje])))
-ax[gra].axvline(np.mean(sigm_values[:,eje]+np.std(sigm_values[:,eje])),ls = '--', color ='k', linewidth =3)
-ax[gra].legend()
-ax[gra].set_xlabel('$\overline{\sigma}_{l}$',fontsize = 30)
-
-gra = 1
-eje = 1
-ax[gra].hist(sigm_values[:,eje], bins ='auto')
-ax[gra].axvline(np.mean(sigm_values[:,eje]), color ='k', linewidth =3, 
-              label = 'mean %.2f'%(np.mean(sigm_values[:,eje])))
-ax[gra].axvline(np.mean(sigm_values[:,eje]-np.std(sigm_values[:,eje])),ls = '--', color ='k', linewidth =3,
-              label = '$\sigma \pm$ %.2f'%(np.std(sigm_values[:,eje])))
-ax[gra].axvline(np.mean(sigm_values[:,eje]+np.std(sigm_values[:,eje])),ls = '--', color ='k', linewidth =3)
-ax[gra].legend()
-ax[gra].set_xlabel('$\overline{\sigma}_{b}$',fontsize = 30)
-      
-      
-      
-      
-      
-      
