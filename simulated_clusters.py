@@ -149,7 +149,7 @@ x,y = data[:,7], data[:,8]
 
 H = data[:,3]
 K = data[:,4]
-saving_esta = 'no'
+saving_esta = 'yes'#TODO
 if saving_esta == 'no':
     answer = input(' You are not saving youir data\n Continue?')
 elif saving_esta == 'yes':
@@ -162,7 +162,7 @@ if saving_esta == 'yes':
         file.write('# mu_ra 0, mu_dec 1, sig(mu_Ra) 2, sig(mu_Dec) 3, area 4, #stars 5, H-Ks 6, sigma (H-Ks) 7,delta(H-Ks) 8, densidad 9, loop 10, bucle 11 \n')
 # I going to make a loop a save the statistisc of the simuated clusters, and see
 sim_clusted_stat =[]
-long_bucle = 50
+long_bucle = 500
 tic = time.perf_counter()
 for bucle in range(long_bucle):
 
@@ -315,26 +315,28 @@ for bucle in range(long_bucle):
     eps_av_sim = np.mean([d_KNN_max,d_KNN_min])
     eps_av = np.mean([d_KNN[real],eps_av_sim])
     # Plotting the histogram for K-NN
-    fig, ax = plt.subplots(1,1,figsize=(10,10))
-    
-    ax.hist(d_KNN,bins ='auto',histtype ='step',color = 'k')
-    ax.hist(d_KNN_sim,bins ='auto',histtype ='step',color = 'r')
-    ax.set_xlabel('%s-NN distance'%(samples_dist)) 
-    
-    
-    texto = '\n'.join(('Real d_KNN = %.3f'%(d_KNN[real]),'min d_KNN = %s'%(round(d_KNN_min,3)),
-                        'max d_KNN =%s'%(round(d_KNN_max,3)),'average = %.3f'%(eps_av)))
-    
-    
-    props = dict(boxstyle='round', facecolor='w', alpha=0.5)
-    # place a text box in upper left in axes coords
-    ax.text(0.65, 0.25, texto, transform=ax.transAxes, fontsize=20,
-        verticalalignment='top', bbox=props)
-    
-    ax.set_ylabel('N') 
-    ax.set_xlim(0,2)
-    
-    plt.show()
+# =============================================================================
+#     fig, ax = plt.subplots(1,1,figsize=(10,10))
+#     
+#     ax.hist(d_KNN,bins ='auto',histtype ='step',color = 'k')
+#     ax.hist(d_KNN_sim,bins ='auto',histtype ='step',color = 'r')
+#     ax.set_xlabel('%s-NN distance'%(samples_dist)) 
+#     
+#     
+#     texto = '\n'.join(('Real d_KNN = %.3f'%(d_KNN[real]),'min d_KNN = %s'%(round(d_KNN_min,3)),
+#                         'max d_KNN =%s'%(round(d_KNN_max,3)),'average = %.3f'%(eps_av)))
+#     
+#     
+#     props = dict(boxstyle='round', facecolor='w', alpha=0.5)
+#     # place a text box in upper left in axes coords
+#     ax.text(0.65, 0.25, texto, transform=ax.transAxes, fontsize=20,
+#         verticalalignment='top', bbox=props)
+#     
+#     ax.set_ylabel('N') 
+#     ax.set_xlim(0,2)
+#     
+#     plt.show()
+# =============================================================================
     # sys.exit('277')
     #Generates simulated coordinates for looking around later on
     coor_sim = SkyCoord(ra=X[:,2]*u.degree, dec=X[:,3]*u.degree, frame ='icrs', equinox = 'J2000', obstime = 'J2014.2')
@@ -367,24 +369,26 @@ for bucle in range(long_bucle):
     for i in range(len(set(l))-1):
         sim_clusted_stat.append(X[colores_index[i]])
         
-        fig, ax = plt.subplots(1,3,figsize=(30,10))
-        color_de_cluster = 'lime'
-        # fig, ax = plt.subplots(1,3,figsize=(30,10))
-        # ax[2].invert_yaxis()
-        
-        ax[0].set_title('Min %s-NN= %s. cluster by: %s '%(samples_dist,round(min(d_KNN_sim),3),clustered_by))
-        # t_gal['l'] = t_gal['l'].wrap_at('180d')
-        ax[0].scatter(X[:,0][colores_index[-1]],X[:,1][colores_index[-1]], color=colors[-1],s=50,zorder=1)
-        ax[0].scatter(X[:,0],X[:,1], color=colors[-1],s=50,zorder=1)
-        # ax[1].quiver(t_gal['l'][colores_index[-1]].value,t_gal['b'][colores_index[-1]].value, X[:,0][colores_index[-1]]-pms[2], X[:,1][colores_index[-1]]-pms[3], alpha=0.5, color=colors[-1])
-    
-        ax[0].scatter(X[:,0][colores_index[i]],X[:,1][colores_index[i]], color=color_de_cluster ,s=50,zorder=3)
-        # ax[0].set_xlim(-10,10)
-        # ax[0].set_ylim(-10,10)
-        ax[0].set_xlabel(r'$\mathrm{\mu_{l} (mas\ yr^{-1})}$',fontsize =30) 
-        # ax[0].set_ylabel(r'$\mathrm{\mu_{b} (mas\ yr^{-1})}$',fontsize =30) 
-        ax[0].invert_xaxis()
-        # ax[0].hlines(0,-10,10,linestyle = 'dashed', color ='red')
+# =============================================================================
+#         fig, ax = plt.subplots(1,3,figsize=(30,10))
+#         color_de_cluster = 'lime'
+#         # fig, ax = plt.subplots(1,3,figsize=(30,10))
+#         # ax[2].invert_yaxis()
+#         
+#         ax[0].set_title('Min %s-NN= %s. cluster by: %s '%(samples_dist,round(min(d_KNN_sim),3),clustered_by))
+#         # t_gal['l'] = t_gal['l'].wrap_at('180d')
+#         ax[0].scatter(X[:,0][colores_index[-1]],X[:,1][colores_index[-1]], color=colors[-1],s=50,zorder=1)
+#         ax[0].scatter(X[:,0],X[:,1], color=colors[-1],s=50,zorder=1)
+#         # ax[1].quiver(t_gal['l'][colores_index[-1]].value,t_gal['b'][colores_index[-1]].value, X[:,0][colores_index[-1]]-pms[2], X[:,1][colores_index[-1]]-pms[3], alpha=0.5, color=colors[-1])
+#     
+#         ax[0].scatter(X[:,0][colores_index[i]],X[:,1][colores_index[i]], color=color_de_cluster ,s=50,zorder=3)
+#         # ax[0].set_xlim(-10,10)
+#         # ax[0].set_ylim(-10,10)
+#         ax[0].set_xlabel(r'$\mathrm{\mu_{l} (mas\ yr^{-1})}$',fontsize =30) 
+#         # ax[0].set_ylabel(r'$\mathrm{\mu_{b} (mas\ yr^{-1})}$',fontsize =30) 
+#         ax[0].invert_xaxis()
+#         # ax[0].hlines(0,-10,10,linestyle = 'dashed', color ='red')
+# =============================================================================
         
         mul_sig, mub_sig = np.std(X[:,0][colores_index[i]]), np.std(X[:,1][colores_index[i]])
         mul_mean, mub_mean = np.mean(X[:,0][colores_index[i]]), np.mean(X[:,1][colores_index[i]])
@@ -393,19 +397,21 @@ for bucle in range(long_bucle):
         mul_mean_all, mub_mean_all = np.mean(X[:,0]), np.mean(X[:,1])
     
     
-        vel_txt = '\n'.join(('mul = %s, mub = %s'%(round(mul_mean,3), round(mub_mean,3)),
-                             '$\sigma_{mul}$ = %s, $\sigma_{mub}$ = %s'%(round(mul_sig,3), round(mub_sig,3)))) 
-        vel_txt_all = '\n'.join(('mul = %s, mub = %s'%(round(mul_mean_all,3), round(mub_mean_all,3)),
-                             '$\sigma_{mul}$ = %s, $\sigma_{mub}$ = %s'%(round(mul_sig_all,3), round(mub_sig_all,3))))
-        
-        propiedades = dict(boxstyle='round', facecolor=color_de_cluster , alpha=0.2)
-        propiedades_all = dict(boxstyle='round', facecolor=colors[-1], alpha=0.1)
-        ax[0].text(0.05, 0.95, vel_txt, transform=ax[0].transAxes, fontsize=30,
-            verticalalignment='top', bbox=propiedades)
-        ax[0].text(0.05, 0.15, vel_txt_all, transform=ax[0].transAxes, fontsize=20,
-            verticalalignment='top', bbox=propiedades_all)
-        
-       
+# =============================================================================
+#         vel_txt = '\n'.join(('mul = %s, mub = %s'%(round(mul_mean,3), round(mub_mean,3)),
+#                              '$\sigma_{mul}$ = %s, $\sigma_{mub}$ = %s'%(round(mul_sig,3), round(mub_sig,3)))) 
+#         vel_txt_all = '\n'.join(('mul = %s, mub = %s'%(round(mul_mean_all,3), round(mub_mean_all,3)),
+#                              '$\sigma_{mul}$ = %s, $\sigma_{mub}$ = %s'%(round(mul_sig_all,3), round(mub_sig_all,3))))
+#         
+#         propiedades = dict(boxstyle='round', facecolor=color_de_cluster , alpha=0.2)
+#         propiedades_all = dict(boxstyle='round', facecolor=colors[-1], alpha=0.1)
+#         ax[0].text(0.05, 0.95, vel_txt, transform=ax[0].transAxes, fontsize=30,
+#             verticalalignment='top', bbox=propiedades)
+#         ax[0].text(0.05, 0.15, vel_txt_all, transform=ax[0].transAxes, fontsize=20,
+#             verticalalignment='top', bbox=propiedades_all)
+#         
+#        
+# =============================================================================
         
         
         #This calcualte the maximun distance between cluster members to have a stimation of the cluster radio
@@ -432,18 +438,20 @@ for bucle in range(long_bucle):
     
         # m_point = SkyCoord(ra = [(p2.ra+p1.ra)/2], dec = [(p2.dec +p1.dec)/2])
         
-        m_point = SkyCoord(ra =[np.mean(c2.ra)], dec = [np.mean(c2.dec)],frame ='icrs', equinox = 'J2000', obstime = 'J2014.2')
-        
-        idxc, group_md, d2d,d3d =  ap_coor.search_around_sky(m_point,coor_sim, rad*2)
-        
-        ax[0].scatter(X[:,0][group_md],X[:,1][group_md], color='red',s=50,zorder=1,marker='x',alpha = 0.7)
-    
-        prop = dict(boxstyle='round', facecolor=color_de_cluster , alpha=0.2)
-        ax[1].text(0.15, 0.95, 'aprox cluster radio = %s"\n cluster stars = %s '%(round(rad.to(u.arcsec).value,2),len(colores_index[i][0])), transform=ax[1].transAxes, fontsize=30,
-                                verticalalignment='top', bbox=prop)
-        
-        ax[1].scatter(X[:,2], X[:,3], color='k',s=50,zorder=1,alpha=0.01)#
-        ax[1].scatter(X[:,2][colores_index[i]],X[:,3][colores_index[i]],color=color_de_cluster ,s=50,zorder=3)
+# =============================================================================
+#         m_point = SkyCoord(ra =[np.mean(c2.ra)], dec = [np.mean(c2.dec)],frame ='icrs', equinox = 'J2000', obstime = 'J2014.2')
+#         
+#         idxc, group_md, d2d,d3d =  ap_coor.search_around_sky(m_point,coor_sim, rad*2)
+#         
+#         ax[0].scatter(X[:,0][group_md],X[:,1][group_md], color='red',s=50,zorder=1,marker='x',alpha = 0.7)
+#     
+#         prop = dict(boxstyle='round', facecolor=color_de_cluster , alpha=0.2)
+#         ax[1].text(0.15, 0.95, 'aprox cluster radio = %s"\n cluster stars = %s '%(round(rad.to(u.arcsec).value,2),len(colores_index[i][0])), transform=ax[1].transAxes, fontsize=30,
+#                                 verticalalignment='top', bbox=prop)
+#         
+#         ax[1].scatter(X[:,2], X[:,3], color='k',s=50,zorder=1,alpha=0.01)#
+#         ax[1].scatter(X[:,2][colores_index[i]],X[:,3][colores_index[i]],color=color_de_cluster ,s=50,zorder=3)
+# =============================================================================
         
         p2d = np.array([X[:,2][colores_index[i]],X[:,3][colores_index[i]]]).T
         
@@ -459,41 +467,45 @@ for bucle in range(long_bucle):
         supf = al_sh.area*3600
         
         
-        ax[1].scatter(X[:,2][group_md],X[:,3][group_md],s=50,color='r',alpha =0.1,marker ='x')
-        ax[1].set_xlabel('Ra(deg)',fontsize =30) 
-        ax[1].set_ylabel('Dec(deg)',fontsize =30) 
-        ax[1].yaxis.set_major_formatter(FormatStrFormatter('%.2f'))
-        ax[1].xaxis.set_major_formatter(FormatStrFormatter('%.2f'))
-        # ax[1].set_title('col_row %.0f, %.0f.(%.2farcmin$^{2}$),Clus = %s'%(ic/0.5,jr/0.5,area,clus_num))
-        txt_around = '\n'.join(('$\overline{H-Ks}$ =%.2f'%(np.median(H[group_md]-K[group_md])),
-                             '$\sigma_{(H-Ks)}$ = %.2f'%(np.std(H[group_md]-K[group_md])),
-                             '$\Delta$ (H-Ks) = %.2f'%(max(H[group_md]-K[group_md])-min(H[group_md]-K[group_md]))))
-        props_arou = dict(boxstyle='round', facecolor='red', alpha=0.2)
-        ax[2].text(0.65, 0.19,txt_around, transform=ax[2].transAxes, fontsize=20,
-            verticalalignment='top', bbox=props_arou)
-            
-        txt_color = '\n'.join(('$\overline{H-Ks}$ =%.2f'%(np.median(H[colores_index[i]]-K[colores_index[i]])),
-                             '$\sigma_{(H-Ks)}$ = %.2f'%(np.std(H[colores_index[i]]-K[colores_index[i]])),
-                             '$\Delta(H-Ks)$ = %.2f'%(max(H[colores_index[i]]-K[colores_index[i]])-min(H[colores_index[i]]-K[colores_index[i]]))))
-        
-        props = dict(boxstyle='round', facecolor=color_de_cluster, alpha=0.2)
-        # # place a text box in upper left in axes coords
-        ax[2].text(0.50, 0.95, txt_color, transform=ax[2].transAxes, fontsize=30,
-            verticalalignment='top', bbox=props)
-        ax[2].scatter(H - K, K, color = 'k', alpha = 0.05)
-        ax[2].scatter(H[colores_index[i]] - K[colores_index[i]], K[colores_index[i]], color = color_de_cluster,s=50,zorder=3)
-        ax[2].scatter(H[group_md] - K[group_md], K[group_md], color = 'red', alpha = 0.05)
-        ax[2].invert_yaxis()
-        ax[2].set_xlim(1.5,3.5)
+# =============================================================================
+#         ax[1].scatter(X[:,2][group_md],X[:,3][group_md],s=50,color='r',alpha =0.1,marker ='x')
+#         ax[1].set_xlabel('Ra(deg)',fontsize =30) 
+#         ax[1].set_ylabel('Dec(deg)',fontsize =30) 
+#         ax[1].yaxis.set_major_formatter(FormatStrFormatter('%.2f'))
+#         ax[1].xaxis.set_major_formatter(FormatStrFormatter('%.2f'))
+#         # ax[1].set_title('col_row %.0f, %.0f.(%.2farcmin$^{2}$),Clus = %s'%(ic/0.5,jr/0.5,area,clus_num))
+#         txt_around = '\n'.join(('$\overline{H-Ks}$ =%.2f'%(np.median(H[group_md]-K[group_md])),
+#                              '$\sigma_{(H-Ks)}$ = %.2f'%(np.std(H[group_md]-K[group_md])),
+#                              '$\Delta$ (H-Ks) = %.2f'%(max(H[group_md]-K[group_md])-min(H[group_md]-K[group_md]))))
+#         props_arou = dict(boxstyle='round', facecolor='red', alpha=0.2)
+#         ax[2].text(0.65, 0.19,txt_around, transform=ax[2].transAxes, fontsize=20,
+#             verticalalignment='top', bbox=props_arou)
+#             
+#         txt_color = '\n'.join(('$\overline{H-Ks}$ =%.2f'%(np.median(H[colores_index[i]]-K[colores_index[i]])),
+#                              '$\sigma_{(H-Ks)}$ = %.2f'%(np.std(H[colores_index[i]]-K[colores_index[i]])),
+#                              '$\Delta(H-Ks)$ = %.2f'%(max(H[colores_index[i]]-K[colores_index[i]])-min(H[colores_index[i]]-K[colores_index[i]]))))
+#         
+#         props = dict(boxstyle='round', facecolor=color_de_cluster, alpha=0.2)
+#         # # place a text box in upper left in axes coords
+#         ax[2].text(0.50, 0.95, txt_color, transform=ax[2].transAxes, fontsize=30,
+#             verticalalignment='top', bbox=props)
+#         ax[2].scatter(H - K, K, color = 'k', alpha = 0.05)
+#         ax[2].scatter(H[colores_index[i]] - K[colores_index[i]], K[colores_index[i]], color = color_de_cluster,s=50,zorder=3)
+#         ax[2].scatter(H[group_md] - K[group_md], K[group_md], color = 'red', alpha = 0.05)
+#         ax[2].invert_yaxis()
+#         ax[2].set_xlim(1.5,3.5)
+# =============================================================================
         densidad = len(colores_index[i][0])/supf
-        if tipo == 'MultiPolygon':
-            for cd in range(len(contorno)):
-                ax[1].plot(np.array(contorno['cont%s'%(cd)])[:,0],np.array(contorno['cont%s'%(cd)])[:,1], label = 'Dens = %.0f stars/min2'%(densidad))
-            print()
-        elif tipo != 'MultiPolygon':
-            ax[1].plot(contorno[:,0],contorno[:,1], label = 'Dens = %.0f stars/min2'%(densidad))
-        ax[1].legend(loc = 3)
-        plt.show()
+# =============================================================================
+#         if tipo == 'MultiPolygon':
+#             for cd in range(len(contorno)):
+#                 ax[1].plot(np.array(contorno['cont%s'%(cd)])[:,0],np.array(contorno['cont%s'%(cd)])[:,1], label = 'Dens = %.0f stars/min2'%(densidad))
+#             print()
+#         elif tipo != 'MultiPolygon':
+#             ax[1].plot(contorno[:,0],contorno[:,1], label = 'Dens = %.0f stars/min2'%(densidad))
+#         ax[1].legend(loc = 3)
+#         plt.show()
+# =============================================================================
         if saving_esta == 'yes':
             with open(pruebas + 'clus_from_simul_ID%sknn%s_rad%s.txt'%(m_star[0],samples_dist,radio.value),'a') as file:
                 file.write('%.4f %.4f %.4f %.4f %.1f %.0f %.4f %.4f %.4f %.1f %.0f %.0f\n'%( mul_mean, mub_mean,mul_sig, mub_sig,
@@ -501,7 +513,7 @@ for bucle in range(long_bucle):
                                                                                             np.median(H[colores_index[i]]-K[colores_index[i]]),np.std(H[colores_index[i]]-K[colores_index[i]]),max(H[colores_index[i]]-K[colores_index[i]])-min(H[colores_index[i]]-K[colores_index[i]]),
                                                                                             densidad,i, bucle))
 
-    if bucle%500 == 0:
+    if bucle%50 == 0:
         print(30*'+')
         print('Bucle #%s'%(bucle))
         print(30*'+')
@@ -509,18 +521,28 @@ toc = time.perf_counter()
 print('Performing %s loops took %.0f seconds'%(long_bucle,toc-tic))
 sys.exit('512')
 # %%
+from matplotlib.colors import LinearSegmentedColormap
+
 # mu_ra 0, mu_dec 1, sig(mu_Ra) 2, sig(mu_Dec) 3, area 4, #stars 5, H-Ks 6, sigma (H-Ks) 7,delta(H-Ks) 8, densidad 9, loop 10, bucle 11
 sim_data = np.loadtxt(pruebas  + 'clus_from_simul_ID%sknn%s_rad%s.txt'%(m_star[0],samples_dist,radio.value))
-
+white_viridis = LinearSegmentedColormap.from_list('white_viridis', [
+    (0, '#ffffff'),
+    (1e-20, '#440053'),
+    (0.2, '#404388'),
+    (0.4, '#2a788e'),
+    (0.6, '#21a784'),
+    (0.8, '#78d151'),
+    (1, '#fde624'),
+], N=256)
 fig, ax = plt.subplots(1,1, figsize=(10,10))
-im = ax.hist2d(sim_data[:,5],sim_data[:,9], cmap = 'Greys_r')
-# im = ax.hist2d(sim_data[:,5],sim_data[:,9], cmap ='inferno')
 ax.scatter(89, 317, marker = 'x', color = 'red')
+im = ax.hist2d(sim_data[:,5],sim_data[:,9],bins = (10,20), cmap = 'winter')
 ax.set_xlabel('# stars')
 ax.set_ylabel('Density (# stars/min$^{2}$)')
 fig.colorbar(im[3], ax=ax)
-ax.set_ylim(80,400)
-ax.axvline(samples_dist, color = 'r')
+ax.set_xlim(0,100)
+ax.set_ylim(100,400)
+ax.axvline(samples_dist, color = 'r',linestyle ='dashed')
 # ax.set_aspect('equal',adjustable ='box')
 # plt.colorbar(im, ax =ax)
 
@@ -529,8 +551,94 @@ fig, ax = plt.subplots(1,1, figsize=(10,10))
 ax.scatter(sim_data[:,5],sim_data[:,9], cmap = 'Greys')
 ax.scatter(89, 317, marker = 'x', color = 'red')
 ax.set_xlabel('# stars')
-ax.set_ylabel('Density (# stars/min$^{2}$)')
+ax.set_ylabel('$\\rho$ (# stars/min$^{2}$)')
 ax.axvline(samples_dist, color = 'r')
 # fig.colorbar(im[3], ax=ax)
 # ax.set_ylim(0,400)
+# %%
+import mpl_scatter_density # adds projection='scatter_density'
+from matplotlib.colors import LinearSegmentedColormap
+
+
+# "Viridis-like" colormap with white background
+white_viridis = LinearSegmentedColormap.from_list('white_viridis', [
+    (0, '#ffffff'),
+    (1e-20, '#440053'),
+    (0.2, '#404388'),
+    (0.4, '#2a788e'),
+    (0.6, '#21a784'),
+    (0.8, '#78d151'),
+    (1, '#fde624'),
+], N=256)
+
+
+def using_mpl_scatter_density(fig, x, y):
+    ax = fig.add_subplot(1, 1, 1, projection='scatter_density')
+    density = ax.scatter_density(x, y, cmap=white_viridis,markersize=20)
+    fig.colorbar(density, label='Number of points per pixel')
+
+fig = plt.figure()
+using_mpl_scatter_density(fig,sim_data[:,5], sim_data[:,9])
+plt.show()
+
+# %%
+import numpy as np
+import matplotlib.pyplot as plt
+from scipy.stats import gaussian_kde
+
+# Generate fake data
+x = sim_data[:,5]
+y = sim_data[:,9]
+
+# Calculate the point density
+xy = np.vstack([x,y])
+z = gaussian_kde(xy)(xy)
+
+# Sort the points by density, so that the densest points are plotted last
+idx = z.argsort()
+x, y, z = x[idx], y[idx], z[idx]
+
+fig, ax = plt.subplots()
+im = ax.scatter(x, y, c=z, s=50)
+ax.scatter(89, 317, marker = 'x', color = 'red')
+fig.colorbar(im)
+plt.show()
+
+# %%
+import numpy as np
+import matplotlib.pyplot as plt
+from matplotlib import cm
+from matplotlib.colors import Normalize 
+from scipy.interpolate import interpn
+
+def density_scatter( x , y, ax = None, sort = True, bins = 20, **kwargs )   :
+    """
+    Scatter plot colored by 2d histogram
+    """
+    if ax is None :
+        fig , ax = plt.subplots()
+    data , x_e, y_e = np.histogram2d( x, y, bins = bins, density = True )
+    z = interpn( ( 0.5*(x_e[1:] + x_e[:-1]) , 0.5*(y_e[1:]+y_e[:-1]) ) , data , np.vstack([x,y]).T , method = "splinef2d", bounds_error = False)
+
+    #To be sure to plot all data
+    z[np.where(np.isnan(z))] = 0.0
+
+    # Sort the points by density, so that the densest points are plotted last
+    if sort :
+        idx = z.argsort()
+        x, y, z = x[idx], y[idx], z[idx]
+
+    ax.scatter( x, y, c=z, **kwargs )
+
+    norm = Normalize(vmin = np.min(z), vmax = np.max(z))
+    cbar = fig.colorbar(cm.ScalarMappable(norm = norm), ax=ax)
+    cbar.ax.set_ylabel('$\\rho$')
+
+    return ax
+
+
+
+
+density_scatter( x , y, ax = None, sort = True, bins = 20 ) 
+
 
