@@ -23,6 +23,7 @@ from astropy.io import fits
 from astropy import wcs
 from astropy.wcs import WCS
 import alphashape
+import species
 # %%plotting pa    metres
 from matplotlib import rc
 from matplotlib import rcParams
@@ -304,6 +305,33 @@ def dbscan_GC(pmra, pmdec, x, y,Ra,Dec, color_A, color_B, color_C, clustered_by,
                 
                 radio_MS = max(sep)
                 
+                # Added this bit to calculate the half-light radio (eff radio)
+                # arches_dbs = arches[colores_index[i]]
+                # all_mag_clus = arches_dbs['F153M']
+                clus_cent = SkyCoord(ra =[np.mean(Ra[colores_index[i]])], dec = [np.mean(Dec[colores_index[i]])],
+                                   unit = 'degree')
+                clus_coord = SkyCoord(ra = Ra[colores_index[i]], dec = Dec[colores_index[i]],unit = 'degree' )
+
+                clus_mag = color_B[colores_index[i]]
+                
+                
+                species.SpeciesInit()   
+                synphot = species.SyntheticPhotometry('Paranal/HAWKI.Ks')
+                flux = np.array([synphot.magnitude_to_flux(clus_mag[mag], error=0.2, zp_flux=None)[0] for mag in range(len(clus_mag))])
+                light = sum(flux)
+                
+                cent_sep = clus_cent.separation(clus_coord)
+                clus_sep =np.c_[Ra[colores_index[i]],Dec[colores_index[i]],color_B[colores_index[i]],flux,cent_sep.value]
+                
+                clus_sep = clus_sep[clus_sep[:, -1].argsort()]
+                cum = np.cumsum(clus_sep[:,3])
+                
+                hl_ind = np.where(cum < light/2)
+                # hl_ind = np.where(cum < light)
+
+                eff_rad = clus_sep[hl_ind[0][-1]][-1]*3600
+                
+          
                 m_point = SkyCoord(ra =[np.mean(c2.ra)], dec = [np.mean(c2.dec)])
                 
                 idxc, group_md, d2d,d3d =  ap_coor.search_around_sky(m_point,coordenadas, rad*2)
@@ -324,20 +352,7 @@ def dbscan_GC(pmra, pmdec, x, y,Ra,Dec, color_A, color_B, color_C, clustered_by,
                 # results='/Users/amartinez/Desktop/PhD/Libralato_data/results/'
                 # catal=np.loadtxt(results + 'sec_B_match_GNS_and_WFC3IR_refined_galactic.txt')
                 # ax[1].scatter(catal[:,0], catal[:,1], color = 'k', alpha = 0.01)
-# =============================================================================
-#                 if Ms_match[16] == 14996:
-#                     st_name = 'stA'
-#                 elif Ms_match[16] == 154855:
-#                     st_name = 'stB'
-#                 elif Ms_match[16] == 954199:
-#                     st_name = 'stC'
-#                 elif Ms_match[16] == 9192:
-#                     st_name = 'stD'
-#                 elif Ms_match[16] == 18538:
-#                     st_name = 'stE'
-#                 else:
-#                     st_name = Ms_match[16]
-# =============================================================================
+
                 st_name = Ms_match[16]
                 ax[1].set_title('%.0f'%(st_name), fontsize = 30 )
                 ax[1].scatter(Ra[group_md],Dec[group_md], color=gr_color,s=gr_size,zorder=1,marker='x',alpha = gr_alpha)
@@ -345,7 +360,7 @@ def dbscan_GC(pmra, pmdec, x, y,Ra,Dec, color_A, color_B, color_C, clustered_by,
                 prop = dict(boxstyle='round', facecolor=color_de_cluster , alpha=0.2)
                 # ax[1].text(0.05, 0.95, 'Radius $\sim$ %s"\n stars = %s '%(round(rad.to(u.arcsec).value,2),len(colores_index[i][0])), transform=ax[1].transAxes, fontsize=30,
                 #                         verticalalignment='top', bbox=prop)
-                ax[1].text(0.50, 0.15, 'Radius $\sim$ %s"\n stars = %s '%(round(rad.to(u.arcsec).value,2),len(colores_index[i][0])), transform=ax[1].transAxes, fontsize=30,
+                ax[1].text(0.50, 0.15, 'hl radius $\sim$ %.2f"\n stars = %s '%(eff_rad,len(colores_index[i][0])), transform=ax[1].transAxes, fontsize=30,
                                         verticalalignment='top', bbox=prop)
                 # ax[1].text(0.50, 0.95, 'Radius $\sim$ %.0f"\n stars = %s '%(round(rad.to(u.arcsec).value,2),len(colores_index[i][0])), transform=ax[1].transAxes, fontsize=30,
                 #                         verticalalignment='top', bbox=prop)
@@ -372,9 +387,10 @@ def dbscan_GC(pmra, pmdec, x, y,Ra,Dec, color_A, color_B, color_C, clustered_by,
                 
                 
                 p2d = np.array([Ra[colores_index[i]],Dec[colores_index[i]]]).T
-                al_sh = alphashape.alphashape(p2d,300)
+                al_sh = alphashape.alphashape(p2d,700)
                 contorno = np.array(al_sh.exterior.coords[:])
-                ax[1].plot(contorno[:,0],contorno[:,1],color = 'k',linewidth = 5, label = 'Area = %.2f arcmin2'%(al_sh.area*3600))
+                densidad = len(colores_index[i][0])/(al_sh.area*3600)
+                ax[1].plot(contorno[:,0],contorno[:,1],color = 'k',linewidth = 5, label = '$\\rho$ = %.0f star/min2'%(densidad))
                 ax[1].legend()
                 ax[1].set_xlim(min(Ra),max(Ra))
                 ax[1].set_ylim(min(Dec),max(Dec))
