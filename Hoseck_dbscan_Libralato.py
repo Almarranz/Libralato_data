@@ -62,8 +62,8 @@ morralla ='/Users/amartinez/Desktop/morralla/'
 cls_to_throw = '/Users/amartinez/Desktop/PhD/Libralato_data/cluster_to_throw/'
 pruebas = '/Users/amartinez/Desktop/PhD/Arches_and_Quintuplet_Hosek/pruebas/'
 # 
-# choosen_cluster = 'Arches'#TODO
-choosen_cluster = 'Quintuplet'#TODO 
+choosen_cluster = 'Arches'#TODO
+# choosen_cluster = 'Quintuplet'#TODO 
 ref_frame = 'ecuatorial'#TODO
 # ref_frame = 'galactic'#TODO
 
@@ -170,7 +170,7 @@ elif clustered_by == 'vel_col':
     d_KNN=sorted(dist[:,-1])#distance to the Kth neighbour
 
 lst_d_KNN_sim = []
-for d in range(2):
+for d in range(5):
     mudec_sim,  mura_sim = pmdec_kernel.resample(len(pmdec)), pmra_kernel.resample(len(pmra))
     raoff_sim, decoff_sim = raoff_kernel.resample(len(pmdec)), decoff_kernel.resample(len(pmdec))
     color_sim = color_kernel.resample(len(pmdec))
@@ -226,9 +226,8 @@ props = dict(boxstyle='round', facecolor='w', alpha=0.5)
 # place a text box in upper left in axes coords
 # ax.text(0.55, 0.25, texto, transform=ax.transAxes, fontsize=20,
 #     verticalalignment='top', bbox=props)
-
-ax.set_ylabel('N') 
-plt.savefig('/Users/amartinez/Desktop/PhD/My_papers/Libralato/hist_%s.png'%(choosen_cluster),dpi =300)
+ax.set_ylabel('N')       
+# plt.savefig('/Users/amartinez/Desktop/PhD/My_papers/Libralato/hist_%s.png'%(choosen_cluster),dpi =300)
 
 # %%
 # fig, ax = plt.subplots(1,2,figsize=(20,10))
@@ -302,8 +301,34 @@ for i in range(1):
         verticalalignment='top', bbox=propiedades)
     # prop = dict(boxstyle='round', facecolor=colors[i] , alpha=0.2)
     prop = dict(boxstyle='round', facecolor='#ff7f0e' , alpha=0.2)
+    
+    clus_cent = SkyCoord(ra =[np.mean(RA[colores_index[i]])], dec = [np.mean(DEC[colores_index[i]])],
+                       unit = 'degree')
+    clus_coord = SkyCoord(ra = RA[colores_index[i]], dec = DEC[colores_index[i]],unit = 'degree' )
+    
+    
+    # Added this bit to calculate the half-light radio (eff radio)
+    arches_dbs = arches[colores_index[i]]
+    all_mag_clus = arches_dbs['F153M']
+    
+    species.SpeciesInit()   
+    synphot = species.SyntheticPhotometry('HST/WFC3_IR.F153M')
+    all_flux = np.array([synphot.magnitude_to_flux(all_mag_clus[mag], error=0.2, zp_flux=None)[0] for mag in range(len(arches_dbs))])
+    light = sum(all_flux)
+    
+    cent_sep = clus_cent.separation(clus_coord)
+    flux = np.array([synphot.magnitude_to_flux(arches['F153M'][colores_index[i]][mag], error=0.2, zp_flux=None)[0] for mag in range(len(arches['F153M'][colores_index[i]]))])
+    clus_sep =np.c_[RA[colores_index[i]].value,DEC[colores_index[i]].value,arches['F153M'][colores_index[i]].value,flux,cent_sep.value]
+    
+    clus_sep = clus_sep[clus_sep[:, -1].argsort()]
+    cum = np.cumsum(clus_sep[:,3])
+    
+    hl_ind = np.where(cum < light/2)
+    # hl_ind = np.where(cum < light)
 
-    ax[1].text(0.05, 0.95, 'Radius $\\sim$ %.0f"\n # stars = %s '%(round(rad.to(u.arcsec).value,0),len(colores_index[i][0])), transform=ax[1].transAxes, fontsize=30,
+    eff_rad = clus_sep[hl_ind[0][-1]][-1]*3600
+    
+    ax[1].text(0.05, 0.95, 'hl radius $\\sim$ %.2f"\n # stars = %s '%(eff_rad,len(colores_index[i][0])), transform=ax[1].transAxes, fontsize=30,
                             verticalalignment='top', bbox=prop)
     txt_color = '\n'.join(('$\\overline{f127m-f153m}$ = %.2f'%(np.median(arches['F127M'][colores_index[i]]-arches['F153M'][colores_index[i]])),
                                             '$\\sigma_{(f127m-f153m)}$ = %.2f'%(np.std(arches['F127M'][colores_index[i]]-arches['F153M'][colores_index[i]])),
@@ -335,7 +360,9 @@ for i in range(1):
     ax[2].set_ylabel('f153m',fontsize =30) 
     ax[2].set_xlim(1.5, 5)
     
-    plt.savefig('/Users/amartinez/Desktop/PhD/My_papers/Libralato/%s_hos.png'%(choosen_cluster),dpi =500,bbox_inches = 'tight')
+    
+    
+    plt.savefig('/Users/amartinez/Desktop/PhD/My_papers/Libralato/%s_hos.png'%(choosen_cluster),dpi =300,bbox_inches = 'tight')
     sys.exit('332')
     # %%  
     # names=('Name','F127M','e_F127M','F139M','e_F139M','F153M','e_F153M','dRA',
@@ -347,14 +374,14 @@ for i in range(1):
     all_mag_clus = arches_dbs['F153M']
     # Ra_clus, Dec_clus = np.mean(RA[colores_index[i]]),np.mean(DEC[colores_index[i]])
     
-    clus_cent = SkyCoord(ra =[np.mean(RA[colores_index[i]])], dec = [np.mean(DEC[colores_index[i]])],
-                       unit = 'degree')
-    clus_coord = SkyCoord(ra = RA[colores_index[i]], dec = DEC[colores_index[i]],unit = 'degree' )
+    # clus_cent = SkyCoord(ra =[np.mean(RA[colores_index[i]])], dec = [np.mean(DEC[colores_index[i]])],
+    #                    unit = 'degree')
+    # clus_coord = SkyCoord(ra = RA[colores_index[i]], dec = DEC[colores_index[i]],unit = 'degree' )
     
-    species.SpeciesInit()   
-    synphot = species.SyntheticPhotometry('HST/WFC3_IR.F153M')
-    all_flux = np.array([synphot.magnitude_to_flux(all_mag_clus[mag], error=0.2, zp_flux=None)[0] for mag in range(len(arches_dbs))])
-    light = sum(all_flux)
+    # species.SpeciesInit()   
+    # synphot = species.SyntheticPhotometry('HST/WFC3_IR.F153M')
+    # all_flux = np.array([synphot.magnitude_to_flux(all_mag_clus[mag], error=0.2, zp_flux=None)[0] for mag in range(len(arches_dbs))])
+    # light = sum(all_flux)
     # %%
     # radaii = np.arange(4,10,0.1)
     # # for r in range(1,int(rad.value*3600)):
