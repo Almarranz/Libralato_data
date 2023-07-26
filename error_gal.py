@@ -63,12 +63,43 @@ dmub[noventa]  = 99.99
 
 # np.savetxt(pruebas+'erase_this.txt',np.array([mul_mc,mub_mc,dmul_mc,dmub_mc]).T)
 
-np.savetxt(cata+'GALCEN_%s_PM_galactic_skycoord.txt'%(name),np.array([mul,mub,dmul,dmub]).T,fmt='%.7f',header='mul, mub, dmul, dmub')
+# np.savetxt(cata+'GALCEN_%s_PM_galactic_skycoord.txt'%(name),np.array([mul,mub,dmul,dmub]).T,fmt='%.7f',header='mul, mub, dmul, dmub')
 
 
 
+# %%
+# Transformation for the SgrA* to galactic
+# according to Xu, Zhang, Reid+2022 
+# ra_sA = '17h45m40.032863s'
+# dec_sA = '−29d00m28.24260s'
+# pmra_sA = -3.152*u.mas/u.yr
+# pmdec_sA = -5.586*u.mas/u.yr
 
+# according to Gordon, witt, +2023
+ra_sA = '17h45m40.034047s'
+dec_sA = '−29°00′28.21601" '
+pmra_sA = -3.128*u.mas/u.yr
+pmdec_sA = -5.584*u.mas/u.yr
 
+coor_sA = SkyCoord(ra = ra_sA, dec = dec_sA, 
+                   pm_ra_cosdec = pmra_sA,
+                   pm_dec = pmdec_sA,
+                   frame = 'icrs').galactic
+# %%
+pml_sA = coor_sA.pm_l_cosb.value
+pmb_sA = coor_sA.pm_b.value
+pml_Lib_b = -5.74
+pmb_Lib_E = -3.77
+pmb_Lib_W = -7.91
+neg =-1 
+print('Bulge = %.2f'%(-pml_Lib_b+pml_sA))
+print('East = %.2f'%(-pmb_Lib_E+pml_sA))
+print('West = %.2f'%(-pmb_Lib_W+pml_sA))
+
+print('Bulge = %.2f'%(pml_Lib_b-pml_sA))
+print('East = %.2f'%(pmb_Lib_E-pml_sA))
+print('West = %.2f'%(pmb_Lib_W-pml_sA))
+# Comparing results with Libralato paper
 
 
 
