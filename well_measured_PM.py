@@ -121,15 +121,36 @@ if trim_data=='yes':
     pm_wmp=pm_wmp[error_valid]
     all_eps=all_eps[error_valid]
     print(len(pm_wmp),'Condition b')
+# %%    
     
-    fig, ax = plt.subplots(1,1, figsize=(10,10))
-    ax.scatter(mag,catal[:,5],s=0.1,color='k',alpha=1)
-    ax.scatter(all_eps[:,0],pm_wmp[:,5],s=0.1,color='red',alpha=1)
-    ax.set_ylim(0,10)
-    ax.set_xlim(12,24)
+    fig, ax = plt.subplots(1,2, figsize=(12,6))
+    ax[0].scatter(mag,catal[:,5],s=0.1,color='k',alpha=1)
+    ax[0].scatter(all_eps[:,0],pm_wmp[:,5],s=0.1,color='red',alpha=1)
+    ax[0].set_ylim(0,10)
+    ax[0].set_xlim(12,24)
     pm_wmp=np.c_[pm_wmp,all_eps[:,0]]
+    ax[0].set_xlabel('F139M')
+    ax[0].set_ylabel(r'$\sigma\mathrm{\mu_{ra}\ (mas\ yr^{-1})}$',labelpad=1)
     
-
+    ax[1].scatter(mag,catal[:,7],s=0.1,color='k',alpha=1)
+    ax[1].scatter(all_eps[:,0],pm_wmp[:,7],s=0.1,color='red',alpha=1)
+    ax[1].set_ylim(0,10)
+    ax[1].set_xlim(12,24)
+    pm_wmp=np.c_[pm_wmp,all_eps[:,0]]
+    ax[1].set_xlabel('F139M')
+    ax[1].set_ylabel(r'$\sigma\mathrm{\mu_{dec}\ (mas\ yr^{-1})}$',labelpad=-4)
+    
+    final_cut = np.where((pm_wmp[:,5]<1)&(pm_wmp[:,7]<1))
+    all_eps =all_eps[final_cut]
+    pm_wmp = pm_wmp[final_cut]
+    ax[0].scatter(all_eps[:,0],pm_wmp[:,5],s=0.1,color='olive',alpha=1)
+    ax[1].scatter(all_eps[:,0],pm_wmp[:,7],s=0.1,color='olive',alpha=1)
+    
+    article = '/Users/amartinez/Desktop/PhD/My_papers/Libralato/'
+   
+    
+    # plt.savefig(article + 'trimmed_data_both.png', dpi=300,bbox_inches='tight')
+# %%
 # =============================================================================
 #     # =============================================================================
 #     np.savetxt(results+'refined_%s_PM.txt'%(name),pm_wmp,fmt='%.7f %.7f %.4f %.4f %.5f %.5f %.5f %.5f %.0f %.0f %.0f %.0f %.5f %.5f %.5f %.5f %.5f ',
