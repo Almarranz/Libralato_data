@@ -29,6 +29,8 @@ from datetime import datetime
 from tabulate import tabulate
 from texttable import Texttable
 import latextable
+from scipy.optimize import curve_fit
+from scipy.special import erf 
 # %%plotting pa    metres
 from matplotlib import rc
 from matplotlib import rcParams
@@ -68,7 +70,8 @@ ref_frame = 'ecuatorial'#TODO
 # ref_frame = 'galactic'#TODO
 
 # names=('Name','F127M','e_F127M','F153M','e_F153M','ra*','e_ra*','dec','e_dec','pm_ra*','e_pm_ra*','pm_dec','e_pm_dec','t0','n_epochs','dof','chi2_ra*','chi2_dec','Orig_name','Pclust')>
-chosen_cluster_ls = ['Arches','Quintuplet']
+# chosen_cluster_ls = ['Arches','Quintuplet']
+chosen_cluster_ls = ['Arches']
 for choosen_cluster in chosen_cluster_ls:
     cluster_gone = 'no'
     center_arc = SkyCoord(ra = '17h45m50.65020s', dec = '-28d49m19.51468s', equinox = 'J2000') if choosen_cluster =='Arches' else SkyCoord('17h46m15.13s', '-28d49m34.7s', frame='icrs',obstime ='J2016.0')#Quintuplet
@@ -141,13 +144,16 @@ for choosen_cluster in chosen_cluster_ls:
     # clustered_by = 'all'#TODO1
     # clustered_by = 'vel_col'#TODO
     
-    with open(pruebas  + '%s_statistic.txt'%(choosen_cluster), 'w') as clus_f:
-        clus_f.write('# mura 0 mudec 1 sig_mura 2 sig_mudec 3 phy_rad 4 hl_rad 5 stars 6 mean_color 7 sig_color 8 delta_color 9  knn 10 \n')
-    
-    sample_dist_ls = [5,10,15,20,25,30,35,40,45,50]
-    # sample_dist_ls = [20]
+    # Uncomment this and the correspongding chunk below to save the lists
+# =============================================================================
+#     with open(pruebas  + '%s_statistic.txt'%(choosen_cluster), 'w') as clus_f:
+#         clus_f.write('# mura 0 mudec 1 sig_mura 2 sig_mudec 3 phy_rad 4 hl_rad 5 stars 6 mean_color 7 sig_color 8 delta_color 9  knn 10 \n')
+#     
+# =============================================================================
+    # sample_dist_ls = [5,10,15,20,25,30,35,40,45,50]
+    sample_dist_ls = [20]
     for samples_dist in sample_dist_ls:
-        for looping in range(10):
+        for looping in range(1):
         
             # samples_dist = 30
             RA_ = np.array(RA.value)
@@ -331,6 +337,8 @@ for choosen_cluster in chosen_cluster_ls:
                 
                 clus_sep = clus_sep[clus_sep[:, -1].argsort()]
                 cum = np.cumsum(clus_sep[:,3])
+                norm_cum = cum/light
+                
                 
                 hl_ind = np.where(cum < light/2)
                 # hl_ind = np.where(cum < light)
@@ -378,16 +386,18 @@ for choosen_cluster in chosen_cluster_ls:
                 cum = np.cumsum(clus_sep[:,3])
                 eff_rad = clus_sep[hl_ind[0][-1]][-1]*3600
                 
-                with open(pruebas  + '%s_statistic.txt'%(choosen_cluster), 'a') as clus_f:
-                    # clus_f.write('# mura mudec sig_mura sig_mudec hl_rad stars mean_color sig_color delta_color knn \n')
-                    clus_f.write('%.2f %.2f %.2f %.2f %.2f %.2f %.0f %.2f %.2f %.2f %.0f \n'
-                                  %(mura_mean,mudec_mean, mura_sig, mudec_sig,phy_rad,eff_rad,len(colores_index[i][0]),
-                                    np.median(arches['F127M'][colores_index[i]]-arches['F153M'][colores_index[i]]),
-                                    np.std(arches['F127M'][colores_index[i]]-arches['F153M'][colores_index[i]]),
-                                    max(arches['F127M'][colores_index[i]]-arches['F153M'][colores_index[i]])-min(arches['F127M'][colores_index[i]]-arches['F153M'][colores_index[i]]),
-                                    samples_dist))
-    
-                
+# =============================================================================
+#                 with open(pruebas  + '%s_statistic.txt'%(choosen_cluster), 'a') as clus_f:
+#                     # clus_f.write('# mura mudec sig_mura sig_mudec hl_rad stars mean_color sig_color delta_color knn \n')
+#                     clus_f.write('%.2f %.2f %.2f %.2f %.2f %.2f %.0f %.2f %.2f %.2f %.0f \n'
+#                                   %(mura_mean,mudec_mean, mura_sig, mudec_sig,phy_rad,eff_rad,len(colores_index[i][0]),
+#                                     np.median(arches['F127M'][colores_index[i]]-arches['F153M'][colores_index[i]]),
+#                                     np.std(arches['F127M'][colores_index[i]]-arches['F153M'][colores_index[i]]),
+#                                     max(arches['F127M'][colores_index[i]]-arches['F153M'][colores_index[i]])-min(arches['F127M'][colores_index[i]]-arches['F153M'][colores_index[i]]),
+#                                     samples_dist))
+#     
+#                 
+# =============================================================================
             
             # plt.savefig('/Users/amartinez/Desktop/PhD/My_papers/Libralato/%s_hos.png'%(choosen_cluster),dpi =300,bbox_inches = 'tight')
             
@@ -401,33 +411,27 @@ for choosen_cluster in chosen_cluster_ls:
             all_mag_clus = arches_dbs['F153M']
             
            
-            # %
-            # cent_sep = clus_cent.separation(clus_coord)
-            # flux = np.array([synphot.magnitude_to_flux(arches['F153M'][colores_index[i]][mag], error=0.2, zp_flux=None)[0] for mag in range(len(arches['F153M'][colores_index[i]]))])
-            # clus_sep =np.c_[RA[colores_index[i]].value,DEC[colores_index[i]].value,arches['F153M'][colores_index[i]].value,flux,cent_sep.value]
-            
-            # clus_sep = clus_sep[clus_sep[:, -1].argsort()]
-            # phy_rad = clus_sep[:,-1][-1]*3600
-            # cum = np.cumsum(clus_sep[:,3])
-            # eff_rad = clus_sep[hl_ind[0][-1]][-1]*3600
+            def model_function(x, half_light_radius):
+                return 0.5 * (1 + erf((x - half_light_radius) / (np.sqrt(2) * half_light_radius)))
+
+            # Perform the fit and obtain the half-light radius
+            popt, _ = curve_fit(model_function, clus_sep[:,-1]*3600, norm_cum, p0=[5])  # Adjust the initial guess as needed
+            half_light_radius = popt[0]
+            fine_distances = np.linspace(clus_sep[:,-1][0]*3600, clus_sep[:,-1][-1]*3600, 1000)
+            model_values = model_function(fine_distances, half_light_radius)
     # =============================================================================
-    #         fig, ax = plt.subplots(1,1)
-    #         ax.scatter(clus_sep[:,-1]*3600,cum, label = 'hl_rad = %.2f\nRadius$\sim$%.1f'%(eff_rad,phy_rad))
-    #         ax.axhline(light/2)
-    #         ax.axvline(eff_rad)
-    #         ax.set_xlabel('Radius(arcsec)')
-    #         ax.set_ylabel('Flux')
-    #         ax.set_title('%s (knn = %s)'%(choosen_cluster,samples_dist))
-    #         ax.legend()
-    #         hl_ind = np.where(cum < light/2)
-    #         # hl_ind = np.where(cum < light)
-    #         fig, ax = plt.subplots(1,1)
-    #         ax.set_title('%s (knn = %s)'%(choosen_cluster,samples_dist))
-    #         ax.scatter(RA, DEC, color = 'k', alpha = 0.05)
-    #         ax.scatter(RA[colores_index[i]],DEC[colores_index[i]])
-    #         
-    #         ax.scatter(clus_sep[:,0][hl_ind],clus_sep[:,1][hl_ind], label = 'hl_rad = %.2f\nRadius$\sim$%.1f'%(eff_rad,phy_rad))
-    #         ax.legend()
+    
+            fig, ax = plt.subplots(1,1)
+            ax.scatter(clus_sep[:,-1]*3600,norm_cum, label = 'hl_rad = %.2f\nRadius$\sim$%.1f'%(eff_rad,phy_rad))
+            ax.plot(fine_distances, model_values)
+            ax.axhline(sum(all_flux/light)/2)
+            ax.axvline(eff_rad)
+            ax.set_xlabel('Radius(arcsec)')
+            ax.set_ylabel('Norm. flux')
+            ax.set_title('%s (knn = %s)'%(choosen_cluster,samples_dist))
+            ax.legend()
+            hl_ind = np.where(cum < light/2)
+            
     # =============================================================================
             
             
