@@ -52,6 +52,8 @@ resultados='/Users/amartinez/Desktop/PhD/Libralato_data/results/'
 # name='ACSWFC'
 name='WFC3IR'
 trimmed_data='yes'
+sgA_rest = 'yes'
+# trimmed_data='no'
 if trimmed_data=='yes':
     pre=''
 elif trimmed_data=='no':
@@ -89,9 +91,12 @@ mud=df_np[:,11]
 dmua=df_np[:,10]
 dmud=df_np[:,12]
 
-mul=gal_coor[:,0]
-mub=gal_coor[:,1]
-
+if sgA_rest =='no':
+    mul=gal_coor[:,0]
+    mub=gal_coor[:,1]
+elif sgA_rest == 'yes':
+    mul=gal_coor[:,0] + 6.396
+    mub=gal_coor[:,1] - 0.239
 dmul=gal_coor[:,2]
 dmub=gal_coor[:,3]
 
@@ -100,7 +105,7 @@ dmub=gal_coor[:,3]
 #%%
 
 #%
-lim_dmul=2
+lim_dmul=1
 accu=np.where((abs(dmul)<lim_dmul) & (abs(dmub)<lim_dmul))#Are they in the paper selecting by the error of the galactic or equatorial coordintes???
 
 #%
@@ -131,11 +136,14 @@ ax.axvline(np.mean(mul), color='r', linestyle='dashed', linewidth=3)
 ax.legend(['List=%s, %s, mean= %.2f, std=%.2f'
                   %(name,len(mul),np.mean(mul),np.std(mul))],fontsize=12,markerscale=0,shadow=True,loc=1,handlelength=-0.0)
 ax.set_ylabel('N')
-ax.set_xlim(-13,3)
+if sgA_rest == 'no':
+    ax.set_xlim(-13,3)
+elif sgA_rest == 'yes':
+    ax.set_xlim(-10,10)
 ax.set_xlabel(r'$\mathrm{\mu_{l} (mas\ yr^{-1})}$') 
 ax.invert_xaxis()
 y=h[0]#height for each bin
-
+# sys.exit('143')
 #%
 
 
@@ -178,20 +186,36 @@ def prior_transform(utheta):
     to the parameter of interest `x ~ Unif[-10., 10.)`."""
     #x = 2. * u - 1.  # scale and shift to [-1., 1.)
     #x *= 10.  # scale to [-10., 10.)
-    umu1, usigma1, uamp1,  umu2, usigma2, uamp2, umu3, usigma3, uamp3= utheta
-     
-#%     mu1 = -1. * umu1-8   # scale and shift to [-10., 10.)
-    mu1 = -4*umu1-4/2  # yellow
-    sigma1 = 3* (usigma1)   
-    amp1 = 1 * uamp1 
-   
-    mu2 = -5*umu2-5/2 # red
-    sigma2 =4*usigma2   #for section 'All' sigma2 is better 4, for section 'A' works better with 3-3.5
-    amp2 = .5* uamp2   
+    if sgA_rest == 'no':
+        umu1, usigma1, uamp1,  umu2, usigma2, uamp2, umu3, usigma3, uamp3= utheta
+         
+    #%     mu1 = -1. * umu1-8   # scale and shift to [-10., 10.)
+        mu1 = -4*umu1-4/2  # yellow
+        sigma1 = 3* (usigma1)   
+        amp1 = 1 * uamp1 
+       
+        mu2 = -5*umu2-5/2 # red
+        sigma2 =4*usigma2   #for section 'All' sigma2 is better 4, for section 'A' works better with 3-3.5
+        amp2 = .5* uamp2   
+    
+        mu3 = -7*umu3-7/2 # black
+        sigma3 = 3*(usigma3)
+        amp3 = 1*uamp3
+    elif sgA_rest == 'yes':
+        umu1, usigma1, uamp1,  umu2, usigma2, uamp2, umu3, usigma3, uamp3= utheta
+         
+    #%     mu1 = -1. * umu1-8   # scale and shift to [-10., 10.)
+        mu1 = 4*umu1-2/2  # yellow
+        sigma1 = 3* (usigma1)   
+        amp1 = 1 * uamp1 
+       
+        mu2 = 0.95*umu2-0.0/2 # red
+        sigma2 =4*usigma2   #for section 'All' sigma2 is better 4, for section 'A' works better with 3-3.5
+        amp2 = .5* uamp2   
 
-    mu3 = -7*umu3-7/2 # black
-    sigma3 = 3*(usigma3)
-    amp3 = 1*uamp3
+        mu3 = -3*umu3-2/2 # black
+        sigma3 = 3*(usigma3)
+        amp3 = 1*uamp3
         
     return mu1, sigma1, amp1, mu2, sigma2, amp2, mu3, sigma3, amp3
     
@@ -227,11 +251,13 @@ sp=np.ones(9)*0.68
 fig, axes = dyplot.cornerplot(res, color='royalblue' ,show_titles=True,quantiles=[0.16,0.5,0.84],truths=mean,
                                   quantiles_2d=[0.16,0.5,0.84],
                                   title_kwargs=({'x': 0.65, 'y': 1.05}), labels=labels,
-                                  fig=plt.subplots(9, 9, figsize=(28, 28)))
-
-plt.legend(['$\mu_{l}$ %s'%(name)],fontsize=70,markerscale=0,shadow=True,bbox_to_anchor=(1.2,9.8),handlelength=-0.0)
+                                  fig=plt.subplots(9, 9, figsize=(35, 35)))
+# axes[0].set_xlabel('yomamma')
+plt.legend(['$\mu_{l}$'],fontsize=70,markerscale=0,shadow=True,bbox_to_anchor=(1.2,9.8),handlelength=-0.0)
+# plt.savefig('/Users/amartinez/Desktop/PhD/My_papers/Libralato/mul_corner.png',dpi =300, bbox_inches = 'tight') 
 plt.show() 
-#% 
+
+#%%
 
 results = sampler.results
 print(results['logz'][-1])
@@ -276,7 +302,7 @@ ax.yaxis.set_major_formatter(FormatStrFormatter('%.2f'))
 ax.set_ylabel('N', fontsize = 30)
 ax.set_xlabel(r'$\mathrm{\mu_{l}\,(mas\ yr^{-1})}$',fontsize = 30) 
 article = '/Users/amartinez/Desktop/PhD/My_papers/Libralato/'
-plt.savefig(article + 'nsd_limdmu_l%s.png'%(lim_dmul), dpi=300,bbox_inches='tight')
+# plt.savefig(article + 'nsd_limdmu_l%s.png'%(lim_dmul), dpi=300,bbox_inches='tight')
 with open(article +'nsd_values_limdmu%s.txt'%(lim_dmul), 'w') as arch:
     arch.write('#1.Absolute 2. Relative 3. Error\n#Bulge: pm , dispersion. East:pm , dispersion. West: pm , dispersion \n%.2f %.2f %.2f %.2f %.2f %.2f\n%.2f %.2f %.2f %.2f %.2f %.2f '%(mean[3],mean[4],mean[0],mean[1],mean[6],mean[7],mean[3]-mean[3],mean[4],mean[0]-mean[3],mean[1],mean[6]-mean[3],mean[7]))
 with open(article +'nsd_values_limdmu%s.txt'%(lim_dmul), 'a') as arch:
