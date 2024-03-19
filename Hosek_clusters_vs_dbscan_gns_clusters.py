@@ -81,7 +81,14 @@ pruebas_hosek = '/Users/amartinez/Desktop/PhD/Arches_and_Quintuplet_Hosek/prueba
 
 
 
+gns_all = np.loadtxt('/Users/amartinez/Desktop/morralla/GNS1_f10c2_dmu1_at_GNS2_f4c3_2024-03-15 10:49:03.111142/cluster_num0_0_knn15_area3.00/cluster0_0_0_knn_50_area_2.84_pm_color.txt')
 gns_clus = np.loadtxt('/Users/amartinez/Desktop/morralla/GNS1_f10c2_dmu1_at_GNS2_f4c3_2024-03-15 10:49:03.111142/cluster_num0_0_knn15_area3.00/cluster0_0_0_knn_50_area_2.84_pm_color.txt')
+
+gns_clus = gns_clus[gns_clus[:,-1].argsort()]
+perc_b_gns = 0.5
+bright_gns = int(len(gns_clus)*perc_b_gns)
+gns_clus = gns_clus[0: bright_gns]
+print(len(gns_clus))
 # =============================================================================
 # gns_clus = np.loadtxt('/Users/amartinez/Desktop/PhD/HAWK/pm_gns1_gns2_off/pm_GaiaRF_ep1_f10c2_ep2_f4c3deg2_dmax100_sxy2.txt')
 # gns_clus[:,0] = gns_clus[:,14]
@@ -101,45 +108,46 @@ elif choosen_cluster == 'Quintuplet':
     center_arc = SkyCoord('17h46m14.68579s', '-28d49m38.99169s', frame='icrs',obstime ='J2016.0',equinox = 'J2000')#Quintuplet
     arches = ascii.read(catal + 'Quintuplet_from_Article.txt') 
     arches_all = ascii.read(catal + 'Quintuplet_from_Article.txt') 
-    
-bright = int(len(arches)*0.005)
-arches = arches[:bright]
 
-RA_DEC = center_arc.spherical_offsets_by(arches['dRA'], arches['dDE'])
-
-RA = RA_DEC.ra
-DEC = RA_DEC.dec
-
-np.savetxt('/Users/amartinez/Desktop/morralla/Quintuplet_ra_dec.txt',
-           np.array([RA.value,DEC.value, arches['pmRA'].value, arches['pmDE'].value]).T,
-           fmt = '%.8f')
-# sys.exit()
-arc_cen_off_ra, arc_cen_off_dec = center_arc.spherical_offsets_to(center_arc)
-arc_cen_off_ra, arc_cen_off_dec = arc_cen_off_ra.to(u.arcsec), arc_cen_off_dec.to(u.arcsec) 
-# hp = arches['Pclust']>0.1
-# arches = arches[hp]
+perc_b = 0.3
+bright = int(len(arches)*perc_b)
+arches = arches[0:bright]
 
 
 
-# sys.exit(118)
-# %%
 # Select the time you have to move the stars according to the observation time
 # t_inter = Time(['2022-05-27T00:00:00','2011-02-15T00:00:00'],scale='utc')
 t_inter = Time(['2015-06-08T00:00:00','2011-06-15T00:00:00'],scale='utc')
 d_time = (t_inter[0]-t_inter[1]).to(u.yr)
 
 # lets move Hosek stars to GNS2 epoch (2022) before the matching
-# arches['dRA'] = arches['dRA'] + arches['pmRA']*d_time.value/1000
-# arches['dDE'] = arches['dDE'] + arches['pmDE']*d_time.value/1000
-arches['dRA'] = arches['dRA'] + arches['pmRA']*d_time
-arches['dDE'] = arches['dDE'] + arches['pmDE']*d_time
+arches['dRA'] = arches['dRA'] + arches['pmRA']*d_time.value/1000
+arches['dDE'] = arches['dDE'] + arches['pmDE']*d_time.value/1000
+# arches['dRA'] = arches['dRA'] + arches['pmRA']*d_time
+# arches['dDE'] = arches['dDE'] + arches['pmDE']*d_time
 
+RA_DEC = center_arc.spherical_offsets_by(arches['dRA'], arches['dDE'])
+
+RA = RA_DEC.ra
+DEC = RA_DEC.dec
+arches.add_column(RA_DEC.ra, name='RA', index=-1)
+arches.add_column(RA_DEC.dec, name='DEC', index=-1)
 center = (arches['F127M'] - arches['F153M'] >   1.7)
-arches = arches[center]
+# arches = arches[center]
 
-gns_coord = SkyCoord(ra = gns_clus[:,0], dec = gns_clus[:,1], unit = 'degree',
-                     frame = 'fk5',equinox ='J2000',obstime='J2015.5')
+epm_l = 0.5
+epm = (arches['e_pmRA']<epm_l) & (arches['e_pmDE']<epm_l)
+arches = arches[epm]
+RA_DEC = RA_DEC[epm]
 
+def make_coord(ra,dec):
+    gns_coord = SkyCoord(ra = ra, dec = dec, unit = 'degree',
+                         frame = 'fk5',equinox ='J2000',obstime='J2015.5')
+    return gns_coord
+
+# gns_coord = SkyCoord(ra = gns_clus[:,0], dec = gns_clus[:,1], unit = 'degree',
+#                      frame = 'fk5',equinox ='J2000',obstime='J2015.5')
+gns_coord = make_coord(gns_clus[:,0], gns_clus[:,1])
 
 gns_coord = gns_coord.transform_to('icrs')
 gns_dra, gns_ddec = gns_coord.spherical_offsets_to(center_arc.frame)
@@ -148,112 +156,69 @@ gns_dra = gns_dra.to(u.arcsec)
 gns_ddec = gns_ddec.to(u.arcsec)
 gns_off_coor = SkyCoord(ra = gns_dra, dec = gns_ddec)
 
-gns_clus = np.c_[gns_clus, gns_dra.value, gns_ddec.value]
+gns_clus = np.c_[gns_clus, gns_dra.value*-1+0.08, gns_ddec.value*-1-0.01]
 
-
+r_aro = 40*u.arcsec
 gns_cent = SkyCoord(ra = [np.mean(gns_dra)] , dec = [np.mean(gns_ddec)])
-RA_DEC = SkyCoord(ra = arches['dRA'], dec = arches['dDE'])
-around_arc =  ap_coor.search_around_sky(gns_cent,RA_DEC,30*u.arcsec)
-around_gns =  ap_coor.search_around_sky(gns_cent,gns_off_coor,30*u.arcsec)
+RA_DEC_off = SkyCoord(ra = arches['dRA'], dec = arches['dDE'])
+around_arc =  ap_coor.search_around_sky(gns_cent,RA_DEC_off,r_aro)
+around_gns =  ap_coor.search_around_sky(gns_cent,gns_off_coor,r_aro)
 
 arches = arches[around_arc[1]]
+RA_DEC = RA_DEC[around_arc[1]]
 gns_clus = gns_clus[around_gns[1]]
 
+gns_coord = make_coord(gns_clus[:,0], gns_clus[:,1])
 
-# RA_DEC = SkyCoord(ra = arches['dRA'], dec = arches['dDE'])
-
-# around_ls = np.empty(0)
-# ind_gns = np.empty(0)
-# rad = 0.7*u.arcsec#!!!
-# for i in range(len(gns_clus)):
-# # for i in range(1):
-#     m_point = SkyCoord(ra = [gns_clus[i,-2]], dec = [gns_clus[i,-1]],
-#                        unit = 'arcsec')
-#     idxc, group_md, d2d,d3d =  ap_coor.search_around_sky(m_point,RA_DEC,rad)
-#     # around_ls.append(group_md)
-#     around_ls = np.append(around_ls,group_md)
-#     if len(group_md) >0:
-#         ind_gns = np.append(ind_gns,i).astype(int)
-        
-#     # print(len(group_md))
-# # %
-# # import pandas as pd
-# ar_uni = np.unique(around_ls).astype(int)
-
-# arches = arches[ar_uni]
 
 # %%
-fig, ax = plt.subplots(1,1)
+idx = RA_DEC.match_to_catalog_sky(gns_coord)
+valid = np.where(idx[1]<0.1*u.arcsec)#!!!
+arches_match=arches[valid]
+gns_match=gns_clus[idx[0][valid]]
+
+
+dmu_ra = arches_match['pmRA']- gns_match[:,2]
+dmu_de = arches_match['pmDE']- gns_match[:,3]
+
+print('mu_ra = %.2f +- %.2f'%(np.mean(dmu_ra),np.std(dmu_ra)))
+print('mu_de = %.2f +- %.2f'%(np.mean(dmu_de),np.std(dmu_de)))
+print('Mathing stars =',len(arches_match))
+# print(np.mean(dmu_ra))
+# print(np.std(dmu_ra))
+# print(np.mean(dmu_de))
+# print(np.std(dmu_de))
+# %%
+fig, ax = plt.subplots(1,3)
 
 # ax.scatter(arches_all['dRA'], arches_all['dDE'], label ='Hosek all')
-ax.scatter(gns_clus[:,-2], gns_clus[:,-1], label = 'GNS offsets')
-ax.scatter(arches['dRA'], arches['dDE'], label ='Hosek offsets')
-ax.scatter(arc_cen_off_ra,arc_cen_off_dec)
-ax.legend(fontsize = 10)
-ax.axis('scaled')
-sys.exit(186)
+ax[0].scatter(gns_clus[:,-2], gns_clus[:,-1], label = 'GNS offsets')
+ax[0].scatter(arches['dRA'], arches['dDE'], label ='Hosek (brighter %.1f %%)'%(perc_b*100),zorder = 0)
+# ax.scatter(arc_cen_off_ra,arc_cen_off_dec)
+ax[0].legend(fontsize = 10)
+ax[0].axis('scaled')
 
+ax[1].scatter(arches_all['F153M'],arches_all['e_pmRA'], color = 'k', s =5, alpha = 0.1)
+ax[1].scatter(arches['F153M'],arches['e_pmRA'], color =  '#ff7f0e')
+ax[1].scatter(arches_match['F153M'],arches_match['e_pmDE'], color = 'green')
+
+ax[2].hist(arches_match['F153M']-gns_match[:,-3])
+
+# sys.exit()
 # %%
 
-m, (s_ls, t_ls)= aa.find_transform(gns_clus[:,-2:]
-                                    ,np.array([arches['dRA'].value, arches['dDE'].value]).T,
-                                    max_control_points=200)
-
-print("Translation: (x, y) = (%.2f, %.2f)"%(m.translation[0],m.translation[1]))
-print("Rotation: %.1f degrees"%(m.rotation * 180.0 /np.pi)) 
-print("Scale factor: %.4f"%(m.scale))
-# %%
-
-stat = np.loadtxt(morralla + 'test_bright.txt')
-
-
-
-print('mul mean = %.2f, mul sigma = %.2f'%(np.mean(stat[:,2]-stat[:,6]),np.std(stat[:,2]-stat[:,6]) ))
-print('mub mean = %.2f, mub sigma = %.2f'%(np.mean(stat[:,3]-stat[:,7]),np.std(stat[:,3]-stat[:,7]) ))
-
-t,(_,_) =aa.find_transform( stat[:,0:2], stat[:,4:6],max_control_points=3)
-
-print("Translation: (x, y) = (%.2f, %.2f)"%(t.translation[0],t.translation[1]))
-print("Rotation: %.1f degrees"%(t.rotation * 180.0 /np.pi)) 
-print("Scale factor: %.4f"%(t.scale))
-
-# fig, ax = plt.subplots(1,1)
-# ax.scatter()
-
-
-aa_test = np.loadtxt(morralla + 'test_bright.txt')
-
-gns_coord_b = SkyCoord(ra = aa_test[:,0], dec = aa_test[:,1],unit = 'degree',
-                     frame = 'fk5',equinox ='J2000',obstime='J2015.5')
-hos_coord_b = SkyCoord(ra = aa_test[:,4], dec = aa_test[:,5], unit = 'degree',
-                     frame='icrs',obstime ='J2016.0',equinox = 'J2000')
-
-gns_coord_b = gns_coord_b.transform_to('icrs')
-gns_off_b = gns_coord_b.spherical_offsets_to(center_arc.frame)
-hos_off_b = hos_coord_b.spherical_offsets_to(center_arc.frame)
-
-gns_off_b = np.array(gns_off_b).T
-hos_off_b = np.array(hos_off_b).T
-# t = aa.estimate_transform('affine', aa_test[0:2], aa_test[4:6])
-tb,(_,_) =aa.find_transform(hos_off_b,gns_off_b,max_control_points=3)
+hos_off_b= np.array([arches_match['dRA'].value,arches_match['dDE'].value]).T
+gns_off_b = np.array([gns_match[:,-2], gns_match[:,-1]]).T
+tb,(sr_ls,tr_ls) =aa.find_transform(hos_off_b,gns_off_b,max_control_points=len(arches_match))
 
 print("Translation: (x, y) = (%.2f, %.2f)"%(tb.translation[0],tb.translation[1]))
 print("Rotation: %.1f degrees"%(tb.rotation * 180.0 /np.pi)) 
 print("Scale factor: %.4f"%(tb.scale))
+print('len(sr_ls)',len(sr_ls))
 
 
-fig, ax = plt.subplots(1,2)
-
-gns_off_baa = aa.matrix_transform(gns_off_b,tb)
-
-ax[0].scatter(stat[:,0], stat[:,1])
-ax[0].scatter(stat[:,4], stat[:,5])
-ax[1].scatter(hos_off_b[:,0],  hos_off_b[:,1],s =100, label = 'HOS')
-ax[1].scatter(gns_off_b[:,0], gns_off_b[:,1], label = 'GNS')
-ax[1].scatter(gns_off_baa[:,0], gns_off_baa[:,1], label = 'GNS_aa')
-ax[1].legend()
-
-
+# gns_off_b1 = aa.matrix_transform(gns_off_b, tb)
+# tb1,(sr_ls1,tr_ls1) =aa.find_transform(hos_off_b,gns_off_b1,max_control_points=40)
 
 
 
